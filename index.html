@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -68,12 +67,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .item-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item-meta  { font-size: 13px; color: var(--text2); margin-bottom: 7px; }
 .chevron { color: var(--text3); font-size: 20px; }
+
+/* Photo mode selector */
+.mode-selector { display: flex; gap: 8px; margin-bottom: 16px; background: var(--surface2); border-radius: var(--radius-sm); padding: 4px; }
+.mode-btn { flex: 1; padding: 12px 8px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; background: transparent; color: var(--text2); transition: all 0.2s; }
+.mode-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+
+/* Photo grid — dynamic columns */
 .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 .photo-slot { aspect-ratio: 1; border-radius: var(--radius-sm); border: 2px dashed var(--border2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; background: var(--surface2); }
 .photo-slot img { width: 100%; height: 100%; object-fit: cover; }
 .photo-slot .slot-icon  { font-size: 30px; }
 .photo-slot .slot-label { font-size: 12px; color: var(--text3); margin-top: 4px; font-weight: 500; }
 .photo-slot .remove-btn { position: absolute; top: 7px; right: 7px; width: 28px; height: 28px; background: rgba(0,0,0,0.65); border-radius: 50%; border: none; color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2; }
+.add-more-slot { grid-column: span 2; border-radius: var(--radius-sm); border: 2px dashed var(--border2); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; cursor: pointer; background: var(--surface2); font-size: 15px; font-weight: 600; color: var(--text2); }
+
+/* Next photo prompt banner */
+.next-photo-banner { background: var(--navy); color: #fff; border-radius: var(--radius-sm); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.next-photo-banner span { font-size: 15px; font-weight: 600; }
+.next-photo-banner button { padding: 10px 18px; border: none; border-radius: 10px; background: #fff; color: var(--navy); font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+
 .section-title { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin: 20px 0 10px; }
 .field { background: var(--surface); border-radius: var(--radius-sm); border: 0.5px solid var(--border); padding: 13px 15px; margin-bottom: 8px; }
 .field label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
@@ -114,13 +127,47 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .api-input:focus { border-color: var(--navy); }
 .api-note  { font-size: 12px; color: var(--text3); margin-top: 10px; line-height: 1.5; }
 input[type="file"] { display: none; }
+
+/* Bottom back button */
+.bottom-nav { padding: 12px 16px 36px; background: var(--bg); border-top: 0.5px solid var(--border); display: flex; gap: 10px; }
+.btn-back-bottom { flex: 1; padding: 16px; border: 1.5px solid var(--border2); border-radius: var(--radius); background: var(--surface); font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text2); display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+/* Photos save modal with hold-to-save */
+.photo-save-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.photo-save-item { border-radius: var(--radius-sm); overflow: hidden; position: relative; aspect-ratio: 1; }
+.photo-save-item img { width: 100%; height: 100%; object-fit: cover; }
+.photo-save-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 11px; font-weight: 600; text-align: center; padding: 5px; }
+.photo-save-tip { background: var(--surface2); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px; font-size: 14px; color: var(--text2); line-height: 1.5; text-align: center; }
+
+/* Floating suggestions button */
+.float-suggest { position: fixed; bottom: 90px; right: calc(50% - 215px + 12px); width: 42px; height: 42px; border-radius: 50%; background: var(--surface); border: 1.5px solid var(--border2); box-shadow: 0 2px 10px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; z-index: 30; transition: transform 0.15s; }
+.float-suggest:active { transform: scale(0.9); }
+@media (max-width: 430px) { .float-suggest { right: 12px; } }
+
+/* Suggestions panel */
+.suggest-panel { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; padding: 20px; }
+.suggest-inner { background: var(--surface); border-radius: 20px; padding: 24px 20px 20px; width: 100%; max-width: 430px; max-height: 75vh; display: flex; flex-direction: column; }
+.suggest-inner h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.suggest-inner p { font-size: 13px; color: var(--text3); margin-bottom: 14px; }
+.suggest-input-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.suggest-input-row textarea { flex: 1; padding: 12px; border-radius: 10px; border: 1.5px solid var(--border2); font-size: 15px; font-family: inherit; outline: none; background: var(--surface2); color: var(--text); resize: none; height: 60px; }
+.suggest-input-row textarea:focus { border-color: var(--navy); }
+.suggest-add-btn { padding: 0 16px; border: none; border-radius: 10px; background: var(--navy); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; align-self: flex-end; height: 44px; }
+.suggest-list { flex: 1; overflow-y: auto; margin-bottom: 14px; }
+.suggest-item { background: var(--surface2); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; }
+.suggest-item-text { flex: 1; font-size: 14px; color: var(--text); line-height: 1.4; }
+.suggest-item-del { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; }
+.suggest-empty { text-align: center; color: var(--text3); font-size: 14px; padding: 20px; }
+.suggest-actions { display: flex; gap: 8px; }
+.suggest-actions button { flex: 1; padding: 14px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; border: none; }
+.suggest-copy-btn { background: var(--teal); color: #fff; }
+.suggest-close-btn { background: var(--surface2); color: var(--text2); }
 </style>
 </head>
 <body>
 <div class="app">
 
 <!-- API KEY -->
-
 <div class="screen active" id="screen-apikey">
   <div class="content">
     <div class="api-wrap">
@@ -135,7 +182,6 @@ input[type="file"] { display: none; }
 </div>
 
 <!-- HOME -->
-
 <div class="screen" id="screen-home">
   <div class="header">
     <div style="flex:1"><h1>Vinted Lister</h1></div>
@@ -158,28 +204,36 @@ input[type="file"] { display: none; }
 </div>
 
 <!-- ADD PHOTOS -->
-
 <div class="screen" id="screen-addphotos">
   <div class="header">
     <button class="header-back" onclick="goHome()">←</button>
-    <div><h1>Add Photos</h1><div class="header-sub">Tap each slot to add a photo</div></div>
+    <div><h1 id="addphotos-title">Add Photos</h1><div class="header-sub" id="addphotos-sub">Choose your capture method</div></div>
   </div>
-  <div class="content">
-    <div class="photo-grid">
-      <div class="photo-slot" id="slot-0" onclick="triggerPhoto(0)"><div class="slot-icon">📷</div><div class="slot-label">Photo 1</div></div>
-      <div class="photo-slot" id="slot-1" onclick="triggerPhoto(1)"><div class="slot-icon">📷</div><div class="slot-label">Photo 2</div></div>
-      <div class="photo-slot" id="slot-2" onclick="triggerPhoto(2)"><div class="slot-icon">＋</div><div class="slot-label">Photo 3</div></div>
-      <div class="photo-slot" id="slot-3" onclick="triggerPhoto(3)"><div class="slot-icon">＋</div><div class="slot-label">Photo 4</div></div>
+  <div class="content" style="padding-bottom: 100px;">
+    <!-- Mode selector -->
+    <div class="mode-selector">
+      <button class="mode-btn" id="mode-btn-camera" onclick="setPhotoMode('camera')">📷 Camera</button>
+      <button class="mode-btn" id="mode-btn-library" onclick="setPhotoMode('library')">🖼️ Library</button>
     </div>
+
+    <!-- Next photo banner (camera mode) -->
+    <div id="next-photo-banner" class="next-photo-banner" style="display:none;">
+      <span id="next-photo-text">📷 Ready for next photo</span>
+      <button onclick="triggerNextCamera()">Take Photo</button>
+    </div>
+
+    <div class="photo-grid" id="photo-grid"></div>
     <div id="photo-msg" style="text-align:center;color:var(--text3);font-size:14px;margin-bottom:20px;font-weight:500;">Add at least 1 photo to continue</div>
-    <input type="file" id="photo-input" accept="image/*" onchange="handlePhoto(event)" />
+
+    <input type="file" id="photo-input-camera"  accept="image/*" capture="environment" onchange="handlePhoto(event,'camera')" />
+    <input type="file" id="photo-input-library" accept="image/*" multiple onchange="handlePhoto(event,'library')" />
+
     <button class="btn btn-teal" id="save-photos-btn" onclick="savePhotos()" disabled>Save Photos →</button>
     <button class="btn btn-outline" onclick="goHome()">Cancel</button>
   </div>
 </div>
 
 <!-- ITEM DETAIL -->
-
 <div class="screen" id="screen-detail">
   <div class="header">
     <button class="header-back" onclick="goHome()">←</button>
@@ -192,51 +246,50 @@ input[type="file"] { display: none; }
     <div class="section-title">Photos</div>
     <div class="photo-grid" id="detail-photos"></div>
 
-```
-<div id="state-photos">
-  <button class="btn btn-primary" onclick="analyseItem()">🔍 &nbsp;Analyse with AI</button>
-  <button class="btn btn-outline" onclick="openReplacePhotos()">Replace Photos</button>
-</div>
+    <div id="state-photos">
+      <button class="btn btn-primary" onclick="analyseItem()">🔍 &nbsp;Analyse with AI</button>
+      <button class="btn btn-outline" onclick="openReplacePhotos()">Replace Photos</button>
+    </div>
 
-<div id="state-analysed" style="display:none;">
-  <div class="section-title">Listing Details</div>
-  <div class="field"><label>Title</label><input id="f-title" type="text" oninput="markDirty()" /></div>
-  <div class="field"><label>Category</label><input id="f-category" type="text" oninput="markDirty()" /></div>
-  <div class="field"><label>Brand</label><input id="f-brand" type="text" oninput="markDirty()" /></div>
-  <div class="field"><label>Condition</label>
-    <select id="f-condition" onchange="markDirty()">
-      <option>New with tags</option><option>Like new</option><option>Good</option><option>Fair</option><option>Poor</option>
-    </select>
+    <div id="state-analysed" style="display:none;">
+      <div class="section-title">Listing Details</div>
+      <div class="field"><label>Title</label><input id="f-title" type="text" oninput="markDirty()" /></div>
+      <div class="field"><label>Category</label><input id="f-category" type="text" oninput="markDirty()" /></div>
+      <div class="field"><label>Brand</label><input id="f-brand" type="text" oninput="markDirty()" /></div>
+      <div class="field"><label>Condition</label>
+        <select id="f-condition" onchange="markDirty()">
+          <option>New with tags</option><option>Like new</option><option>Good</option><option>Fair</option><option>Poor</option>
+        </select>
+      </div>
+      <div class="field"><label>Description</label><textarea id="f-description" oninput="markDirty()"></textarea></div>
+      <div class="field"><label>Price (£)</label><input id="f-price" type="number" oninput="markDirty()" /></div>
+      <button class="btn btn-outline" id="save-edits-btn" onclick="saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
+      <div class="section-title">Actions</div>
+      <button class="btn btn-teal" onclick="showDownloadModal()">⬇️ &nbsp;Save Photos to Gallery</button>
+      <button class="btn btn-primary" onclick="openAddMorePhotos()">📷 &nbsp;Add / Replace Photos &amp; Re-analyse</button>
+      <button class="btn btn-blue" onclick="startCopyFlow()">📋 &nbsp;Copy &amp; Go to Vinted</button>
+    </div>
+
+    <div class="section-title">Status</div>
+    <div class="status-grid">
+      <button class="status-btn sb-photos"   id="sb-photos"   onclick="handleSetStatus('photos')">📷 Photos</button>
+      <button class="status-btn sb-analysed" id="sb-analysed" onclick="handleSetStatus('analysed')">🔍 Analysed</button>
+    </div>
+    <div class="status-grid">
+      <button class="status-btn sb-listed" id="sb-listed" onclick="handleSetStatus('listed')">📋 Mark Listed</button>
+      <button class="status-btn sb-sold"   id="sb-sold"   onclick="handleSetStatus('sold')">✅ Mark Sold</button>
+    </div>
+    <button class="status-btn sb-archived" style="width:100%;margin-bottom:8px;" id="sb-archived" onclick="handleSetStatus('archived')">🗄️ Archive</button>
+    <div style="margin-top:18px;">
+      <button class="btn btn-danger" onclick="deleteItem()">🗑️ &nbsp;Delete Item</button>
+    </div>
   </div>
-  <div class="field"><label>Description</label><textarea id="f-description" oninput="markDirty()"></textarea></div>
-  <div class="field"><label>Price (£)</label><input id="f-price" type="number" oninput="markDirty()" /></div>
-  <button class="btn btn-outline" id="save-edits-btn" onclick="saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
-  <div class="section-title">Actions</div>
-  <button class="btn btn-teal" onclick="downloadPhotos()">⬇️ &nbsp;Download Photos to Gallery</button>
-  <button class="btn btn-blue" onclick="startCopyFlow()">📋 &nbsp;Copy & Go to Vinted</button>
-  <button class="btn btn-outline" onclick="openReplacePhotos()">Replace Photos</button>
-</div>
-
-<div class="section-title">Status</div>
-<div class="status-grid">
-  <button class="status-btn sb-photos"   id="sb-photos"   onclick="handleSetStatus('photos')">📷 Photos</button>
-  <button class="status-btn sb-analysed" id="sb-analysed" onclick="handleSetStatus('analysed')">🔍 Analysed</button>
-</div>
-<div class="status-grid">
-  <button class="status-btn sb-listed" id="sb-listed" onclick="handleSetStatus('listed')">📋 Mark Listed</button>
-  <button class="status-btn sb-sold"   id="sb-sold"   onclick="handleSetStatus('sold')">✅ Mark Sold</button>
-</div>
-<button class="status-btn sb-archived" style="width:100%;margin-bottom:8px;" id="sb-archived" onclick="handleSetStatus('archived')">🗄️ Archive</button>
-<div style="margin-top:18px;">
-  <button class="btn btn-danger" onclick="deleteItem()">🗑️ &nbsp;Delete Item</button>
-</div>
-```
-
+  <div class="bottom-nav">
+    <button class="btn-back-bottom" onclick="goHome()">← Back to Home</button>
   </div>
 </div>
 
 <!-- COPY FLOW -->
-
 <div class="screen" id="screen-copy">
   <div class="header">
     <button class="header-back" onclick="showScreen('screen-detail')">←</button>
@@ -257,10 +310,12 @@ input[type="file"] { display: none; }
       <button class="btn btn-blue"   id="btn-vinted" onclick="openVinted()" style="display:none;">Open Vinted App</button>
     </div>
   </div>
+  <div class="bottom-nav">
+    <button class="btn-back-bottom" onclick="showScreen('screen-detail')">← Back to Item</button>
+  </div>
 </div>
 
 <!-- MODAL: Listed? -->
-
 <div class="modal-overlay" id="modal-listed" style="display:none;">
   <div class="modal">
     <h3>Did you list this item?</h3>
@@ -271,13 +326,42 @@ input[type="file"] { display: none; }
 </div>
 
 <!-- MODAL: Drop photos -->
-
 <div class="modal-overlay" id="modal-drop-photos" style="display:none;">
   <div class="modal">
     <h3 id="drop-title">Mark as Sold?</h3>
     <p>This will remove photos from the app to save space. Your original photos in your iPhone camera roll are not affected.</p>
     <button class="btn btn-primary" onclick="confirmDropPhotos()">Yes, remove photos</button>
     <button class="btn btn-outline" onclick="closeModal('modal-drop-photos')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: Download / Save photos -->
+<div class="modal-overlay" id="modal-download" style="display:none;">
+  <div class="modal">
+    <h3>Save Photos</h3>
+    <div class="photo-save-tip">📱 <strong>Hold &amp; press each photo</strong> below, then tap <em>"Save to Photos"</em> to add it to your iPhone camera roll.</div>
+    <div class="photo-save-grid" id="download-photo-grid"></div>
+    <button class="btn btn-outline" onclick="closeModal('modal-download')">Done</button>
+  </div>
+</div>
+
+<!-- FLOATING SUGGESTIONS BUTTON -->
+<button class="float-suggest" onclick="openSuggestions()" title="Suggestions">💡</button>
+
+<!-- SUGGESTIONS PANEL -->
+<div class="suggest-panel" id="suggest-panel" style="display:none;">
+  <div class="suggest-inner">
+    <h3>💡 Suggestions</h3>
+    <p>Capture ideas, bugs or improvements. Copy all to share.</p>
+    <div class="suggest-input-row">
+      <textarea id="suggest-input" placeholder="Type a suggestion…" onkeydown="suggestKeydown(event)"></textarea>
+      <button class="suggest-add-btn" onclick="addSuggestion()">Add</button>
+    </div>
+    <div class="suggest-list" id="suggest-list"></div>
+    <div class="suggest-actions">
+      <button class="suggest-copy-btn" onclick="copySuggestions()">📋 Copy All</button>
+      <button class="suggest-close-btn" onclick="closeSuggestions()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -300,15 +384,19 @@ function openDB() {
   });
 }
 const tx = (store, mode='readonly') => db.transaction(store, mode).objectStore(store);
-const dbGet    = (s,k)   => new Promise((res,rej) => { const r=tx(s).get(k);    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
-const dbGetAll = (s)     => new Promise((res,rej) => { const r=tx(s).getAll();  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
-const dbPut    = (s,v)   => new Promise((res,rej) => { const r=tx(s,'readwrite').put(v);    r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); });
-const dbDelete = (s,k)   => new Promise((res,rej) => { const r=tx(s,'readwrite').delete(k); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); });
+const dbGet    = (s,k) => new Promise((res,rej) => { const r=tx(s).get(k);    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
+const dbGetAll = (s)   => new Promise((res,rej) => { const r=tx(s).getAll();  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
+const dbPut    = (s,v) => new Promise((res,rej) => { const r=tx(s,'readwrite').put(v);    r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); });
+const dbDelete = (s,k) => new Promise((res,rej) => { const r=tx(s,'readwrite').delete(k); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); });
 
 // ── State ──────────────────────────────────────────────────────────────
 let items=[], currentItem=null, filter='all';
-let pendingSlot=0, pendingPhotos=[null,null,null,null], replacingItem=false;
+let pendingPhotos=[], replacingItem=false, addingMorePhotos=false;
 let copyFields=[], copyIdx=0, dirty=false, pendingStatus=null;
+let photoMode = localStorage.getItem('vinted_photo_mode') || 'camera';
+let pendingSlot = null; // for camera mode: which slot we're filling next
+const MAX_PHOTOS = 10;
+const DEFAULT_PHOTOS = 6;
 
 // ── Storage bar ────────────────────────────────────────────────────────
 async function updateStorageBar() {
@@ -354,6 +442,7 @@ async function init() {
   await openDB();
   items = await dbGetAll(S_ITEMS);
   await autoClean();
+  renderSuggestions();
   if (!localStorage.getItem('vinted_api_key')) showScreen('screen-apikey');
   else goHome();
 }
@@ -380,7 +469,11 @@ const SB = { photos:'badge-photos', analysed:'badge-analysed', listed:'badge-lis
 
 function renderHome() {
   const list = document.getElementById('item-list');
-  const filtered = [...items].reverse().filter(i => filter==='all' || i.status===filter);
+  // "All" tab hides archived; show archived only when explicitly filtered
+  const filtered = [...items].reverse().filter(i => {
+    if (filter === 'all') return i.status !== 'archived';
+    return i.status === filter;
+  });
   if (!filtered.length) {
     list.innerHTML=`<div class="empty"><div class="icon">👗</div><h2>${filter==='all'?'No items yet':'Nothing here'}</h2><p>${filter==='all'?'Tap the button below to photograph your first item.':'No items with this status yet.'}</p></div>`;
     return;
@@ -400,54 +493,198 @@ function renderHome() {
   }).join('');
 }
 
+// ── Photo mode selector ────────────────────────────────────────────────
+function setPhotoMode(mode) {
+  photoMode = mode;
+  localStorage.setItem('vinted_photo_mode', mode);
+  document.getElementById('mode-btn-camera').classList.toggle('active', mode==='camera');
+  document.getElementById('mode-btn-library').classList.toggle('active', mode==='library');
+  hideBanner();
+  renderSlots();
+}
+
+function hideBanner() {
+  document.getElementById('next-photo-banner').style.display = 'none';
+}
+
 // ── Photos ─────────────────────────────────────────────────────────────
 function startNewItem() {
-  replacingItem = false; currentItem = null;
-  pendingPhotos = [null,null,null,null];
-  renderSlots(); showScreen('screen-addphotos');
+  replacingItem = false;
+  addingMorePhotos = false;
+  currentItem = null;
+  pendingPhotos = [];
+  document.getElementById('addphotos-title').textContent = 'Add Photos';
+  document.getElementById('addphotos-sub').textContent = 'Choose your capture method';
+  initPhotoScreen();
+  showScreen('screen-addphotos');
 }
 
 async function openReplacePhotos() {
   replacingItem = true;
-  pendingPhotos = [null,null,null,null];
+  addingMorePhotos = false;
+  pendingPhotos = [];
   if (currentItem.hasPhotos) {
     const rec = await dbGet(S_PHOTOS, currentItem.id);
-    if (rec && rec.images) rec.images.forEach((img,i) => { pendingPhotos[i]={dataUrl:img,thumbnail:null}; });
+    if (rec && rec.images) {
+      pendingPhotos = rec.images.map(img => ({ dataUrl: img, thumbnail: null }));
+    }
   }
-  renderSlots(); showScreen('screen-addphotos');
+  document.getElementById('addphotos-title').textContent = 'Replace Photos';
+  document.getElementById('addphotos-sub').textContent = 'Edit or replace existing photos';
+  initPhotoScreen();
+  showScreen('screen-addphotos');
+}
+
+async function openAddMorePhotos() {
+  addingMorePhotos = true;
+  replacingItem = false;
+  pendingPhotos = [];
+  if (currentItem.hasPhotos) {
+    const rec = await dbGet(S_PHOTOS, currentItem.id);
+    if (rec && rec.images) {
+      pendingPhotos = rec.images.map(img => ({ dataUrl: img, thumbnail: null }));
+    }
+  }
+  document.getElementById('addphotos-title').textContent = 'Add / Replace Photos';
+  document.getElementById('addphotos-sub').textContent = 'Add more or swap existing photos';
+  initPhotoScreen();
+  showScreen('screen-addphotos');
+}
+
+function initPhotoScreen() {
+  hideBanner();
+  // Apply saved mode
+  document.getElementById('mode-btn-camera').classList.toggle('active', photoMode==='camera');
+  document.getElementById('mode-btn-library').classList.toggle('active', photoMode==='library');
+  renderSlots();
 }
 
 function renderSlots() {
-  for (let i=0;i<4;i++) {
-    const slot = document.getElementById('slot-'+i);
+  const grid = document.getElementById('photo-grid');
+  const filled = pendingPhotos.filter(Boolean).length;
+  const totalSlots = Math.min(MAX_PHOTOS, Math.max(DEFAULT_PHOTOS, filled + (filled < MAX_PHOTOS ? 1 : 0)));
+
+  let html = '';
+  for (let i = 0; i < totalSlots; i++) {
     if (pendingPhotos[i]) {
-      slot.innerHTML=`<img src="${pendingPhotos[i].dataUrl}" /><button class="remove-btn" onclick="event.stopPropagation();removeSlot(${i})">✕</button>`;
+      html += `<div class="photo-slot" onclick="slotTapped(${i})">
+        <img src="${pendingPhotos[i].dataUrl}" />
+        <button class="remove-btn" onclick="event.stopPropagation();removeSlot(${i})">✕</button>
+      </div>`;
     } else {
-      slot.innerHTML=`<div class="slot-icon">${i<2?'📷':'＋'}</div><div class="slot-label">Photo ${i+1}</div>`;
+      const isFirst2 = i < 2;
+      html += `<div class="photo-slot" onclick="slotTapped(${i})">
+        <div class="slot-icon">${isFirst2 ? '📷' : '＋'}</div>
+        <div class="slot-label">Photo ${i+1}</div>
+      </div>`;
     }
-    slot.onclick = ()=>triggerPhoto(i);
   }
+
+  // Add more button if under limit
+  if (filled >= totalSlots && filled < MAX_PHOTOS) {
+    html += `<div class="add-more-slot" onclick="slotTapped(${filled})">＋ Add more photos</div>`;
+  }
+
+  grid.innerHTML = html;
+
   const count = pendingPhotos.filter(Boolean).length;
-  document.getElementById('photo-msg').textContent = count ? `${count} photo${count>1?'s':''} ready` : 'Add at least 1 photo to continue';
-  document.getElementById('save-photos-btn').disabled = count===0;
+  document.getElementById('photo-msg').textContent = count
+    ? `${count} photo${count>1?'s':''} ready — tap any to replace`
+    : 'Add at least 1 photo to continue';
+  document.getElementById('save-photos-btn').disabled = count === 0;
 }
 
-function removeSlot(i) { pendingPhotos[i]=null; renderSlots(); }
-function triggerPhoto(i) { pendingSlot=i; document.getElementById('photo-input').click(); }
+function removeSlot(i) {
+  pendingPhotos[i] = null;
+  // Compact: remove nulls from the middle only if trailing
+  while (pendingPhotos.length && !pendingPhotos[pendingPhotos.length-1]) {
+    pendingPhotos.pop();
+  }
+  hideBanner();
+  renderSlots();
+}
 
-function handlePhoto(e) {
-  const file = e.target.files[0]; e.target.value='';
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    compressTo(ev.target.result, 100, 0.7, thumb =>
-      compressTo(ev.target.result, 1200, 0.85, medium => {
-        pendingPhotos[pendingSlot] = { dataUrl: medium, thumbnail: thumb };
-        renderSlots();
-      })
-    );
-  };
-  reader.readAsDataURL(file);
+function slotTapped(i) {
+  pendingSlot = i;
+  if (photoMode === 'camera') {
+    // Reset file input so same photo can be retaken
+    const inp = document.getElementById('photo-input-camera');
+    inp.value = '';
+    inp.click();
+  } else {
+    const inp = document.getElementById('photo-input-library');
+    inp.value = '';
+    inp.click();
+  }
+}
+
+function triggerNextCamera() {
+  // Find next empty slot
+  let next = -1;
+  for (let i = 0; i < MAX_PHOTOS; i++) {
+    if (!pendingPhotos[i]) { next = i; break; }
+  }
+  if (next === -1) { hideBanner(); renderSlots(); return; }
+  pendingSlot = next;
+  const inp = document.getElementById('photo-input-camera');
+  inp.value = '';
+  inp.click();
+}
+
+function handlePhoto(e, mode) {
+  const files = Array.from(e.target.files);
+  e.target.value = '';
+  if (!files.length) return;
+
+  if (mode === 'library') {
+    // Multi-select: fill slots from pendingSlot onwards
+    let slotIdx = pendingSlot !== null ? pendingSlot : pendingPhotos.filter(Boolean).length;
+    let processed = 0;
+    files.forEach(file => {
+      if (slotIdx >= MAX_PHOTOS) return;
+      const currentSlot = slotIdx++;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        compressTo(ev.target.result, 100, 0.7, thumb =>
+          compressTo(ev.target.result, 1200, 0.85, medium => {
+            pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail: thumb };
+            processed++;
+            if (processed === Math.min(files.length, MAX_PHOTOS - (pendingSlot !== null ? pendingSlot : 0))) {
+              hideBanner();
+              renderSlots();
+            }
+          })
+        );
+      };
+      reader.readAsDataURL(file);
+    });
+  } else {
+    // Camera: single shot
+    const file = files[0];
+    const slot = pendingSlot !== null ? pendingSlot : pendingPhotos.filter(Boolean).length;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      compressTo(ev.target.result, 100, 0.7, thumb =>
+        compressTo(ev.target.result, 1200, 0.85, medium => {
+          pendingPhotos[slot] = { dataUrl: medium, thumbnail: thumb };
+          pendingSlot = null;
+          renderSlots();
+          // Show "take next photo" banner if under limit
+          const filled = pendingPhotos.filter(Boolean).length;
+          if (filled < MAX_PHOTOS) {
+            const nextEmpty = pendingPhotos.findIndex((p,i) => !p && i < MAX_PHOTOS);
+            const nextSlot = nextEmpty === -1 ? filled : nextEmpty;
+            document.getElementById('next-photo-text').textContent = `📷 Photo ${filled} saved — take another?`;
+            document.getElementById('next-photo-banner').style.display = 'flex';
+            pendingSlot = nextSlot;
+          } else {
+            hideBanner();
+          }
+        })
+      );
+    };
+    reader.readAsDataURL(file);
+  }
 }
 
 function compressTo(dataUrl, maxW, quality, cb) {
@@ -468,6 +705,22 @@ async function savePhotos() {
   const thumbnail = photos[0].thumbnail;
   const images    = photos.map(p=>p.dataUrl);
 
+  if (addingMorePhotos && currentItem) {
+    // Save photos then trigger re-analysis
+    currentItem.thumbnail = thumbnail;
+    currentItem.hasPhotos = true;
+    currentItem.status = 'photos'; // reset so re-analyse is triggered
+    await dbPut(S_PHOTOS, {id: currentItem.id, images});
+    await dbPut(S_ITEMS, currentItem);
+    items = await dbGetAll(S_ITEMS);
+    currentItem = items.find(i=>i.id===currentItem.id);
+    await renderDetail();
+    showScreen('screen-detail');
+    // Auto-trigger analysis
+    analyseItem();
+    return;
+  }
+
   if (replacingItem && currentItem) {
     currentItem.thumbnail=thumbnail; currentItem.hasPhotos=true;
     await dbPut(S_PHOTOS, {id:currentItem.id, images});
@@ -477,6 +730,7 @@ async function savePhotos() {
     await renderDetail(); showScreen('screen-detail');
     return;
   }
+
   const id = 'item_'+Date.now();
   const item = { id, status:'photos', thumbnail, hasPhotos:true, title:'', category:'', brand:'', condition:'', description:'', price:'', createdAt:Date.now() };
   await dbPut(S_ITEMS, item);
@@ -489,7 +743,18 @@ async function savePhotos() {
 async function openItem(id) {
   currentItem = items.find(i=>i.id===id);
   if (!currentItem) return;
-  dirty=false; await renderDetail(); showScreen('screen-detail');
+  dirty=false;
+  // Always reset state-photos to original buttons before rendering
+  resetStatePhotos();
+  await renderDetail();
+  showScreen('screen-detail');
+}
+
+function resetStatePhotos() {
+  document.getElementById('state-photos').innerHTML = `
+    <button class="btn btn-primary" onclick="analyseItem()">🔍 &nbsp;Analyse with AI</button>
+    <button class="btn btn-outline" onclick="openReplacePhotos()">Replace Photos</button>
+  `;
 }
 
 async function renderDetail() {
@@ -529,16 +794,23 @@ async function analyseItem() {
   const key = localStorage.getItem('vinted_api_key')||'';
   if (!key) { alert('Please add your API key first.'); showScreen('screen-apikey'); return; }
 
-  document.getElementById('state-photos').innerHTML=`
+  // Make sure we're showing the spinner in state-photos
+  const statePhotos = document.getElementById('state-photos');
+  statePhotos.style.display = 'block';
+  document.getElementById('state-analysed').style.display = 'none';
+  statePhotos.innerHTML = `
     <div class="spinner-wrap">
       <div class="spinner"></div>
       <p style="font-size:16px;font-weight:600;color:var(--text);">Analysing photos…</p>
       <p style="font-size:13px;color:var(--text2);margin-top:6px;">Usually takes 10–15 seconds</p>
     </div>`;
 
+  // Capture which item we're analysing right now (avoid stale closure bug)
+  const itemId = currentItem.id;
+
   const rec = currentItem.hasPhotos ? await dbGet(S_PHOTOS, currentItem.id) : null;
   const images = rec && rec.images ? rec.images.slice(0,2) : [];
-  if (!images.length) { alert('No photos found.'); await renderDetail(); return; }
+  if (!images.length) { alert('No photos found.'); resetStatePhotos(); return; }
 
   const prompt = `Analyse these photos of a second-hand item for a Vinted listing. Return ONLY valid JSON, no markdown, no explanation:
 {"title":"concise listing title max 50 chars","category":"specific clothing or item category","brand":"brand name or Unknown","condition":"New with tags|Like new|Good|Fair|Poor","description":"2-3 sentences describing the item for a Vinted buyer in English","price":numeric_GBP_price}`;
@@ -558,16 +830,22 @@ async function analyseItem() {
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
     const json = JSON.parse(data.content[0].text.trim().replace(/```json|```/g,'').trim());
+
+    // Guard: only apply if user is still on the same item
+    if (!currentItem || currentItem.id !== itemId) return;
+
     Object.assign(currentItem, { title:json.title||'', category:json.category||'', brand:json.brand||'', condition:json.condition||'Good', description:json.description||'', price:json.price||'', status:'analysed' });
     await dbPut(S_ITEMS, currentItem);
     items = await dbGetAll(S_ITEMS);
-    currentItem = items.find(i=>i.id===currentItem.id);
+    currentItem = items.find(i=>i.id===itemId);
     await renderDetail();
   } catch(err) {
+    if (!currentItem || currentItem.id !== itemId) return;
     document.getElementById('state-photos').innerHTML=`
       <div style="padding:20px;text-align:center;">
         <p style="color:var(--red);margin-bottom:16px;font-size:15px;">Analysis failed: ${err.message}</p>
-        <button class="btn btn-primary" onclick="renderDetail()">Try Again</button>
+        <button class="btn btn-primary" onclick="resetStatePhotos();analyseItem()">Try Again</button>
+        <button class="btn btn-outline" style="margin-top:8px;" onclick="resetStatePhotos()">Cancel</button>
       </div>`;
   }
 }
@@ -625,17 +903,21 @@ async function deleteItem() {
   goHome();
 }
 
-// ── Download ───────────────────────────────────────────────────────────
-async function downloadPhotos() {
+// ── Download / Save photos modal ───────────────────────────────────────
+async function showDownloadModal() {
   if (!currentItem.hasPhotos) { alert('No photos stored for this item.'); return; }
   const rec = await dbGet(S_PHOTOS, currentItem.id);
   if (!rec || !rec.images || !rec.images.length) { alert('No photos found.'); return; }
-  rec.images.forEach((photo,i) => {
-    const a=document.createElement('a');
-    a.href=photo; a.download=`vinted_${currentItem.id}_${i+1}.jpg`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  });
-  setTimeout(()=>alert('Photos downloading!\n\nOn iPhone: tap & hold each image in Safari downloads to save to your Photos library.'),300);
+
+  const grid = document.getElementById('download-photo-grid');
+  grid.innerHTML = rec.images.map((photo, i) =>
+    `<div class="photo-save-item">
+      <img src="${photo}" alt="Photo ${i+1}" />
+      <div class="photo-save-label">Hold &amp; save</div>
+    </div>`
+  ).join('');
+
+  document.getElementById('modal-download').style.display = 'flex';
 }
 
 // ── Copy flow ──────────────────────────────────────────────────────────
@@ -690,6 +972,72 @@ async function confirmListed() {
 function closeModal(id) {
   document.getElementById(id).style.display='none';
   if (id==='modal-listed') showScreen('screen-detail');
+}
+
+// ── Suggestions ─────────────────────────────────────────────────────────
+let suggestions = JSON.parse(localStorage.getItem('vinted_suggestions')||'[]');
+
+function saveSuggestions() {
+  localStorage.setItem('vinted_suggestions', JSON.stringify(suggestions));
+}
+
+function renderSuggestions() {
+  const list = document.getElementById('suggest-list');
+  if (!suggestions.length) {
+    list.innerHTML = '<div class="suggest-empty">No suggestions yet. Add one above!</div>';
+    return;
+  }
+  list.innerHTML = suggestions.map((s,i) =>
+    `<div class="suggest-item">
+      <div class="suggest-item-text">${i+1}. ${s}</div>
+      <button class="suggest-item-del" onclick="deleteSuggestion(${i})">✕</button>
+    </div>`
+  ).join('');
+}
+
+function openSuggestions() {
+  renderSuggestions();
+  document.getElementById('suggest-panel').style.display = 'flex';
+  setTimeout(()=>document.getElementById('suggest-input').focus(), 200);
+}
+
+function closeSuggestions() {
+  document.getElementById('suggest-panel').style.display = 'none';
+}
+
+function suggestKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addSuggestion(); }
+}
+
+function addSuggestion() {
+  const inp = document.getElementById('suggest-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  suggestions.push(text);
+  saveSuggestions();
+  inp.value = '';
+  renderSuggestions();
+}
+
+function deleteSuggestion(i) {
+  suggestions.splice(i, 1);
+  saveSuggestions();
+  renderSuggestions();
+}
+
+function copySuggestions() {
+  if (!suggestions.length) { alert('No suggestions to copy yet.'); return; }
+  const text = 'Vinted Lister Suggestions:\n\n' + suggestions.map((s,i)=>`${i+1}. ${s}`).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.suggest-copy-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(()=>{ btn.textContent = '📋 Copy All'; }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    alert('Copied! Paste into WhatsApp or anywhere you like.');
+  });
 }
 
 init();
