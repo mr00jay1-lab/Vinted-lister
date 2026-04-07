@@ -533,10 +533,18 @@ function startNewItem() {
   addingMorePhotos = false;
   currentItem = null;
   pendingPhotos = [];
+  pendingSlot = 0;
   document.getElementById('addphotos-title').textContent = 'Add Photos';
   document.getElementById('addphotos-sub').textContent = 'Choose your capture method';
+  photoMode = 'library';
+  localStorage.setItem('vinted_photo_mode', 'library');
   initPhotoScreen();
   showScreen('screen-addphotos');
+  setTimeout(() => {
+    const inp = document.getElementById('photo-input-library');
+    inp.value = '';
+    inp.click();
+  }, 100);
 }
 
 async function openReplacePhotos() {
