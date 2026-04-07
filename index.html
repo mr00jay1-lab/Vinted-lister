@@ -600,9 +600,8 @@ function renderSlots() {
         <button class="remove-btn" onclick="event.stopPropagation();removeSlot(${i})">✕</button>
       </div>`;
     } else {
-      const isFirst2 = i < 2;
       html += `<div class="photo-slot" onclick="slotTapped(${i})">
-        <div class="slot-icon">${isFirst2 ? '📷' : '＋'}</div>
+        <div class="slot-icon">＋</div>
         <div class="slot-label">Photo ${i+1}</div>
       </div>`;
     }
