@@ -107,6 +107,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .sb-archived { border-color: var(--gray);  color: var(--gray); }
 .sb-photos   { border-color: var(--blue);  color: var(--blue); }
 .sb-analysed { border-color: #166634;      color: #166634; }
+.status-select-wrap { margin-bottom: 8px; }
+.status-select { width: 100%; padding: 18px 16px; border-radius: var(--radius-sm); border: 2px solid var(--border2); background: var(--surface); font-size: 16px; font-weight: 700; color: var(--text); font-family: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+.status-select.st-photos   { border-color: var(--blue);  color: var(--blue); }
+.status-select.st-analysed { border-color: #166634;      color: #166634; }
+.status-select.st-listed   { border-color: var(--teal);  color: var(--teal); }
+.status-select.st-sold     { border-color: var(--amber); color: var(--amber); }
+.status-select.st-archived { border-color: var(--gray);  color: var(--gray); }
 .copy-card { background: var(--surface); border-radius: 20px; padding: 28px 22px; margin-bottom: 18px; border: 0.5px solid var(--border); }
 .copy-label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
 .copy-value { font-size: 22px; font-weight: 600; color: var(--text); line-height: 1.35; }
@@ -286,19 +293,19 @@ input[type="file"] { display: none; }
       <div class="section-title">Actions</div>
       <button class="btn btn-teal" onclick="showDownloadModal()">⬇️ &nbsp;Save Photos to Gallery</button>
       <button class="btn btn-primary" onclick="openAddMorePhotos()">📷 &nbsp;Add / Replace Photos &amp; Re-analyse</button>
-      <button class="btn btn-blue" onclick="startCopyFlow()">📋 &nbsp;Copy &amp; Go to Vinted</button>
+      <button class="btn btn-blue" onclick="startCopyFlow()">🏷️ &nbsp;Start Listing</button>
     </div>
 
     <div class="section-title">Status</div>
-    <div class="status-grid">
-      <button class="status-btn sb-photos"   id="sb-photos"   onclick="handleSetStatus('photos')">📷 Photos</button>
-      <button class="status-btn sb-analysed" id="sb-analysed" onclick="handleSetStatus('analysed')">🔍 Analysed</button>
+    <div class="status-select-wrap">
+      <select class="status-select" id="status-select" onchange="handleSetStatus(this.value)">
+        <option value="photos">📷 Photos taken</option>
+        <option value="analysed">🔍 Analysed</option>
+        <option value="listed">📋 Listed</option>
+        <option value="sold">✅ Sold</option>
+        <option value="archived">🗄️ Archived</option>
+      </select>
     </div>
-    <div class="status-grid">
-      <button class="status-btn sb-listed" id="sb-listed" onclick="handleSetStatus('listed')">📋 Mark Listed</button>
-      <button class="status-btn sb-sold"   id="sb-sold"   onclick="handleSetStatus('sold')">✅ Mark Sold</button>
-    </div>
-    <button class="status-btn sb-archived" style="width:100%;margin-bottom:8px;" id="sb-archived" onclick="handleSetStatus('archived')">🗄️ Archive</button>
     <div style="margin-top:18px;">
       <button class="btn btn-danger" onclick="deleteItem()">🗑️ &nbsp;Delete Item</button>
     </div>
@@ -847,9 +854,11 @@ async function renderDetail() {
     document.getElementById('f-price').value       = item.price||'';
     document.getElementById('save-edits-btn').style.display = 'none';
   }
-  ['photos','analysed','listed','sold','archived'].forEach(s => {
-    const b=document.getElementById('sb-'+s); if(b) b.classList.toggle('current', item.status===s);
-  });
+  const sel = document.getElementById('status-select');
+  if (sel) {
+    sel.value = item.status;
+    sel.className = 'status-select st-' + item.status;
+  }
 }
 
 // ── Analysis ───────────────────────────────────────────────────────────
@@ -1039,7 +1048,7 @@ function renderCopyField() {
   document.getElementById('copy-action-row').style.display='flex';
   document.getElementById('btn-skip').style.display = isLast ? 'none' : 'flex';
   document.getElementById('btn-next').style.display='none';
-  document.getElementById('btn-vinted').style.display='none';
+  document.getElementById('btn-done').style.display='none';
   document.getElementById('copied-msg').style.opacity='0';
 }
 
