@@ -207,7 +207,10 @@ input[type="file"] { display: none; }
     <div class="storage-bar-track"><div class="storage-bar-fill" id="storage-fill" style="width:0%"></div></div>
   </div>
   <div class="content" style="padding-bottom:100px;"><div id="item-list"></div></div>
-  <div class="fab"><button class="btn btn-primary" onclick="startNewItem()" style="font-size:18px;font-weight:700;">＋ &nbsp;New Item</button></div>
+  <div class="fab" style="display:flex;gap:10px;">
+    <button class="btn btn-outline" id="btn-batch-analyse" onclick="openBatchAnalyse()" style="display:none;flex:0 0 auto;padding:19px 16px;font-size:15px;">🔍 Analyse All</button>
+    <button class="btn btn-primary" onclick="startNewItem()" style="font-size:18px;font-weight:700;flex:1;">＋ &nbsp;New Item</button>
+  </div>
 </div>
 
 <!-- ADD PHOTOS -->
@@ -309,10 +312,11 @@ input[type="file"] { display: none; }
 <div class="screen" id="screen-copy">
   <div class="header">
     <button class="header-back" onclick="showScreen('screen-detail')">←</button>
-    <div><h1>Copy to Vinted</h1><div class="header-sub" id="copy-progress">Field 1 of 6</div></div>
+    <div><h1>Copy to Vinted</h1><div class="header-sub" id="copy-progress">Field 1 of 9</div></div>
   </div>
   <div class="content" style="display:flex;flex-direction:column;justify-content:space-between;padding-bottom:30px;">
     <div>
+      <button class="btn btn-blue" onclick="openVinted()" style="margin-bottom:18px;">📲 &nbsp;Open Vinted App First</button>
       <div class="dots" id="copy-dots"></div>
       <div class="copy-card">
         <div class="copy-label" id="copy-label">Title</div>
@@ -326,11 +330,25 @@ input[type="file"] { display: none; }
         <button class="btn btn-outline" id="btn-skip" onclick="skipField()">Skip →</button>
       </div>
       <button class="btn btn-teal"   id="btn-next"   onclick="nextField()"  style="display:none;">Next →</button>
-      <button class="btn btn-blue"   id="btn-vinted" onclick="openVinted()" style="display:none;">Open Vinted App</button>
+      <button class="btn btn-blue"   id="btn-done" onclick="finishCopyFlow()" style="display:none;">✅ &nbsp;Done — Mark as Listed?</button>
     </div>
   </div>
   <div class="bottom-nav">
     <button class="btn-back-bottom" onclick="showScreen('screen-detail')">← Back to Item</button>
+  </div>
+</div>
+
+<!-- MODAL: Batch Analyse -->
+<div class="modal-overlay" id="modal-batch-analyse" style="display:none;">
+  <div class="modal">
+    <h3 id="batch-title">Analyse items?</h3>
+    <p id="batch-desc">This will analyse all items with photos using AI.</p>
+    <div id="batch-progress" style="display:none;text-align:center;margin-bottom:16px;">
+      <div class="spinner" style="margin:0 auto 12px;"></div>
+      <p id="batch-progress-text" style="font-size:15px;font-weight:600;color:var(--text);"></p>
+    </div>
+    <button class="btn btn-primary" id="batch-confirm-btn" onclick="runBatchAnalyse()">🔍 &nbsp;Start Analysis</button>
+    <button class="btn btn-outline" id="batch-cancel-btn" onclick="closeModal('modal-batch-analyse')">Cancel</button>
   </div>
 </div>
 
@@ -489,6 +507,10 @@ const SB = { photos:'badge-photos', analysed:'badge-analysed', listed:'badge-lis
 
 function renderHome() {
   const list = document.getElementById('item-list');
+  // Show Analyse All button only when there are items with photos status
+  const photoItems = items.filter(i => i.status === 'photos');
+  const batchBtn = document.getElementById('btn-batch-analyse');
+  if (batchBtn) batchBtn.style.display = photoItems.length ? 'flex' : 'none';
   // "All" tab hides archived; show archived only when explicitly filtered
   const filtered = [...items].reverse().filter(i => {
     if (filter === 'all') return i.status !== 'archived';
@@ -1027,7 +1049,7 @@ function copyField() {
   navigator.clipboard.writeText(val).catch(()=>{ const ta=document.createElement('textarea'); ta.value=val; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); });
   document.getElementById('copied-msg').style.opacity='1';
   document.getElementById('copy-action-row').style.display='none';
-  document.getElementById(isLast?'btn-vinted':'btn-next').style.display='flex';
+  document.getElementById(isLast?'btn-done':'btn-next').style.display='flex';
 }
 
 function skipField() {
@@ -1055,8 +1077,11 @@ function toggleAiPhoto(idx) {
 }
 
 function openVinted() {
-  window.open('https://www.vinted.co.uk/sell','_blank');
-  setTimeout(()=>{ document.getElementById('modal-listed').style.display='flex'; },600);
+  window.open('https://www.vinted.co.uk','_blank');
+}
+
+function finishCopyFlow() {
+  document.getElementById('modal-listed').style.display='flex';
 }
 
 async function confirmListed() {
@@ -1068,6 +1093,85 @@ async function confirmListed() {
 function closeModal(id) {
   document.getElementById(id).style.display='none';
   if (id==='modal-listed') showScreen('screen-detail');
+}
+
+// ── Batch Analyse ──────────────────────────────────────────────────────
+function openBatchAnalyse() {
+  const photoItems = items.filter(i => i.status === 'photos');
+  document.getElementById('batch-title').textContent = `Analyse ${photoItems.length} item${photoItems.length>1?'s':''}?`;
+  document.getElementById('batch-desc').textContent = `AI will analyse up to 2 photos per item. This uses ${photoItems.length} API call${photoItems.length>1?'s':''}.`;
+  document.getElementById('batch-progress').style.display = 'none';
+  document.getElementById('batch-confirm-btn').style.display = 'flex';
+  document.getElementById('batch-cancel-btn').style.display = 'flex';
+  document.getElementById('modal-batch-analyse').style.display = 'flex';
+}
+
+async function runBatchAnalyse() {
+  const key = localStorage.getItem('vinted_api_key')||'';
+  if (!key) { closeModal('modal-batch-analyse'); alert('Please add your API key first.'); showScreen('screen-apikey'); return; }
+
+  const photoItems = items.filter(i => i.status === 'photos');
+  document.getElementById('batch-confirm-btn').style.display = 'none';
+  document.getElementById('batch-cancel-btn').style.display = 'none';
+  document.getElementById('batch-progress').style.display = 'block';
+
+  const prompt = `Analyse these photos of a second-hand clothing/fashion item for a Vinted listing.
+Return ONLY valid JSON, no markdown, no explanation:
+{
+  "title": "concise listing title max 50 chars, include brand+item+colour",
+  "description": "2-3 sentences for a Vinted buyer. Mention fit, style, any visible scratches, marks or flaws honestly. English only.",
+  "category": "Vinted category e.g. Women's Clothing > Dresses",
+  "brand": "brand name or Unknown",
+  "size": "size from label if visible, else empty string",
+  "condition": "New with tags|Like new|Good|Fair|Poor",
+  "colours": ["primary colour", "secondary colour if present"],
+  "materials": ["primary material", "secondary material if identifiable"],
+  "parcel_size": "XS|S|M|L|XL — best guess based on item type and size"
+}`;
+
+  let done = 0;
+  for (const item of photoItems) {
+    document.getElementById('batch-progress-text').textContent = `Analysing item ${done+1} of ${photoItems.length}…`;
+    try {
+      const rec = await dbGet(S_PHOTOS, item.id);
+      const images = rec && rec.images ? rec.images.slice(0,2) : [];
+      if (!images.length) { done++; continue; }
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+        body: JSON.stringify({
+          model:'claude-opus-4-5', max_tokens:900,
+          messages:[{ role:'user', content:[
+            ...images.map(p=>({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:p.replace(/^data:image\/\w+;base64,/,'') }})),
+            { type:'text', text:prompt }
+          ]}]
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      const json = JSON.parse(data.content[0].text.trim().replace(/```json|```/g,'').trim());
+      Object.assign(item, {
+        title:       json.title||'',
+        description: json.description||'',
+        category:    json.category||'',
+        brand:       json.brand||'',
+        size:        json.size||'',
+        condition:   json.condition||'Good',
+        colours:     Array.isArray(json.colours) ? json.colours.join(', ') : (json.colours||''),
+        materials:   Array.isArray(json.materials) ? json.materials.join(', ') : (json.materials||''),
+        parcel:      (json.parcel_size||'').replace(/[^XSML]/g,''),
+        status:      'analysed',
+      });
+      await dbPut(S_ITEMS, item);
+    } catch(e) { /* skip failed items, continue batch */ }
+    done++;
+  }
+
+  items = await dbGetAll(S_ITEMS);
+  closeModal('modal-batch-analyse');
+  renderHome();
+  updateStorageBar();
 }
 
 // ── Suggestions ─────────────────────────────────────────────────────────
