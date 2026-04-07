@@ -4,6 +4,36 @@ All notable changes to Vinted Lister are documented here.
 
 ---
 
+## [Unreleased] — dev
+
+| # | Description | Status |
+|---|-------------|--------|
+
+---
+
+## v1.3 — 2026-04-07
+
+### Fixed
+- **Bug #8:** Photo mode now correctly remembers last-used source (camera/library) across sessions; defaults to camera on first launch
+- **Bug #9:** "Analyse All" button no longer pushes "+ New Item" off screen — now floats above the FAB as a compact pill button, visible only when relevant
+- **Bug #5:** Copy flow crash fixed — stale `btn-vinted` JS reference replaced with `btn-done`
+
+### Added
+- **Batch Analyse** — home screen button analyses all Photos-status items sequentially (2 images each) with a confirmation prompt (#1)
+- **Unsaved photos prompt** — back button on Add Photos screen now asks "Save before leaving?" with Save / Discard / Cancel options (#10)
+
+### Changed
+- **Copy flow** — "Open Vinted App" button moved to top of flow; final step shows "Done — Mark as Listed?" (#2, #4)
+- **Vinted URL** — fixed from broken `/sell` path to `https://www.vinted.co.uk` (#3)
+- **"Start Listing"** — renamed from "Copy & Go to Vinted" (#6)
+- **Status dropdown** — replaced 5 separate status buttons with a single colour-coded dropdown (#7)
+- **Add Photos grid** — 3-column layout for smaller, more compact tiles (#12)
+- **Progressive slots** — shows 4 slots by default; 5th slot appears only when all 4 are filled, expanding up to 10 (#11)
+- **Navigation simplified** — bottom nav back buttons removed from detail and copy screens; header ← is the sole back navigation (#13)
+- **Spacing tightened** — header, content, fields, buttons, filter bar and storage bar all use reduced padding/margins for more visible content (#14)
+
+---
+
 ## v1.2 — 2026-04-07
 
 ### Added

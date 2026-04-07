@@ -28,12 +28,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .app { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--bg); position: relative; overflow-x: hidden; }
 .screen { display: none; flex-direction: column; min-height: 100vh; }
 .screen.active { display: flex; }
-.header { background: var(--surface); padding: 52px 20px 14px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+.header { background: var(--surface); padding: max(44px, env(safe-area-inset-top, 44px)) 20px 12px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
 .header-back { width: 44px; height: 44px; border-radius: 50%; background: var(--surface2); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; color: var(--text); }
 .header h1 { font-size: 20px; font-weight: 700; color: var(--text); }
 .header-sub { font-size: 13px; color: var(--text2); margin-top: 1px; }
-.content { flex: 1; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.btn { width: 100%; padding: 19px; border: none; border-radius: var(--radius); font-size: 17px; font-weight: 600; cursor: pointer; margin-bottom: 10px; transition: opacity 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
+.content { flex: 1; padding: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.btn { width: 100%; padding: 16px; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; transition: opacity 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
 .btn:active { opacity: 0.8; transform: scale(0.98); }
 .btn-primary { background: var(--navy); color: #fff; }
 .btn-teal    { background: var(--teal); color: #fff; }
@@ -49,11 +49,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .badge-listed   { background: #d1fae5; color: #065f46; }
 .badge-sold     { background: #fef3c7; color: #92400e; }
 .badge-archived { background: #f3f4f6; color: #374151; }
-.filter-scroll { overflow-x: auto; display: flex; gap: 8px; padding: 14px 16px 2px; scrollbar-width: none; }
+.filter-scroll { overflow-x: auto; display: flex; gap: 8px; padding: 10px 16px 2px; scrollbar-width: none; }
 .filter-scroll::-webkit-scrollbar { display: none; }
 .tab { padding: 8px 16px; border-radius: 20px; border: 1.5px solid var(--border2); background: var(--surface); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; color: var(--text2); flex-shrink: 0; font-family: inherit; }
 .tab.active { background: var(--navy); color: #fff; border-color: var(--navy); }
-.storage-bar-wrap { margin: 10px 16px 0; background: var(--surface); border-radius: 10px; padding: 10px 14px; border: 0.5px solid var(--border); }
+.storage-bar-wrap { margin: 6px 16px 0; background: var(--surface); border-radius: 10px; padding: 8px 14px; border: 0.5px solid var(--border); }
 .storage-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text3); margin-bottom: 6px; font-weight: 600; }
 .storage-bar-track { height: 5px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
 .storage-bar-fill { height: 100%; border-radius: 4px; background: var(--teal); transition: width 0.4s; }
@@ -75,6 +75,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 
 /* Photo grid — dynamic columns */
 .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+#photo-grid { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .photo-slot { aspect-ratio: 1; border-radius: var(--radius-sm); border: 2px dashed var(--border2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; background: var(--surface2); }
 .photo-slot img { width: 100%; height: 100%; object-fit: cover; }
 .photo-slot .slot-icon  { font-size: 30px; }
@@ -87,8 +88,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .next-photo-banner span { font-size: 15px; font-weight: 600; }
 .next-photo-banner button { padding: 10px 18px; border: none; border-radius: 10px; background: #fff; color: var(--navy); font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
 
-.section-title { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin: 20px 0 10px; }
-.field { background: var(--surface); border-radius: var(--radius-sm); border: 0.5px solid var(--border); padding: 13px 15px; margin-bottom: 8px; }
+.section-title { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin: 14px 0 8px; }
+.field { background: var(--surface); border-radius: var(--radius-sm); border: 0.5px solid var(--border); padding: 10px 14px; margin-bottom: 7px; }
 .field label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
 .field input, .field textarea, .field select { width: 100%; border: none; background: transparent; font-size: 16px; color: var(--text); outline: none; font-family: inherit; resize: none; -webkit-appearance: none; }
 .field textarea { min-height: 90px; line-height: 1.5; }
@@ -107,6 +108,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .sb-archived { border-color: var(--gray);  color: var(--gray); }
 .sb-photos   { border-color: var(--blue);  color: var(--blue); }
 .sb-analysed { border-color: #166634;      color: #166634; }
+.status-select-wrap { margin-bottom: 8px; }
+.status-select { width: 100%; padding: 18px 16px; border-radius: var(--radius-sm); border: 2px solid var(--border2); background: var(--surface); font-size: 16px; font-weight: 700; color: var(--text); font-family: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+.status-select.st-photos   { border-color: var(--blue);  color: var(--blue); }
+.status-select.st-analysed { border-color: #166634;      color: #166634; }
+.status-select.st-listed   { border-color: var(--teal);  color: var(--teal); }
+.status-select.st-sold     { border-color: var(--amber); color: var(--amber); }
+.status-select.st-archived { border-color: var(--gray);  color: var(--gray); }
 .copy-card { background: var(--surface); border-radius: 20px; padding: 28px 22px; margin-bottom: 18px; border: 0.5px solid var(--border); }
 .copy-label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
 .copy-value { font-size: 22px; font-weight: 600; color: var(--text); line-height: 1.35; }
@@ -207,13 +215,16 @@ input[type="file"] { display: none; }
     <div class="storage-bar-track"><div class="storage-bar-fill" id="storage-fill" style="width:0%"></div></div>
   </div>
   <div class="content" style="padding-bottom:100px;"><div id="item-list"></div></div>
-  <div class="fab"><button class="btn btn-primary" onclick="startNewItem()" style="font-size:18px;font-weight:700;">＋ &nbsp;New Item</button></div>
+  <button id="btn-batch-analyse" onclick="openBatchAnalyse()" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);width:auto;padding:10px 20px;border:1.5px solid var(--border2);border-radius:20px;background:var(--surface);font-size:14px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,0.12);z-index:21;">🔍 Analyse All</button>
+  <div class="fab">
+    <button class="btn btn-primary" onclick="startNewItem()" style="font-size:18px;font-weight:700;">＋ &nbsp;New Item</button>
+  </div>
 </div>
 
 <!-- ADD PHOTOS -->
 <div class="screen" id="screen-addphotos">
   <div class="header">
-    <button class="header-back" onclick="goHome()">←</button>
+    <button class="header-back" onclick="backFromAddPhotos()">←</button>
     <div><h1 id="addphotos-title">Add Photos</h1><div class="header-sub" id="addphotos-sub">Choose your capture method</div></div>
   </div>
   <div class="content" style="padding-bottom: 100px;">
@@ -236,7 +247,6 @@ input[type="file"] { display: none; }
     <input type="file" id="photo-input-library" accept=".jpg,.jpeg,.png,.heic,.heif,.webp" multiple onchange="handlePhoto(event,'library')" />
 
     <button class="btn btn-teal" id="save-photos-btn" onclick="savePhotos()" disabled>Save Photos →</button>
-    <button class="btn btn-outline" onclick="goHome()">Cancel</button>
   </div>
 </div>
 
@@ -283,25 +293,22 @@ input[type="file"] { display: none; }
       <div class="section-title">Actions</div>
       <button class="btn btn-teal" onclick="showDownloadModal()">⬇️ &nbsp;Save Photos to Gallery</button>
       <button class="btn btn-primary" onclick="openAddMorePhotos()">📷 &nbsp;Add / Replace Photos &amp; Re-analyse</button>
-      <button class="btn btn-blue" onclick="startCopyFlow()">📋 &nbsp;Copy &amp; Go to Vinted</button>
+      <button class="btn btn-blue" onclick="startCopyFlow()">🏷️ &nbsp;Start Listing</button>
     </div>
 
     <div class="section-title">Status</div>
-    <div class="status-grid">
-      <button class="status-btn sb-photos"   id="sb-photos"   onclick="handleSetStatus('photos')">📷 Photos</button>
-      <button class="status-btn sb-analysed" id="sb-analysed" onclick="handleSetStatus('analysed')">🔍 Analysed</button>
+    <div class="status-select-wrap">
+      <select class="status-select" id="status-select" onchange="handleSetStatus(this.value)">
+        <option value="photos">📷 Photos taken</option>
+        <option value="analysed">🔍 Analysed</option>
+        <option value="listed">📋 Listed</option>
+        <option value="sold">✅ Sold</option>
+        <option value="archived">🗄️ Archived</option>
+      </select>
     </div>
-    <div class="status-grid">
-      <button class="status-btn sb-listed" id="sb-listed" onclick="handleSetStatus('listed')">📋 Mark Listed</button>
-      <button class="status-btn sb-sold"   id="sb-sold"   onclick="handleSetStatus('sold')">✅ Mark Sold</button>
-    </div>
-    <button class="status-btn sb-archived" style="width:100%;margin-bottom:8px;" id="sb-archived" onclick="handleSetStatus('archived')">🗄️ Archive</button>
     <div style="margin-top:18px;">
       <button class="btn btn-danger" onclick="deleteItem()">🗑️ &nbsp;Delete Item</button>
     </div>
-  </div>
-  <div class="bottom-nav">
-    <button class="btn-back-bottom" onclick="goHome()">← Back to Home</button>
   </div>
 </div>
 
@@ -309,10 +316,11 @@ input[type="file"] { display: none; }
 <div class="screen" id="screen-copy">
   <div class="header">
     <button class="header-back" onclick="showScreen('screen-detail')">←</button>
-    <div><h1>Copy to Vinted</h1><div class="header-sub" id="copy-progress">Field 1 of 6</div></div>
+    <div><h1>Copy to Vinted</h1><div class="header-sub" id="copy-progress">Field 1 of 9</div></div>
   </div>
   <div class="content" style="display:flex;flex-direction:column;justify-content:space-between;padding-bottom:30px;">
     <div>
+      <button class="btn btn-blue" onclick="openVinted()" style="margin-bottom:18px;">📲 &nbsp;Open Vinted App First</button>
       <div class="dots" id="copy-dots"></div>
       <div class="copy-card">
         <div class="copy-label" id="copy-label">Title</div>
@@ -326,11 +334,33 @@ input[type="file"] { display: none; }
         <button class="btn btn-outline" id="btn-skip" onclick="skipField()">Skip →</button>
       </div>
       <button class="btn btn-teal"   id="btn-next"   onclick="nextField()"  style="display:none;">Next →</button>
-      <button class="btn btn-blue"   id="btn-vinted" onclick="openVinted()" style="display:none;">Open Vinted App</button>
+      <button class="btn btn-blue"   id="btn-done" onclick="finishCopyFlow()" style="display:none;">✅ &nbsp;Done — Mark as Listed?</button>
     </div>
   </div>
-  <div class="bottom-nav">
-    <button class="btn-back-bottom" onclick="showScreen('screen-detail')">← Back to Item</button>
+</div>
+
+<!-- MODAL: Batch Analyse -->
+<div class="modal-overlay" id="modal-batch-analyse" style="display:none;">
+  <div class="modal">
+    <h3 id="batch-title">Analyse items?</h3>
+    <p id="batch-desc">This will analyse all items with photos using AI.</p>
+    <div id="batch-progress" style="display:none;text-align:center;margin-bottom:16px;">
+      <div class="spinner" style="margin:0 auto 12px;"></div>
+      <p id="batch-progress-text" style="font-size:15px;font-weight:600;color:var(--text);"></p>
+    </div>
+    <button class="btn btn-primary" id="batch-confirm-btn" onclick="runBatchAnalyse()">🔍 &nbsp;Start Analysis</button>
+    <button class="btn btn-outline" id="batch-cancel-btn" onclick="closeModal('modal-batch-analyse')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: Unsaved photos -->
+<div class="modal-overlay" id="modal-unsaved-photos" style="display:none;">
+  <div class="modal">
+    <h3>Unsaved photos</h3>
+    <p>You have unsaved photos. Save them before leaving?</p>
+    <button class="btn btn-teal" onclick="savePhotos()">Save Photos →</button>
+    <button class="btn btn-danger" onclick="discardAndGoHome()">Discard & Leave</button>
+    <button class="btn btn-outline" onclick="closeModal('modal-unsaved-photos')">Cancel</button>
   </div>
 </div>
 
@@ -416,7 +446,7 @@ let aiSelectedIndices = [0, 1];
 let photoMode = localStorage.getItem('vinted_photo_mode') || 'camera';
 let pendingSlot = null; // for camera mode: which slot we're filling next
 const MAX_PHOTOS = 10;
-const DEFAULT_PHOTOS = 6;
+const DEFAULT_PHOTOS = 4;
 
 // ── Storage bar ────────────────────────────────────────────────────────
 async function updateStorageBar() {
@@ -457,6 +487,26 @@ function showScreen(id) {
 }
 function goHome() { renderHome(); updateStorageBar(); showScreen('screen-home'); }
 
+function backFromAddPhotos() {
+  if (pendingPhotos.filter(Boolean).length > 0) {
+    document.getElementById('modal-unsaved-photos').style.display = 'flex';
+  } else if (replacingItem || addingMorePhotos) {
+    showScreen('screen-detail');
+  } else {
+    goHome();
+  }
+}
+
+function discardAndGoHome() {
+  closeModal('modal-unsaved-photos');
+  pendingPhotos = [];
+  if (replacingItem || addingMorePhotos) {
+    showScreen('screen-detail');
+  } else {
+    goHome();
+  }
+}
+
 // ── Init ───────────────────────────────────────────────────────────────
 async function init() {
   await openDB();
@@ -489,6 +539,10 @@ const SB = { photos:'badge-photos', analysed:'badge-analysed', listed:'badge-lis
 
 function renderHome() {
   const list = document.getElementById('item-list');
+  // Show Analyse All button only when there are items with photos status
+  const photoItems = items.filter(i => i.status === 'photos');
+  const batchBtn = document.getElementById('btn-batch-analyse');
+  if (batchBtn) batchBtn.style.display = photoItems.length ? 'flex' : 'none';
   // "All" tab hides archived; show archived only when explicitly filtered
   const filtered = [...items].reverse().filter(i => {
     if (filter === 'all') return i.status !== 'archived';
@@ -533,11 +587,11 @@ function startNewItem() {
   addingMorePhotos = false;
   currentItem = null;
   pendingPhotos = [];
-  pendingSlot = 0;
+  pendingSlot = null;
   document.getElementById('addphotos-title').textContent = 'Add Photos';
   document.getElementById('addphotos-sub').textContent = 'Choose your capture method';
-  photoMode = 'library';
-  localStorage.setItem('vinted_photo_mode', 'library');
+  // Use last saved mode (defaults to camera on first launch)
+  photoMode = localStorage.getItem('vinted_photo_mode') || 'camera';
   initPhotoScreen();
   showScreen('screen-addphotos');
 }
@@ -585,7 +639,7 @@ function initPhotoScreen() {
 function renderSlots() {
   const grid = document.getElementById('photo-grid');
   const filled = pendingPhotos.filter(Boolean).length;
-  const totalSlots = Math.min(MAX_PHOTOS, Math.max(DEFAULT_PHOTOS, filled + (filled < MAX_PHOTOS ? 1 : 0)));
+  const totalSlots = Math.min(MAX_PHOTOS, filled < DEFAULT_PHOTOS ? DEFAULT_PHOTOS : filled + 1);
 
   let html = '';
   for (let i = 0; i < totalSlots; i++) {
@@ -600,11 +654,6 @@ function renderSlots() {
         <div class="slot-label">Photo ${i+1}</div>
       </div>`;
     }
-  }
-
-  // Add more button if under limit
-  if (filled >= totalSlots && filled < MAX_PHOTOS) {
-    html += `<div class="add-more-slot" onclick="slotTapped(${filled})">＋ Add more photos</div>`;
   }
 
   grid.innerHTML = html;
@@ -825,9 +874,11 @@ async function renderDetail() {
     document.getElementById('f-price').value       = item.price||'';
     document.getElementById('save-edits-btn').style.display = 'none';
   }
-  ['photos','analysed','listed','sold','archived'].forEach(s => {
-    const b=document.getElementById('sb-'+s); if(b) b.classList.toggle('current', item.status===s);
-  });
+  const sel = document.getElementById('status-select');
+  if (sel) {
+    sel.value = item.status;
+    sel.className = 'status-select st-' + item.status;
+  }
 }
 
 // ── Analysis ───────────────────────────────────────────────────────────
@@ -1017,7 +1068,7 @@ function renderCopyField() {
   document.getElementById('copy-action-row').style.display='flex';
   document.getElementById('btn-skip').style.display = isLast ? 'none' : 'flex';
   document.getElementById('btn-next').style.display='none';
-  document.getElementById('btn-vinted').style.display='none';
+  document.getElementById('btn-done').style.display='none';
   document.getElementById('copied-msg').style.opacity='0';
 }
 
@@ -1027,7 +1078,7 @@ function copyField() {
   navigator.clipboard.writeText(val).catch(()=>{ const ta=document.createElement('textarea'); ta.value=val; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); });
   document.getElementById('copied-msg').style.opacity='1';
   document.getElementById('copy-action-row').style.display='none';
-  document.getElementById(isLast?'btn-vinted':'btn-next').style.display='flex';
+  document.getElementById(isLast?'btn-done':'btn-next').style.display='flex';
 }
 
 function skipField() {
@@ -1055,8 +1106,11 @@ function toggleAiPhoto(idx) {
 }
 
 function openVinted() {
-  window.open('https://www.vinted.co.uk/sell','_blank');
-  setTimeout(()=>{ document.getElementById('modal-listed').style.display='flex'; },600);
+  window.open('https://www.vinted.co.uk','_blank');
+}
+
+function finishCopyFlow() {
+  document.getElementById('modal-listed').style.display='flex';
 }
 
 async function confirmListed() {
@@ -1068,6 +1122,85 @@ async function confirmListed() {
 function closeModal(id) {
   document.getElementById(id).style.display='none';
   if (id==='modal-listed') showScreen('screen-detail');
+}
+
+// ── Batch Analyse ──────────────────────────────────────────────────────
+function openBatchAnalyse() {
+  const photoItems = items.filter(i => i.status === 'photos');
+  document.getElementById('batch-title').textContent = `Analyse ${photoItems.length} item${photoItems.length>1?'s':''}?`;
+  document.getElementById('batch-desc').textContent = `AI will analyse up to 2 photos per item. This uses ${photoItems.length} API call${photoItems.length>1?'s':''}.`;
+  document.getElementById('batch-progress').style.display = 'none';
+  document.getElementById('batch-confirm-btn').style.display = 'flex';
+  document.getElementById('batch-cancel-btn').style.display = 'flex';
+  document.getElementById('modal-batch-analyse').style.display = 'flex';
+}
+
+async function runBatchAnalyse() {
+  const key = localStorage.getItem('vinted_api_key')||'';
+  if (!key) { closeModal('modal-batch-analyse'); alert('Please add your API key first.'); showScreen('screen-apikey'); return; }
+
+  const photoItems = items.filter(i => i.status === 'photos');
+  document.getElementById('batch-confirm-btn').style.display = 'none';
+  document.getElementById('batch-cancel-btn').style.display = 'none';
+  document.getElementById('batch-progress').style.display = 'block';
+
+  const prompt = `Analyse these photos of a second-hand clothing/fashion item for a Vinted listing.
+Return ONLY valid JSON, no markdown, no explanation:
+{
+  "title": "concise listing title max 50 chars, include brand+item+colour",
+  "description": "2-3 sentences for a Vinted buyer. Mention fit, style, any visible scratches, marks or flaws honestly. English only.",
+  "category": "Vinted category e.g. Women's Clothing > Dresses",
+  "brand": "brand name or Unknown",
+  "size": "size from label if visible, else empty string",
+  "condition": "New with tags|Like new|Good|Fair|Poor",
+  "colours": ["primary colour", "secondary colour if present"],
+  "materials": ["primary material", "secondary material if identifiable"],
+  "parcel_size": "XS|S|M|L|XL — best guess based on item type and size"
+}`;
+
+  let done = 0;
+  for (const item of photoItems) {
+    document.getElementById('batch-progress-text').textContent = `Analysing item ${done+1} of ${photoItems.length}…`;
+    try {
+      const rec = await dbGet(S_PHOTOS, item.id);
+      const images = rec && rec.images ? rec.images.slice(0,2) : [];
+      if (!images.length) { done++; continue; }
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+        body: JSON.stringify({
+          model:'claude-opus-4-5', max_tokens:900,
+          messages:[{ role:'user', content:[
+            ...images.map(p=>({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:p.replace(/^data:image\/\w+;base64,/,'') }})),
+            { type:'text', text:prompt }
+          ]}]
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      const json = JSON.parse(data.content[0].text.trim().replace(/```json|```/g,'').trim());
+      Object.assign(item, {
+        title:       json.title||'',
+        description: json.description||'',
+        category:    json.category||'',
+        brand:       json.brand||'',
+        size:        json.size||'',
+        condition:   json.condition||'Good',
+        colours:     Array.isArray(json.colours) ? json.colours.join(', ') : (json.colours||''),
+        materials:   Array.isArray(json.materials) ? json.materials.join(', ') : (json.materials||''),
+        parcel:      (json.parcel_size||'').replace(/[^XSML]/g,''),
+        status:      'analysed',
+      });
+      await dbPut(S_ITEMS, item);
+    } catch(e) { /* skip failed items, continue batch */ }
+    done++;
+  }
+
+  items = await dbGetAll(S_ITEMS);
+  closeModal('modal-batch-analyse');
+  renderHome();
+  updateStorageBar();
 }
 
 // ── Suggestions ─────────────────────────────────────────────────────────
