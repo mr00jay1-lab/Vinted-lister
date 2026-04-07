@@ -20,8 +20,8 @@ All notable changes to Vinted Lister are documented here.
 | 10 | **Change:** Back button on Add Photos page — show prompt modal "You have unsaved photos. Save before leaving?" Yes / Discard / Cancel | Analysed |
 | 11 | **Change:** Add Photos page — show 4 slots by default; show 5th slot only when all 4 filled, 6th only when 5 filled, etc. (progressive expansion up to max) | Analysed |
 | 12 | **Change:** Add Photos page — smaller tiles so 3 rows visible on screen with nav buttons; tiles compact enough to show all current slots without scrolling | Analysed |
-| 13 | **Change:** Remove duplicate back buttons — screens have both header ← and bottom nav back buttons; proposal: remove bottom nav back buttons, keep header only | Raised |
-| 14 | **Change:** Reduce vertical spacing throughout (header top padding, section gaps, storage bar) to gain more usable screen space on iPhone | Raised |
+| 13 | **Change:** Remove bottom nav back buttons from all screens (detail, copy flow); keep header ← only. Audit each screen to ensure no dead ends | Analysed |
+| 14 | **Change:** Reduce vertical spacing throughout — header top padding, section gaps, storage bar compacted to gain screen real estate | Analysed |
 
 ---
 
