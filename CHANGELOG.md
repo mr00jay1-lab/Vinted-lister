@@ -15,11 +15,13 @@ All notable changes to Vinted Lister are documented here.
 | 5 | **Bug:** "Copy & Go to Vinted" button on item page does nothing — root cause: stale `btn-vinted` JS reference crashing the copy flow | In dev |
 | 6 | **Change:** Rename "Copy & Go to Vinted" button to "Start Listing" | In dev |
 | 7 | **Change:** Status section on item page — replace 5 buttons with a single large dropdown, current status shown as the label | In dev |
-| 8 | **Bug:** Default photo source should be camera on 1st launch, then remember last used value for all subsequent new/existing items | Raised |
-| 9 | **Bug:** Home page — "Analyse All" button pushes "Add Item" off screen; make Analyse All smaller and position it above Add Item | Raised |
-| 10 | **Change:** Back button on Add Photos page should save if any photos added, or prompt user to save | Raised |
-| 11 | **Change:** Add Photos page — show only 4 empty slots by default; add one extra slot only when all current slots are filled | Raised |
-| 12 | **Change:** Add Photos page — make image tiles smaller so 3 rows fit on screen with nav buttons still visible | Raised |
+| 8 | **Bug:** Default photo source should be camera on 1st launch, then remember last used value for all subsequent new/existing items. Fix: remove force-set of library mode in `startNewItem()` | Analysed |
+| 9 | **Bug:** Home page — "Analyse All" button pushes "Add Item" off screen. Fix: move Analyse All to a smaller secondary button floating above the main FAB, only visible when relevant | Analysed |
+| 10 | **Change:** Back button on Add Photos page — show prompt modal "You have unsaved photos. Save before leaving?" Yes / Discard / Cancel | Analysed |
+| 11 | **Change:** Add Photos page — show 4 slots by default; show 5th slot only when all 4 filled, 6th only when 5 filled, etc. (progressive expansion up to max) | Analysed |
+| 12 | **Change:** Add Photos page — smaller tiles so 3 rows visible on screen with nav buttons; tiles compact enough to show all current slots without scrolling | Analysed |
+| 13 | **Change:** Remove duplicate back buttons — screens have both header ← and bottom nav back buttons; proposal: remove bottom nav back buttons, keep header only | Raised |
+| 14 | **Change:** Reduce vertical spacing throughout (header top padding, section gaps, storage bar) to gain more usable screen space on iPhone | Raised |
 
 ---
 
