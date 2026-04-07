@@ -233,7 +233,7 @@ input[type="file"] { display: none; }
     <div id="photo-msg" style="text-align:center;color:var(--text3);font-size:14px;margin-bottom:20px;font-weight:500;">Add at least 1 photo to continue</div>
 
     <input type="file" id="photo-input-camera"  accept="image/*" capture="environment" onchange="handlePhoto(event,'camera')" />
-    <input type="file" id="photo-input-library" accept="image/*" multiple onchange="handlePhoto(event,'library')" />
+    <input type="file" id="photo-input-library" accept=".jpg,.jpeg,.png,.heic,.heif,.webp" multiple onchange="handlePhoto(event,'library')" />
 
     <button class="btn btn-teal" id="save-photos-btn" onclick="savePhotos()" disabled>Save Photos →</button>
     <button class="btn btn-outline" onclick="goHome()">Cancel</button>
