@@ -1116,7 +1116,8 @@ function toggleAiPhoto(idx) {
 }
 
 function openVinted() {
-  window.open('https://www.vinted.co.uk','_blank');
+  const w = window.open('https://www.vinted.co.uk', '_blank');
+  if (!w || w.closed) window.location.href = 'https://www.vinted.co.uk';
 }
 
 function finishCopyFlow() {
