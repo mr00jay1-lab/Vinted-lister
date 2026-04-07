@@ -6,13 +6,12 @@ All notable changes to Vinted Lister are documented here.
 
 ## [Unreleased] — dev
 
-### Added
-- **Batch Analyse** button on home screen — appears when items with Photos status exist. Shows confirmation (item count + API call cost), then analyses all in sequence using first 2 photos per item
-- **Open Vinted App** button now appears at the top of the copy flow (before field copying), not at the end
-
-### Fixed
-- Vinted URL changed from `/sell` (404) to `https://www.vinted.co.uk` (working)
-- Copy flow final step now shows "Done — Mark as Listed?" instead of a duplicate Open Vinted button
+| # | Description | Status |
+|---|-------------|--------|
+| 1 | Batch Analyse button on home — analyses all Photos-status items in sequence, 2 images each, confirmation prompt first | In dev |
+| 2 | Open Vinted App button moved to top of copy flow, not end | In dev |
+| 3 | Vinted URL fix — was `/sell` (404), now `https://www.vinted.co.uk` | In dev |
+| 4 | Copy flow final step shows "Done — Mark as Listed?" instead of duplicate Open Vinted button | In dev |
 
 ---
 

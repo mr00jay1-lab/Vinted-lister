@@ -16,10 +16,16 @@ Every change follows this status flow:
 
 | Status | Meaning |
 |--------|---------|
-| **Raised** | User has described the change |
-| **Analysed** | Understood, approach agreed |
-| **In dev** | Code written and committed to dev branch |
-| **In prod** | Merged to main and deployed |
+| **Raised** | User has described the change — logged only, no action taken |
+| **Analysed** | User has asked for analysis — approach discussed and agreed |
+| **In dev** | User has asked to implement — code written and committed to dev |
+| **In prod** | User has asked to release — merged to main and deployed |
+
+## IMPORTANT — Do Not Self-Trigger
+- When the user describes a change, bug or suggestion: **log it to the changelog as Raised and stop**
+- **Never move an item to the next status without the user explicitly asking**
+- The user controls all progression through the lifecycle
+- Changes batch together and deploy as a sprint when the user decides
 
 ## Changelog Rules (`CHANGELOG.md`)
 - Keep an `[Unreleased] — dev` section at the top for all changes currently in dev
