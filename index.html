@@ -92,6 +92,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .field label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
 .field input, .field textarea, .field select { width: 100%; border: none; background: transparent; font-size: 16px; color: var(--text); outline: none; font-family: inherit; resize: none; -webkit-appearance: none; }
 .field textarea { min-height: 90px; line-height: 1.5; }
+.detail-photo-slot { aspect-ratio:1; border-radius:var(--radius-sm); overflow:hidden; background:var(--surface2); position:relative; cursor:pointer; border:3px solid transparent; transition:border-color 0.15s; }
+.detail-photo-slot img { width:100%; height:100%; object-fit:cover; }
+.detail-photo-slot.ai-selected { border-color:var(--teal); }
+.ai-badge { position:absolute; bottom:6px; left:6px; background:var(--teal); color:#fff; font-size:11px; font-weight:700; padding:3px 7px; border-radius:8px; pointer-events:none; }
+.photo-hint { font-size:13px; color:var(--text3); text-align:center; margin:-6px 0 14px; font-weight:500; }
+.copy-row { display:flex; gap:10px; margin-bottom:10px; }
+.copy-row .btn { margin-bottom:0; flex:1; }
 .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
 .status-btn { padding: 15px 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border2); background: var(--surface); font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; color: var(--text2); font-family: inherit; }
 .status-btn.current { border-width: 2.5px; }
@@ -245,6 +252,7 @@ input[type="file"] { display: none; }
   <div class="content" style="padding-bottom:30px;">
     <div class="section-title">Photos</div>
     <div class="photo-grid" id="detail-photos"></div>
+    <div class="photo-hint" id="detail-photo-hint" style="display:none;">Tap photos to select for AI analysis</div>
 
     <div id="state-photos">
       <button class="btn btn-primary" onclick="analyseItem()">🔍 &nbsp;Analyse with AI</button>
@@ -254,14 +262,22 @@ input[type="file"] { display: none; }
     <div id="state-analysed" style="display:none;">
       <div class="section-title">Listing Details</div>
       <div class="field"><label>Title</label><input id="f-title" type="text" oninput="markDirty()" /></div>
+      <div class="field"><label>Description</label><textarea id="f-description" oninput="markDirty()"></textarea></div>
       <div class="field"><label>Category</label><input id="f-category" type="text" oninput="markDirty()" /></div>
       <div class="field"><label>Brand</label><input id="f-brand" type="text" oninput="markDirty()" /></div>
+      <div class="field"><label>Size</label><input id="f-size" type="text" oninput="markDirty()" /></div>
       <div class="field"><label>Condition</label>
         <select id="f-condition" onchange="markDirty()">
           <option>New with tags</option><option>Like new</option><option>Good</option><option>Fair</option><option>Poor</option>
         </select>
       </div>
-      <div class="field"><label>Description</label><textarea id="f-description" oninput="markDirty()"></textarea></div>
+      <div class="field"><label>Colour</label><input id="f-colours" type="text" oninput="markDirty()" /></div>
+      <div class="field"><label>Material</label><input id="f-materials" type="text" oninput="markDirty()" /></div>
+      <div class="field"><label>Parcel Size</label>
+        <select id="f-parcel" onchange="markDirty()">
+          <option value="">— select —</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option>
+        </select>
+      </div>
       <div class="field"><label>Price (£)</label><input id="f-price" type="number" oninput="markDirty()" /></div>
       <button class="btn btn-outline" id="save-edits-btn" onclick="saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
       <div class="section-title">Actions</div>
@@ -305,7 +321,10 @@ input[type="file"] { display: none; }
       <div class="copied-msg" id="copied-msg">✓ Copied to clipboard!</div>
     </div>
     <div>
-      <button class="btn btn-primary" id="btn-copy"   onclick="copyField()">Copy this field</button>
+      <div class="copy-row" id="copy-action-row">
+        <button class="btn btn-primary" id="btn-copy" onclick="copyField()">Copy this field</button>
+        <button class="btn btn-outline" id="btn-skip" onclick="skipField()">Skip →</button>
+      </div>
       <button class="btn btn-teal"   id="btn-next"   onclick="nextField()"  style="display:none;">Next →</button>
       <button class="btn btn-blue"   id="btn-vinted" onclick="openVinted()" style="display:none;">Open Vinted App</button>
     </div>
@@ -393,6 +412,7 @@ const dbDelete = (s,k) => new Promise((res,rej) => { const r=tx(s,'readwrite').d
 let items=[], currentItem=null, filter='all';
 let pendingPhotos=[], replacingItem=false, addingMorePhotos=false;
 let copyFields=[], copyIdx=0, dirty=false, pendingStatus=null;
+let aiSelectedIndices = [0, 1];
 let photoMode = localStorage.getItem('vinted_photo_mode') || 'camera';
 let pendingSlot = null; // for camera mode: which slot we're filling next
 const MAX_PHOTOS = 10;
@@ -732,7 +752,7 @@ async function savePhotos() {
   }
 
   const id = 'item_'+Date.now();
-  const item = { id, status:'photos', thumbnail, hasPhotos:true, title:'', category:'', brand:'', condition:'', description:'', price:'', createdAt:Date.now() };
+  const item = { id, status:'photos', thumbnail, hasPhotos:true, title:'', description:'', category:'', brand:'', size:'', condition:'', colours:'', materials:'', parcel:'', price:'', createdAt:Date.now() };
   await dbPut(S_ITEMS, item);
   await dbPut(S_PHOTOS, {id, images});
   items = await dbGetAll(S_ITEMS);
@@ -744,6 +764,7 @@ async function openItem(id) {
   currentItem = items.find(i=>i.id===id);
   if (!currentItem) return;
   dirty=false;
+  aiSelectedIndices = [0, 1];
   // Always reset state-photos to original buttons before rendering
   resetStatePhotos();
   await renderDetail();
@@ -763,13 +784,24 @@ async function renderDetail() {
   document.getElementById('detail-badge-wrap').innerHTML = `<span class="badge ${SB[item.status]}">${SL[item.status]}</span>`;
 
   const grid = document.getElementById('detail-photos');
+  const hintEl = document.getElementById('detail-photo-hint');
   if (item.hasPhotos) {
     const rec = await dbGet(S_PHOTOS, item.id);
-    grid.innerHTML = rec && rec.images
-      ? rec.images.map(p=>`<div style="aspect-ratio:1;border-radius:var(--radius-sm);overflow:hidden;background:var(--surface2);"><img src="${p}" style="width:100%;height:100%;object-fit:cover;" /></div>`).join('')
-      : '<p style="font-size:13px;color:var(--text3);grid-column:span 2;">Photos not found.</p>';
+    if (rec && rec.images) {
+      grid.innerHTML = rec.images.map((p,i) => {
+        const sel = aiSelectedIndices.includes(i);
+        return `<div class="detail-photo-slot${sel?' ai-selected':''}" onclick="toggleAiPhoto(${i})">
+          <img src="${p}" />${sel ? '<div class="ai-badge">🔍 AI</div>' : ''}
+        </div>`;
+      }).join('');
+      if (hintEl) hintEl.style.display = 'block';
+    } else {
+      grid.innerHTML = '<p style="font-size:13px;color:var(--text3);grid-column:span 2;">Photos not found.</p>';
+      if (hintEl) hintEl.style.display = 'none';
+    }
   } else {
     grid.innerHTML = '<p style="font-size:13px;color:var(--text3);grid-column:span 2;">Photos removed to save space.</p>';
+    if (hintEl) hintEl.style.display = 'none';
   }
 
   const analysed = ['analysed','listed','sold','archived'].includes(item.status);
@@ -777,10 +809,14 @@ async function renderDetail() {
   document.getElementById('state-analysed').style.display  = analysed ? 'block' : 'none';
   if (analysed) {
     document.getElementById('f-title').value       = item.title||'';
-    document.getElementById('f-category').value    = item.category||'';
-    document.getElementById('f-brand').value        = item.brand||'';
-    document.getElementById('f-condition').value   = item.condition||'Good';
     document.getElementById('f-description').value = item.description||'';
+    document.getElementById('f-category').value    = item.category||'';
+    document.getElementById('f-brand').value       = item.brand||'';
+    document.getElementById('f-size').value        = item.size||'';
+    document.getElementById('f-condition').value   = item.condition||'Good';
+    document.getElementById('f-colours').value     = item.colours||'';
+    document.getElementById('f-materials').value   = item.materials||'';
+    document.getElementById('f-parcel').value      = item.parcel||'';
     document.getElementById('f-price').value       = item.price||'';
     document.getElementById('save-edits-btn').style.display = 'none';
   }
@@ -809,18 +845,31 @@ async function analyseItem() {
   const itemId = currentItem.id;
 
   const rec = currentItem.hasPhotos ? await dbGet(S_PHOTOS, currentItem.id) : null;
-  const images = rec && rec.images ? rec.images.slice(0,2) : [];
-  if (!images.length) { alert('No photos found.'); resetStatePhotos(); return; }
+  const allImages = rec && rec.images ? rec.images : [];
+  if (!allImages.length) { alert('No photos found.'); resetStatePhotos(); return; }
+  const images = aiSelectedIndices.filter(i=>i<allImages.length).map(i=>allImages[i]);
+  if (!images.length) { alert('No photos selected for analysis.'); resetStatePhotos(); return; }
 
-  const prompt = `Analyse these photos of a second-hand item for a Vinted listing. Return ONLY valid JSON, no markdown, no explanation:
-{"title":"concise listing title max 50 chars","category":"specific clothing or item category","brand":"brand name or Unknown","condition":"New with tags|Like new|Good|Fair|Poor","description":"2-3 sentences describing the item for a Vinted buyer in English","price":numeric_GBP_price}`;
+  const prompt = `Analyse these photos of a second-hand clothing/fashion item for a Vinted listing.
+Return ONLY valid JSON, no markdown, no explanation:
+{
+  "title": "concise listing title max 50 chars, include brand+item+colour",
+  "description": "2-3 sentences for a Vinted buyer. Mention fit, style, any visible scratches, marks or flaws honestly. English only.",
+  "category": "Vinted category e.g. Women's Clothing > Dresses",
+  "brand": "brand name or Unknown",
+  "size": "size from label if visible, else empty string",
+  "condition": "New with tags|Like new|Good|Fair|Poor",
+  "colours": ["primary colour", "secondary colour if present"],
+  "materials": ["primary material", "secondary material if identifiable"],
+  "parcel_size": "XS|S|M|L|XL — best guess based on item type and size"
+}`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{ 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
       body: JSON.stringify({
-        model:'claude-opus-4-5', max_tokens:600,
+        model:'claude-opus-4-5', max_tokens:900,
         messages:[{ role:'user', content:[
           ...images.map(p=>({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:p.replace(/^data:image\/\w+;base64,/,'') }})),
           { type:'text', text:prompt }
@@ -834,7 +883,18 @@ async function analyseItem() {
     // Guard: only apply if user is still on the same item
     if (!currentItem || currentItem.id !== itemId) return;
 
-    Object.assign(currentItem, { title:json.title||'', category:json.category||'', brand:json.brand||'', condition:json.condition||'Good', description:json.description||'', price:json.price||'', status:'analysed' });
+    Object.assign(currentItem, {
+      title:       json.title||'',
+      description: json.description||'',
+      category:    json.category||'',
+      brand:       json.brand||'',
+      size:        json.size||'',
+      condition:   json.condition||'Good',
+      colours:     Array.isArray(json.colours) ? json.colours.join(', ') : (json.colours||''),
+      materials:   Array.isArray(json.materials) ? json.materials.join(', ') : (json.materials||''),
+      parcel:      (json.parcel_size||'').replace(/[^XSML]/g,''),
+      status:      'analysed',
+    });
     await dbPut(S_ITEMS, currentItem);
     items = await dbGetAll(S_ITEMS);
     currentItem = items.find(i=>i.id===itemId);
@@ -855,12 +915,16 @@ function markDirty() { dirty=true; document.getElementById('save-edits-btn').sty
 
 async function saveEdits() {
   Object.assign(currentItem, {
-    title:document.getElementById('f-title').value,
-    category:document.getElementById('f-category').value,
-    brand:document.getElementById('f-brand').value,
-    condition:document.getElementById('f-condition').value,
-    description:document.getElementById('f-description').value,
-    price:document.getElementById('f-price').value,
+    title:       document.getElementById('f-title').value,
+    description: document.getElementById('f-description').value,
+    category:    document.getElementById('f-category').value,
+    brand:       document.getElementById('f-brand').value,
+    size:        document.getElementById('f-size').value,
+    condition:   document.getElementById('f-condition').value,
+    colours:     document.getElementById('f-colours').value,
+    materials:   document.getElementById('f-materials').value,
+    parcel:      document.getElementById('f-parcel').value,
+    price:       document.getElementById('f-price').value,
   });
   await dbPut(S_ITEMS, currentItem);
   items = await dbGetAll(S_ITEMS);
@@ -925,23 +989,28 @@ function startCopyFlow() {
   const it=currentItem;
   copyFields=[
     {label:'Title',       value:it.title||''},
+    {label:'Description', value:it.description||''},
     {label:'Category',    value:it.category||''},
     {label:'Brand',       value:it.brand||''},
+    {label:'Size',        value:it.size||''},
     {label:'Condition',   value:it.condition||''},
-    {label:'Description', value:it.description||''},
-    {label:'Price (£)',   value:it.price?`£${it.price}`:''},
+    {label:'Colour',      value:it.colours||''},
+    {label:'Material',    value:it.materials||''},
+    {label:'Parcel Size', value:it.parcel||''},
   ];
   copyIdx=0; renderCopyField(); showScreen('screen-copy');
 }
 
 function renderCopyField() {
   const f=copyFields[copyIdx];
+  const isLast=copyIdx===copyFields.length-1;
   document.getElementById('copy-progress').textContent=`Field ${copyIdx+1} of ${copyFields.length}`;
   document.getElementById('copy-label').textContent=f.label;
   const v=document.getElementById('copy-value');
   v.textContent=f.value||'—'; v.className='copy-value'+(f.value.length>60?' long':'');
   document.getElementById('copy-dots').innerHTML=copyFields.map((_,i)=>`<div class="dot${i<=copyIdx?' active':''}"></div>`).join('');
-  document.getElementById('btn-copy').style.display='flex';
+  document.getElementById('copy-action-row').style.display='flex';
+  document.getElementById('btn-skip').style.display = isLast ? 'none' : 'flex';
   document.getElementById('btn-next').style.display='none';
   document.getElementById('btn-vinted').style.display='none';
   document.getElementById('copied-msg').style.opacity='0';
@@ -952,11 +1021,33 @@ function copyField() {
   const isLast=copyIdx===copyFields.length-1;
   navigator.clipboard.writeText(val).catch(()=>{ const ta=document.createElement('textarea'); ta.value=val; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); });
   document.getElementById('copied-msg').style.opacity='1';
-  document.getElementById('btn-copy').style.display='none';
+  document.getElementById('copy-action-row').style.display='none';
   document.getElementById(isLast?'btn-vinted':'btn-next').style.display='flex';
 }
 
+function skipField() {
+  if (copyIdx < copyFields.length-1) { copyIdx++; renderCopyField(); }
+}
+
 function nextField() { copyIdx++; renderCopyField(); }
+
+function toggleAiPhoto(idx) {
+  if (aiSelectedIndices.includes(idx)) {
+    if (aiSelectedIndices.length <= 1) return;
+    aiSelectedIndices = aiSelectedIndices.filter(i=>i!==idx);
+  } else {
+    if (aiSelectedIndices.length >= 10) return;
+    aiSelectedIndices = [...aiSelectedIndices, idx].sort((a,b)=>a-b);
+  }
+  const grid = document.getElementById('detail-photos');
+  grid.querySelectorAll('.detail-photo-slot').forEach((el,i) => {
+    const sel = aiSelectedIndices.includes(i);
+    el.classList.toggle('ai-selected', sel);
+    const badge = el.querySelector('.ai-badge');
+    if (sel && !badge) { const b=document.createElement('div'); b.className='ai-badge'; b.textContent='🔍 AI'; el.appendChild(b); }
+    else if (!sel && badge) badge.remove();
+  });
+}
 
 function openVinted() {
   window.open('https://www.vinted.co.uk/sell','_blank');
