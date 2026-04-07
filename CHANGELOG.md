@@ -15,6 +15,11 @@ All notable changes to Vinted Lister are documented here.
 | 5 | **Bug:** "Copy & Go to Vinted" button on item page does nothing — root cause: stale `btn-vinted` JS reference crashing the copy flow | In dev |
 | 6 | **Change:** Rename "Copy & Go to Vinted" button to "Start Listing" | In dev |
 | 7 | **Change:** Status section on item page — replace 5 buttons with a single large dropdown, current status shown as the label | In dev |
+| 8 | **Bug:** Default photo source should be camera on 1st launch, then remember last used value for all subsequent new/existing items | Raised |
+| 9 | **Bug:** Home page — "Analyse All" button pushes "Add Item" off screen; make Analyse All smaller and position it above Add Item | Raised |
+| 10 | **Change:** Back button on Add Photos page should save if any photos added, or prompt user to save | Raised |
+| 11 | **Change:** Add Photos page — show only 4 empty slots by default; add one extra slot only when all current slots are filled | Raised |
+| 12 | **Change:** Add Photos page — make image tiles smaller so 3 rows fit on screen with nav buttons still visible | Raised |
 
 ---
 
