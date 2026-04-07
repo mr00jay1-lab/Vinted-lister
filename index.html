@@ -941,7 +941,10 @@ Return ONLY valid JSON, no markdown, no explanation:
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
-    const json = JSON.parse(data.content[0].text.trim().replace(/```json|```/g,'').trim());
+    const raw = data.content[0].text;
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('No JSON found in response');
+    const json = JSON.parse(match[0]);
 
     // Guard: only apply if user is still on the same item
     if (!currentItem || currentItem.id !== itemId) return;
@@ -1186,7 +1189,10 @@ Return ONLY valid JSON, no markdown, no explanation:
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error.message);
-      const json = JSON.parse(data.content[0].text.trim().replace(/```json|```/g,'').trim());
+      const raw2 = data.content[0].text;
+      const match2 = raw2.match(/\{[\s\S]*\}/);
+      if (!match2) throw new Error('No JSON found in response');
+      const json = JSON.parse(match2[0]);
       Object.assign(item, {
         title:       json.title||'',
         description: json.description||'',
