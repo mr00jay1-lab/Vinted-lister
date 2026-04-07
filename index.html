@@ -774,10 +774,17 @@ function compressTo(dataUrl, maxW, quality, cb) {
 }
 
 async function savePhotos() {
+  document.getElementById('modal-unsaved-photos').style.display = 'none';
   const photos = pendingPhotos.filter(Boolean);
   if (!photos.length) return;
-  const thumbnail = photos[0].thumbnail;
-  const images    = photos.map(p=>p.dataUrl);
+  // Thumbnail may be null when photos were loaded from DB (no re-compression done)
+  // Generate it on the fly if missing, otherwise fall back to existing item thumbnail
+  let thumbnail = photos[0].thumbnail;
+  if (!thumbnail) {
+    thumbnail = currentItem?.thumbnail ||
+      await new Promise(res => compressTo(photos[0].dataUrl, 100, 0.7, res));
+  }
+  const images = photos.map(p=>p.dataUrl);
 
   if (addingMorePhotos && currentItem) {
     // Save photos then trigger re-analysis
