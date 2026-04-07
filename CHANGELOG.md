@@ -12,9 +12,9 @@ All notable changes to Vinted Lister are documented here.
 | 2 | Open Vinted App button moved to top of copy flow, not end | In dev |
 | 3 | Vinted URL fix — was `/sell` (404), now `https://www.vinted.co.uk` | In dev |
 | 4 | Copy flow final step shows "Done — Mark as Listed?" instead of duplicate Open Vinted button | In dev |
-| 5 | **Bug:** "Copy & Go to Vinted" button on item page does nothing | Raised |
-| 6 | **Change:** Rename "Copy & Go to Vinted" button to "Start Listing" | Raised |
-| 7 | **Change:** Status section on item page — replace 5 buttons with a single large dropdown, current status shown as the label | Raised |
+| 5 | **Bug:** "Copy & Go to Vinted" button on item page does nothing — root cause: stale `btn-vinted` JS reference crashing the copy flow | In dev |
+| 6 | **Change:** Rename "Copy & Go to Vinted" button to "Start Listing" | In dev |
+| 7 | **Change:** Status section on item page — replace 5 buttons with a single large dropdown, current status shown as the label | In dev |
 
 ---
 
