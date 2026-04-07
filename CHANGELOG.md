@@ -15,13 +15,13 @@ All notable changes to Vinted Lister are documented here.
 | 5 | **Bug:** "Copy & Go to Vinted" button on item page does nothing — root cause: stale `btn-vinted` JS reference crashing the copy flow | In dev |
 | 6 | **Change:** Rename "Copy & Go to Vinted" button to "Start Listing" | In dev |
 | 7 | **Change:** Status section on item page — replace 5 buttons with a single large dropdown, current status shown as the label | In dev |
-| 8 | **Bug:** Default photo source should be camera on 1st launch, then remember last used value for all subsequent new/existing items. Fix: remove force-set of library mode in `startNewItem()` | Analysed |
-| 9 | **Bug:** Home page — "Analyse All" button pushes "Add Item" off screen. Fix: move Analyse All to a smaller secondary button floating above the main FAB, only visible when relevant | Analysed |
-| 10 | **Change:** Back button on Add Photos page — show prompt modal "You have unsaved photos. Save before leaving?" Yes / Discard / Cancel | Analysed |
-| 11 | **Change:** Add Photos page — show 4 slots by default; show 5th slot only when all 4 filled, 6th only when 5 filled, etc. (progressive expansion up to max) | Analysed |
-| 12 | **Change:** Add Photos page — smaller tiles so 3 rows visible on screen with nav buttons; tiles compact enough to show all current slots without scrolling | Analysed |
-| 13 | **Change:** Remove bottom nav back buttons from all screens (detail, copy flow); keep header ← only. Audit each screen to ensure no dead ends | Analysed |
-| 14 | **Change:** Reduce vertical spacing throughout — header top padding, section gaps, storage bar compacted to gain screen real estate | Analysed |
+| 8 | **Bug:** Default photo source should be camera on 1st launch, then remember last used value for all subsequent new/existing items. Fix: remove force-set of library mode in `startNewItem()` | In dev |
+| 9 | **Bug:** Home page — "Analyse All" button pushes "Add Item" off screen. Fix: move Analyse All to a smaller secondary button floating above the main FAB, only visible when relevant | In dev |
+| 10 | **Change:** Back button on Add Photos page — show prompt modal "You have unsaved photos. Save before leaving?" Yes / Discard / Cancel | In dev |
+| 11 | **Change:** Add Photos page — show 4 slots by default; show 5th slot only when all 4 filled, 6th only when 5 filled, etc. (progressive expansion up to max) | In dev |
+| 12 | **Change:** Add Photos page — 3-column grid for smaller tiles; more slots visible without scrolling | In dev |
+| 13 | **Change:** Remove bottom nav back buttons from all screens (detail, copy flow); keep header ← only. Audit each screen to ensure no dead ends | In dev |
+| 14 | **Change:** Reduce vertical spacing throughout — header top padding, section gaps, storage bar compacted to gain screen real estate | In dev |
 
 ---
 
