@@ -320,7 +320,7 @@ input[type="file"] { display: none; }
   </div>
   <div class="content" style="display:flex;flex-direction:column;justify-content:space-between;padding-bottom:30px;">
     <div>
-      <button class="btn btn-blue" onclick="openVinted()" style="margin-bottom:18px;">📲 &nbsp;Open Vinted App First</button>
+      <a href="https://www.vinted.co.uk" target="_blank" rel="noopener" class="btn btn-blue" style="margin-bottom:18px;text-decoration:none;">📲 &nbsp;Open Vinted App First</a>
       <div class="dots" id="copy-dots"></div>
       <div class="copy-card">
         <div class="copy-label" id="copy-label">Title</div>
@@ -1115,10 +1115,6 @@ function toggleAiPhoto(idx) {
   });
 }
 
-function openVinted() {
-  const w = window.open('https://www.vinted.co.uk', '_blank');
-  if (!w || w.closed) window.location.href = 'https://www.vinted.co.uk';
-}
 
 function finishCopyFlow() {
   document.getElementById('modal-listed').style.display='flex';
