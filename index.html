@@ -661,7 +661,10 @@ function triggerNextCamera() {
 function handlePhoto(e, mode) {
   const files = Array.from(e.target.files);
   e.target.value = '';
-  if (!files.length) return;
+  if (!files.length) {
+    if (!pendingPhotos.filter(Boolean).length) goHome();
+    return;
+  }
 
   if (mode === 'library') {
     // Multi-select: fill slots from pendingSlot onwards
