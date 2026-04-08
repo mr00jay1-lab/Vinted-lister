@@ -13,6 +13,14 @@ export async function initApp() {
   document.getElementById('version-display').textContent = versionParts[0].substring(1); // Remove 'v'
   document.getElementById('branch-display').textContent = BRANCH_NAME;
   
+  // Ensure buttons are clickable on mobile
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      btn.click();
+    }, false);
+  });
+  
   if (!getApiKey()) showScreen('screen-apikey');
   else goHome();
 }
