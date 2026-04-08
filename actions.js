@@ -222,7 +222,4 @@ function resetStatePhotos() {
   `;
 }
 
-function closeModal(id) {
-  document.getElementById(id).style.display = 'none';
-  if (id === 'modal-listed') showScreen('screen-detail');
-}
+
