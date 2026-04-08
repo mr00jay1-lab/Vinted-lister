@@ -215,15 +215,6 @@ export function renderCopyField() {
   // This function is replaced by the new click-to-copy logic, kept for compatibility
 }
 
-    .map((suggestion, index) => `
-      <div class="suggest-item">
-        <div class="suggest-item-text">${index + 1}. ${suggestion}</div>
-        <button class="suggest-item-del" onclick="deleteSuggestion(${index})">✕</button>
-      </div>
-    `)
-    .join('');
-}
-
 function resetStatePhotos() {
   document.getElementById('state-photos').innerHTML = `
     <button class="btn btn-primary" onclick="analyseItem()">🔍 &nbsp;Analyse with AI</button>
