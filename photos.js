@@ -2,7 +2,7 @@ import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS 
 import { dbPut, dbGet, dbGetAll } from './db.js';
 import { compressTo } from './utils.js';
 import { analyseItem } from './analysis.js';
-import { renderDetail, renderHome, goHome, showScreen } from './ui.js';
+import { renderDetail, renderHome, goHome, showScreen, closeModal } from './ui.js';
 
 export function setPhotoMode(mode) {
   savePhotoMode(mode);
@@ -66,6 +66,26 @@ export function initPhotoScreen() {
   document.getElementById('mode-btn-camera').classList.toggle('active', appState.photoMode === 'camera');
   document.getElementById('mode-btn-library').classList.toggle('active', appState.photoMode === 'library');
   renderSlots();
+}
+
+export function backFromAddPhotos() {
+  if (appState.pendingPhotos.filter(Boolean).length > 0) {
+    document.getElementById('modal-unsaved-photos').style.display = 'flex';
+  } else if (appState.replacingItem || appState.addingMorePhotos) {
+    showScreen('screen-detail');
+  } else {
+    goHome();
+  }
+}
+
+export function discardAndGoHome() {
+  closeModal('modal-unsaved-photos');
+  appState.pendingPhotos = [];
+  if (appState.replacingItem || appState.addingMorePhotos) {
+    showScreen('screen-detail');
+  } else {
+    goHome();
+  }
 }
 
 export function renderSlots() {

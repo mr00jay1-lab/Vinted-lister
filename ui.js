@@ -1,4 +1,4 @@
-import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, DEFAULT_PHOTOS, MAX_PHOTOS, getApiKey } from './state.js';
+import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, DEFAULT_PHOTOS, MAX_PHOTOS, getApiKey, saveApiKeyValue } from './state.js';
 import { dbGet, dbGetAll, dbPut, dbDelete, openDB, S_ITEMS, S_PHOTOS } from './db.js';
 import { renderSuggestions } from './suggestions.js';
 
@@ -9,6 +9,16 @@ export async function initApp() {
   renderSuggestions();
   if (!getApiKey()) showScreen('screen-apikey');
   else goHome();
+}
+
+export function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key.startsWith('sk-')) {
+    alert('Please enter a valid Anthropic API key (starts with sk-)');
+    return;
+  }
+  saveApiKeyValue(key);
+  goHome();
 }
 
 export function showScreen(id) {
