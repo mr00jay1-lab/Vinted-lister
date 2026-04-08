@@ -24,6 +24,10 @@ export async function initApp() {
   const apiKeyBtn = document.getElementById('api-key-btn');
   if (apiKeyBtn) {
     apiKeyBtn.addEventListener('click', saveApiKey, false);
+    apiKeyBtn.addEventListener('touchend', (event) => {
+      event.preventDefault();
+      saveApiKey();
+    }, false);
   }
   
   if (!getApiKey()) showScreen('screen-apikey');
