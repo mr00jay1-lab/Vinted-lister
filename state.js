@@ -3,6 +3,9 @@ export const DB_VER = 1;
 export const S_ITEMS = 'items';
 export const S_PHOTOS = 'photos';
 
+export const APP_VERSION = 'v1.4.0-modular-v1';
+export const BRANCH_NAME = 'modular-v1';
+
 export const MAX_PHOTOS = 10;
 export const DEFAULT_PHOTOS = 4;
 

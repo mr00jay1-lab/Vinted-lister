@@ -1,4 +1,4 @@
-import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, DEFAULT_PHOTOS, MAX_PHOTOS, getApiKey, saveApiKeyValue } from './state.js';
+import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, DEFAULT_PHOTOS, MAX_PHOTOS, getApiKey, saveApiKeyValue, APP_VERSION, BRANCH_NAME } from './state.js';
 import { dbGet, dbGetAll, dbPut, dbDelete, openDB, S_ITEMS, S_PHOTOS } from './db.js';
 import { renderSuggestions } from './suggestions.js';
 
@@ -7,6 +7,12 @@ export async function initApp() {
   appState.items = await dbGetAll(S_ITEMS);
   await autoClean();
   renderSuggestions();
+  
+  // Display version and branch
+  const versionParts = APP_VERSION.split('-');
+  document.getElementById('version-display').textContent = versionParts[0].substring(1); // Remove 'v'
+  document.getElementById('branch-display').textContent = BRANCH_NAME;
+  
   if (!getApiKey()) showScreen('screen-apikey');
   else goHome();
 }
