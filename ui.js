@@ -1,5 +1,5 @@
-import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, DEFAULT_PHOTOS, MAX_PHOTOS, getApiKey, saveApiKeyValue, APP_VERSION, BRANCH_NAME } from './state.js';
-import { dbGet, dbGetAll, dbPut, dbDelete, openDB, S_ITEMS, S_PHOTOS } from './db.js';
+import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, DEFAULT_PHOTOS, MAX_PHOTOS, getApiKey, saveApiKeyValue, APP_VERSION, BRANCH_NAME, S_ITEMS, S_PHOTOS } from './state.js';
+import { dbGet, dbGetAll, dbPut, dbDelete, openDB } from './db.js';
 import { renderSuggestions } from './suggestions.js';
 
 export async function initApp() {
