@@ -13,7 +13,13 @@ export async function initApp() {
   document.getElementById('version-display').textContent = versionParts[0].substring(1); // Remove 'v'
   document.getElementById('branch-display').textContent = BRANCH_NAME;
   
-  // Ensure buttons are clickable on mobile
+  // Bind API key button click handler
+  const apiKeyBtn = document.getElementById('api-key-btn');
+  if (apiKeyBtn) {
+    apiKeyBtn.onclick = saveApiKey;
+  }
+  
+  // Ensure all buttons are clickable on mobile
   document.querySelectorAll('.btn').forEach(btn => {
     btn.addEventListener('touchend', (e) => {
       e.preventDefault();

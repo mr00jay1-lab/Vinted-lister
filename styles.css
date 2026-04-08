@@ -130,8 +130,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .api-icon  { font-size: 72px; margin-bottom: 22px; }
 .api-title { font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 12px; }
 .api-desc  { font-size: 15px; color: var(--text2); line-height: 1.65; margin-bottom: 30px; }
-.api-input { width: 100%; padding: 17px 15px; border-radius: var(--radius-sm); border: 1.5px solid var(--border2); font-size: 14px; font-family: monospace; outline: none; background: var(--surface); color: var(--text); margin-bottom: 12px; }
+.api-input { width: 100%; padding: 17px 15px; border-radius: var(--radius-sm); border: 1.5px solid var(--border2); font-size: 14px; font-family: monospace; outline: none; background: var(--surface); color: var(--text); margin-bottom: 12px; -webkit-appearance: none; -webkit-resize: none; }
 .api-input:focus { border-color: var(--navy); }
+#api-key-btn { pointer-events: auto !important; -webkit-touch-callout: default; -webkit-user-select: none; touch-action: manipulation; }
 .api-note  { font-size: 12px; color: var(--text3); margin-top: 10px; line-height: 1.5; }
 input[type="file"] { display: none; }
 .bottom-nav { padding: 12px 16px 36px; background: var(--bg); border-top: 0.5px solid var(--border); display: flex; gap: 10px; }
