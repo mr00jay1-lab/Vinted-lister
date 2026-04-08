@@ -118,6 +118,10 @@ export function renderSlots() {
   document.getElementById('photo-msg').textContent = count
     ? `${count} photo${count > 1 ? 's' : ''} ready — tap any to replace`
     : 'Add at least 1 photo to continue';
+  
+  // Update button state
+  const analyzeBtn = document.getElementById('save-photos-btn');
+  analyzeBtn.disabled = count === 0;
   document.getElementById('save-photos-btn').disabled = count === 0;
 }
 

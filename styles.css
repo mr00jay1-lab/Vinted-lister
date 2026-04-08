@@ -76,6 +76,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .field label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
 .field input, .field textarea, .field select { width: 100%; border: none; background: transparent; font-size: 16px; color: var(--text); outline: none; font-family: inherit; resize: none; -webkit-appearance: none; }
 .field textarea { min-height: 90px; line-height: 1.5; }
+.fields-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.fields-grid-2col .field { margin-bottom: 0; }
 .detail-photo-slot { aspect-ratio:1; border-radius:var(--radius-sm); overflow:hidden; background:var(--surface2); position:relative; cursor:pointer; border:3px solid transparent; transition:border-color 0.15s; }
 .detail-photo-slot img { width:100%; height:100%; object-fit:cover; }
 .detail-photo-slot.ai-selected { border-color:var(--teal); }
@@ -83,6 +85,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe 
 .photo-hint { font-size:13px; color:var(--text3); text-align:center; margin:-6px 0 14px; font-weight:500; }
 .copy-row { display:flex; gap:10px; margin-bottom:10px; }
 .copy-row .btn { margin-bottom:0; flex:1; }
+.copy-fields-page { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; }
+#copy-page-2 { grid-template-columns: 1fr 1fr; }
+.copy-field-clickable { background: var(--surface); border-radius: var(--radius-sm); border: 1.5px solid var(--border2); padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; min-height: 80px; display: flex; flex-direction: column; justify-content: space-between; }
+.copy-field-clickable:active { background: var(--surface2); transform: scale(0.97); }
+.copy-field-label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.copy-field-value { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.4; word-break: break-word; }
+.copy-field-copied { font-size: 18px; color: var(--teal); font-weight: 700; position: absolute; top: 10px; right: 10px; }
 .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
 .status-btn { padding: 15px 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border2); background: var(--surface); font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; color: var(--text2); font-family: inherit; }
 .status-btn.current { border-width: 2.5px; }

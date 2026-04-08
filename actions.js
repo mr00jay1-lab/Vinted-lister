@@ -35,8 +35,6 @@ export async function saveEdits() {
     condition: document.getElementById('f-condition').value,
     colours: document.getElementById('f-colours').value,
     materials: document.getElementById('f-materials').value,
-    parcel: document.getElementById('f-parcel').value,
-    price: document.getElementById('f-price').value,
   });
   await dbPut(S_ITEMS, appState.currentItem);
   appState.items = await dbGetAll(S_ITEMS);
@@ -137,18 +135,15 @@ export async function confirmListed() {
 export function skipField() {
   if (appState.copyIdx < appState.copyFields.length - 1) {
     appState.copyIdx += 1;
-    renderCopyField();
   }
 }
 
 export function nextField() {
   appState.copyIdx += 1;
-  renderCopyField();
 }
 
-export function copyField() {
-  const value = appState.copyFields[appState.copyIdx].value;
-  const isLast = appState.copyIdx === appState.copyFields.length - 1;
+export function copyFieldValue(fieldIdx) {
+  const value = appState.copyFields[fieldIdx].value;
   navigator.clipboard.writeText(value).catch(() => {
     const textarea = document.createElement('textarea');
     textarea.value = value;
@@ -157,27 +152,31 @@ export function copyField() {
     document.execCommand('copy');
     document.body.removeChild(textarea);
   });
-  document.getElementById('copied-msg').style.opacity = '1';
-  document.getElementById('copy-action-row').style.display = 'none';
-  document.getElementById(isLast ? 'btn-done' : 'btn-next').style.display = 'flex';
+  
+  const field = document.getElementById(`copy-field-${fieldIdx}`);
+  const copiedMsg = field.querySelector('.copy-field-copied');
+  copiedMsg.style.display = 'flex';
+  setTimeout(() => {
+    copiedMsg.style.display = 'none';
+  }, 1500);
 }
 
-export function renderCopyField() {
-  const field = appState.copyFields[appState.copyIdx];
-  const isLast = appState.copyIdx === appState.copyFields.length - 1;
-  document.getElementById('copy-progress').textContent = `Field ${appState.copyIdx + 1} of ${appState.copyFields.length}`;
-  document.getElementById('copy-label').textContent = field.label;
-  const valueElement = document.getElementById('copy-value');
-  valueElement.textContent = field.value || '—';
-  valueElement.className = 'copy-value' + (field.value.length > 60 ? ' long' : '');
-  document.getElementById('copy-dots').innerHTML = appState.copyFields
-    .map((_, index) => `<div class="dot${index <= appState.copyIdx ? ' active' : ''}"></div>`)
-    .join('');
-  document.getElementById('copy-action-row').style.display = 'flex';
-  document.getElementById('btn-skip').style.display = isLast ? 'none' : 'flex';
-  document.getElementById('btn-next').style.display = 'none';
-  document.getElementById('btn-done').style.display = 'none';
-  document.getElementById('copied-msg').style.opacity = '0';
+export function nextCopyPage() {
+  appState.copyIdx = 1; // Move to page 2
+  document.getElementById('copy-page-1').style.display = 'none';
+  document.getElementById('copy-page-2').style.display = 'grid';
+  document.getElementById('copy-page').textContent = '2';
+  document.getElementById('btn-prev-page').style.display = 'flex';
+  document.getElementById('btn-next-page').style.display = 'none';
+}
+
+export function prevCopyPage() {
+  appState.copyIdx = 0; // Move to page 1
+  document.getElementById('copy-page-1').style.display = 'grid';
+  document.getElementById('copy-page-2').style.display = 'none';
+  document.getElementById('copy-page').textContent = '1';
+  document.getElementById('btn-prev-page').style.display = 'none';
+  document.getElementById('btn-next-page').style.display = 'flex';
 }
 
 export function startCopyFlow() {
@@ -191,11 +190,29 @@ export function startCopyFlow() {
     { label: 'Condition', value: item.condition || '' },
     { label: 'Colour', value: item.colours || '' },
     { label: 'Material', value: item.materials || '' },
-    { label: 'Parcel Size', value: item.parcel || '' },
   ];
   appState.copyIdx = 0;
-  renderCopyField();
+  
+  // Render all fields
+  appState.copyFields.forEach((field, idx) => {
+    const fieldEl = document.getElementById(`copy-field-${idx}`);
+    if (fieldEl) {
+      fieldEl.querySelector('.copy-field-value').textContent = field.value || '—';
+    }
+  });
+  
+  // Reset to page 1
+  document.getElementById('copy-page-1').style.display = 'grid';
+  document.getElementById('copy-page-2').style.display = 'none';
+  document.getElementById('copy-page').textContent = '1';
+  document.getElementById('btn-prev-page').style.display = 'none';
+  document.getElementById('btn-next-page').style.display = 'flex';
+  
   showScreen('screen-copy');
+}
+
+export function renderCopyField() {
+  // This function is replaced by the new click-to-copy logic, kept for compatibility
 }
 
     .map((suggestion, index) => `
