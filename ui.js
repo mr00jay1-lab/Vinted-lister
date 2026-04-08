@@ -23,16 +23,8 @@ export async function initApp() {
   // Bind API key button click handler
   const apiKeyBtn = document.getElementById('api-key-btn');
   if (apiKeyBtn) {
-    apiKeyBtn.onclick = saveApiKey;
+    apiKeyBtn.addEventListener('click', saveApiKey, false);
   }
-  
-  // Ensure all buttons are clickable on mobile
-  document.querySelectorAll('.btn').forEach(btn => {
-    btn.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      btn.click();
-    }, false);
-  });
   
   if (!getApiKey()) showScreen('screen-apikey');
   else goHome();
