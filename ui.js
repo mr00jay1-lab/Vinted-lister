@@ -19,6 +19,10 @@ export async function initApp() {
 
 export function saveApiKey() {
   const key = document.getElementById('api-key-input').value.trim();
+  if (!key) {
+    alert('Please enter an API key');
+    return;
+  }
   if (!key.startsWith('sk-')) {
     alert('Please enter a valid Anthropic API key (starts with sk-)');
     return;
