@@ -8,10 +8,17 @@ export async function initApp() {
   await autoClean();
   renderSuggestions();
   
-  // Display version and branch
+  // Display version and branch on both pages
   const versionParts = APP_VERSION.split('-');
-  document.getElementById('version-display').textContent = versionParts[0].substring(1); // Remove 'v'
+  const versionNum = versionParts[0].substring(1); // Remove 'v'
+  
+  // Home page
+  document.getElementById('version-display').textContent = versionNum;
   document.getElementById('branch-display').textContent = BRANCH_NAME;
+  
+  // API key page
+  document.getElementById('version-display-apikey').textContent = versionNum;
+  document.getElementById('branch-display-apikey').textContent = BRANCH_NAME;
   
   // Bind API key button click handler
   const apiKeyBtn = document.getElementById('api-key-btn');
