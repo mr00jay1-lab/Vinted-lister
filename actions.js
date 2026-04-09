@@ -148,6 +148,7 @@ export async function openEditPhotos() {
 
 /** Handles the back button on Add Photos screen with unsaved changes check */
 export function backFromAddPhotos() {
+  // Check for any photos in the pending array
   const hasPhotos = appState.pendingPhotos.filter(Boolean).length > 0;
 
   // 1. If there are photos, trigger the "Unsaved Changes" modal
@@ -155,19 +156,25 @@ export function backFromAddPhotos() {
     const modal = document.getElementById('modal-unsaved-photos');
     if (modal) {
       modal.style.display = 'flex';
-      return; // Stop here and wait for user to choose 'Save' or 'Discard'
+      return; // 🛑 EXIT: Do not change screens yet
     }
   }
 
-  // 2. If no photos, handle exit navigation
-  if (appState.isEditing) {
+  // 2. If no photos, determine where to go back to
+  if (appState.isEditing || appState.replacingItem || appState.addingMorePhotos) {
+    // Reset all temporary flags
     appState.isEditing = false;
+    appState.replacingItem = false;
+    appState.addingMorePhotos = false;
+
+    // Restore the UI for the next time we use the photo screen
     const nextItemBtn = document.getElementById('next-item-btn');
     if (nextItemBtn) nextItemBtn.style.display = 'flex';
     
     renderDetail();
     showScreen('screen-detail');
   } else {
+    // If it was a brand new item with 0 photos, just go home
     goHome();
   }
 }
