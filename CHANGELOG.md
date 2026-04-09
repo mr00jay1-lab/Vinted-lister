@@ -8,6 +8,12 @@ All notable changes to Vinted Lister are documented here.
 
 | # | Description | Status |
 |---|-------------|--------|
+| 15 | **Arch:** Delete dead `backFromAddPhotos` in `photos.js` — `actions.js` version silently overwrites it via `main.js` spread; `photos.js` version is unreachable dead code | Raised |
+| 16 | **Arch:** Replace 3 photo-mode flags (`replacingItem`, `addingMorePhotos`, `isEditing`) with a single `photoContext` enum (`'new'|'replace'|'addMore'|'edit'`) — currently set/cleared in 13 places across 2 files | Raised |
+| 17 | **Arch:** Move detail screen form fields from JS template strings (`ui.js:256`) to static HTML in `index.html` — currently impossible to find by searching HTML; changing fields requires editing JS | Raised |
+| 18 | **Arch:** Move `currentCopyPage` from module-level `let` in `actions.js` to `appState.copyPage` — currently invisible to any other module | Raised |
+| 19 | **Arch:** Extract photo-area HTML into named render functions (`renderPhotosActions()`, `renderAnalysisSpinner()`, `renderAnalysisError()`) — same UI region's innerHTML is set in 4 places across `ui.js` and `analysis.js` | Raised |
+| 20 | **Arch:** Add thin setter functions for key state mutations in `state.js` — currently any file mutates `appState` directly; setters give a single point to add logging or side-effects for phase 2 | Raised |
 
 ---
 

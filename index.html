@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!--
+    HEAD — Page setup (not visible to the user)
+    - styles.css    → all colours, layout, and spacing
+    - viewport meta → prevents iOS pinch-to-zoom
+    - The 🏷️ icon is built from text — no separate image file needed
+  -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
@@ -12,6 +18,14 @@
 <body>
 <div class="app">
 
+  <!-- ============================================================
+    SCREEN: API KEY  (id="screen-apikey")
+    First screen shown if no Anthropic API key has been saved yet.
+    Once the user enters a valid key (starts with "sk-") it is saved
+    to localStorage on this device only and never sent anywhere.
+    After saving, the app goes straight to the Home screen.
+    JS: handleApiFormSubmit() → saveApiKey() in ui.js
+    ============================================================ -->
   <div class="screen active" id="screen-apikey">
     <div class="header" style="justify-content:center;">
       <div style="text-align:center;">
@@ -31,6 +45,19 @@
     </div>
   </div>
 
+  <!-- ============================================================
+    SCREEN: HOME  (id="screen-home")
+    The main list of all items. Always shown after login.
+
+    - filter-scroll      → tab buttons (All / Photos / Analysed etc.)
+                           setFilter() in ui.js controls which tab is active
+    - storage-bar-wrap   → shows how much browser storage is used
+    - #item-list         → EMPTY HERE — renderHome() in ui.js builds the
+                           item cards and injects them at runtime
+    - #btn-batch-analyse → hidden by default; only appears when items
+                           exist with "Photos taken" status
+    - .fab               → the big "+ New Item" button, fixed to screen bottom
+    ============================================================ -->
   <div class="screen" id="screen-home">
     <div class="header">
       <div style="flex:1"><h1>Vinted Lister</h1><div style="font-size:11px;color:var(--text3);margin-top:2px;">v<span id="version-display"></span> · <span id="branch-display"></span></div></div>
@@ -62,6 +89,26 @@
     </div>
   </div>
 
+  <!-- ============================================================
+    SCREEN: ADD PHOTOS  (id="screen-addphotos")
+    Used for 3 situations: adding photos to a new item, replacing
+    photos on an existing item, and editing photos from the detail view.
+    The header title/subtitle change based on which situation we're in.
+
+    - mode-selector          → Camera vs Library toggle;
+                               choice is remembered in localStorage
+    - #next-photo-banner     → banner that appears after a camera shot
+                               offering "Take another?" — hidden by default
+    - #photo-grid            → EMPTY HERE — renderSlots() in photos.js
+                               builds the photo tiles at runtime
+    - photo-input-camera     → hidden file input wired to the camera
+    - photo-input-library    → hidden file input wired to the photo library
+      Both inputs are INVISIBLE. Tapping a photo slot triggers them via
+      slotTapped() in photos.js — the browser then opens the picker.
+    - #photo-msg             → status text ("Add at least 1 photo" etc.)
+    - Continue button        → savePhotos() — saves to database, goes to Detail
+    - + New Item button      → saves current photos then starts a fresh item
+    ============================================================ -->
   <div class="screen" id="screen-addphotos">
     <div class="header">
       <button class="header-back" onclick="window.backFromAddPhotos()">←</button>
@@ -93,6 +140,24 @@
     </div>
   </div>
 
+  <!-- ============================================================
+    SCREEN: ITEM DETAIL  (id="screen-detail")
+    Shows everything for one item: photos, AI fields, status, actions.
+
+    - #detail-photos     → EMPTY HERE — renderDetail() in ui.js fills
+                           this with the item's photos at runtime
+    - #detail-photo-hint → "Tap photos to select for AI analysis" hint
+    - #state-photos      → shown when item is NOT yet analysed.
+                           ⚠️ The buttons inside here are REPLACED BY JS
+                           at runtime (renderDetail / analysis.js).
+                           What you see below is just the starting HTML.
+    - #state-analysed    → shown when item IS analysed.
+                           ⚠️ ENTIRELY BUILT BY JS — renderDetail() in ui.js
+                           injects all the form fields (Title, Description etc.)
+                           here at runtime. They do not exist in this file.
+    - #status-select     → dropdown to move the item through its lifecycle:
+                           Photos → Analysed → Listed → Sold → Archived
+    ============================================================ -->
   <div class="screen" id="screen-detail">
     <div class="header">
       <button class="header-back" onclick="window.goHome()">←</button>
@@ -135,6 +200,27 @@
     </div>
   </div>
 
+  <!-- ============================================================
+    SCREEN: COPY TO VINTED  (id="screen-copy")
+    3-step wizard for copying listing fields into the Vinted app.
+    Managed by startCopyFlow() / nextCopyPage() / prevCopyPage() in actions.js.
+
+    Step 1 (#copy-step-1) → item photos — hold each photo to save to iPhone
+    Step 2 (#copy-step-2) → tap to copy: Title / Description / Category
+    Step 3 (#copy-step-3) → tap to copy: Brand / Size / Condition / Colour / Material
+
+    Only ONE step is visible at a time — the others have display:none.
+    updateCopyUI() in actions.js controls which step is shown.
+
+    copy-field-0 to copy-field-7:
+      Values filled by startCopyFlow() from the current item's data.
+      Tapping any field calls copyFieldValue(index) → copies to clipboard.
+
+    Bottom buttons:
+      "← Back" / "Next →"  → navigate between steps
+      "Mark as Listed"      → finishCopyFlow() sets status to 'listed', goes home
+      "Finish / Don't mark" → goes home without changing the item's status
+    ============================================================ -->
   <div class="screen" id="screen-copy">
     <div class="header">
       <button class="header-back" onclick="window.showScreen('screen-detail')">←</button>
@@ -194,6 +280,15 @@
     </div>
   </div>
 
+  <!-- ============================================================
+    MODALS
+    Pop-up dialogs that appear on top of all screens.
+    All hidden by default (display:none).
+    JS shows them by setting style="display:flex".
+    closeModal('modal-id') in ui.js hides them again.
+    ============================================================ -->
+
+  <!-- Modal: confirm batch-analysing multiple items at once -->
   <div class="modal-overlay" id="modal-batch-analyse" style="display:none;">
     <div class="modal">
       <h3 id="batch-title">Analyse items?</h3>
@@ -206,6 +301,7 @@
     </div>
   </div>
 
+  <!-- Modal: user tried to leave Add Photos with unsaved photos -->
   <div class="modal-overlay" id="modal-unsaved-photos" style="display:none;">
     <div class="modal">
       <h3>Unsaved photos</h3>
@@ -216,6 +312,7 @@
     </div>
   </div>
 
+  <!-- Modal: confirm deleting stored photos when marking an item as Sold or Archived -->
   <div class="modal-overlay" id="modal-drop-photos" style="display:none;">
     <div class="modal">
       <h3 id="drop-title">Delete Photos?</h3>
@@ -225,6 +322,13 @@
     </div>
   </div>
 
+  <!-- ============================================================
+    SUGGESTIONS  (💡 floating button + slide-up panel)
+    Always visible on every screen — fixed position, bottom-right.
+    Used to capture ideas, bugs, or notes without leaving the app.
+    Suggestions are saved to localStorage (not the database).
+    JS: openSuggestions() / closeSuggestions() in suggestions.js
+    ============================================================ -->
   <button class="float-suggest" onclick="window.openSuggestions()">💡</button>
 
   <div class="suggest-panel" id="suggest-panel" style="display:none;">
@@ -243,6 +347,13 @@
     </div>
   </div>
 
+  <!--
+    ENTRY POINT — loads all JavaScript
+    type="module" enables ES module imports (the import/export system).
+    main.js imports every JS file and puts their functions on window
+    so the onclick="window.fn()" attributes above can call them.
+    ⚠️ Do NOT remove type="module" — it will break all JS imports.
+  -->
   <script type='module' src='main.js'></script>
 
 </div>
