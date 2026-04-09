@@ -20,17 +20,6 @@ export async function initApp() {
   document.getElementById('version-display-apikey').textContent = versionNum;
   document.getElementById('branch-display-apikey').textContent = BRANCH_NAME;
   
-  // ✅ BULLETPROOF FORM LISTENER
-  const apiForm = document.getElementById('api-key-form');
-  if (apiForm) {
-    apiForm.addEventListener('submit', (event) => {
-      event.preventDefault(); // Stop the page from reloading
-      saveApiKey();           // Call our function
-    });
-  }
-
-  if (!getApiKey()) showScreen('screen-apikey');
-  else goHome();
 }
 
 export function saveApiKey() {
