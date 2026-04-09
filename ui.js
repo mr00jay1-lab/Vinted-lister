@@ -20,8 +20,14 @@ export async function initApp() {
   document.getElementById('version-display-apikey').textContent = versionNum;
   document.getElementById('branch-display-apikey').textContent = BRANCH_NAME;
   
-  // Note: API Key button event listener is removed here. 
-  // It is now handled natively by the HTML <form> submission.
+  // ✅ BULLETPROOF FORM LISTENER
+  const apiForm = document.getElementById('api-key-form');
+  if (apiForm) {
+    apiForm.addEventListener('submit', (event) => {
+      event.preventDefault(); // Stop the page from reloading
+      saveApiKey();           // Call our function
+    });
+  }
 
   if (!getApiKey()) showScreen('screen-apikey');
   else goHome();
