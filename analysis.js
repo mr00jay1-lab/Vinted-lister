@@ -117,15 +117,19 @@ export async function analyseItem() {
     return;
   }
 
-  // UI Setup
+  // 1. UI Setup - Hide results, show loading
   const statePhotos = document.getElementById('state-photos');
+  const stateAnalysed = document.getElementById('state-analysed');
+  
   statePhotos.style.display = 'block';
-  document.getElementById('state-analysed').style.display = 'none';
+  stateAnalysed.style.display = 'none';
+
+  // We replace the buttons with the spinner while working
   statePhotos.innerHTML = `
-    <div class="spinner-wrap">
+    <div class="spinner-wrap" style="padding: 20px 0;">
       <div class="spinner"></div>
-      <p style="font-size:16px;font-weight:600;color:var(--text);">Analysing photos…</p>
-      <p style="font-size:13px;color:var(--text2);margin-top:6px;">Usually takes 10–15 seconds</p>
+      <p style="font-size:16px;font-weight:600;color:var(--text);margin-top:12px;">Analysing photos…</p>
+      <p style="font-size:13px;color:var(--text3);margin-top:6px;">Usually takes 10–15 seconds</p>
     </div>
   `;
 
@@ -138,30 +142,36 @@ export async function analyseItem() {
     .map((index) => allImages[index]);
 
   if (!images.length) {
-    alert('No photos selected.');
-    resetStatePhotos();
+    alert('No photos selected for AI.');
+    resetStatePhotos(); // This will restore the "Edit/Re-Analyse" buttons
     return;
   }
 
   try {
-    // 🚨 Use the Master Function
     const json = await requestAIAnalysis(images, key);
 
+    // Guard against user navigating away during the 10s wait
     if (!appState.currentItem || appState.currentItem.id !== itemId) return;
 
     appState.currentItem = formatAnalysisResult(appState.currentItem, json);
     await dbPut(S_ITEMS, appState.currentItem);
+    
     appState.items = await dbGetAll(S_ITEMS);
     appState.currentItem = appState.items.find((item) => item.id === itemId);
+    
+    // This will draw the AI fields AND restore the buttons via renderDetail
     await renderDetail();
     
   } catch (error) {
     if (!appState.currentItem || appState.currentItem.id !== itemId) return;
-    document.getElementById('state-photos').innerHTML = `
+    
+    statePhotos.innerHTML = `
       <div style="padding:20px;text-align:center;">
         <p style="color:var(--red);margin-bottom:16px;font-size:15px;">Analysis failed: ${error.message}</p>
-        <button class="btn btn-primary" onclick="window.resetStatePhotos();window.analyseItem()">Try Again</button>
-        <button class="btn btn-outline" style="margin-top:8px;" onclick="window.resetStatePhotos()">Cancel</button>
+        <div class="copy-row">
+           <button class="btn btn-primary" onclick="window.analyseItem()">Try Again</button>
+           <button class="btn btn-outline" onclick="window.resetStatePhotos()">Cancel</button>
+        </div>
       </div>
     `;
   }
