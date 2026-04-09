@@ -164,6 +164,14 @@ body {
 .fields-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .fields-grid-2col .field { margin-bottom: 0; }
 
+
+.photo-grid-3wide {  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;  margin-bottom: 16px; }
+   /* Reduced from 3px to 2px for the 3-wide grid */
+.detail-photo-slot {   aspect-ratio: 1;   border-radius: var(--radius-sm);   overflow: hidden;   background: var(--surface2);   position: relative;   cursor: pointer;   border: 2px solid transparent;   transition: all 0.15s ease; }
+   /* Subtle lift effect when selected */ 
+.detail-photo-slot.ai-selected {  border-color: var(--teal);  transform: scale(0.95); }
+
+
 .detail-photo-slot { aspect-ratio:1; border-radius:var(--radius-sm); overflow:hidden; background:var(--surface2); position:relative; cursor:pointer; border:3px solid transparent; transition:border-color 0.15s; }
 .detail-photo-slot img { width:100%; height:100%; object-fit:cover; }
 .detail-photo-slot.ai-selected { border-color:var(--teal); }
