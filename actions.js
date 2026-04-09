@@ -109,16 +109,46 @@ export function toggleAiPhoto(index) {
   renderDetail(); 
 }
 
-/** Redirects to Add Photos screen in "Edit Mode" */
-export function openEditPhotos() {
-  if (!appState.currentItem) return;
+/** Redirects to Add Photos screen in "Edit Mode" and loads current photos from DB */
+export async function openEditPhotos() {
+  const item = appState.currentItem;
+  if (!item) return;
+
+  // 1. Set the flag so savePhotos knows to return here
   appState.isEditing = true; 
   
-  // Hide "New Item" button so user stays focused on the current item
+  // 2. LOAD THE PHOTOS: Fetch from DB and put into the pending area
+  appState.pendingPhotos = [];
+  if (item.hasPhotos) {
+    try {
+      const rec = await dbGet(S_PHOTOS, item.id);
+      if (rec && rec.images) {
+        // Map dataUrls into the object format the photo screen expects
+        appState.pendingPhotos = rec.images.map(img => ({
+          dataUrl: img,
+          thumbnail: null // Will be regenerated on save if needed
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to load photos for editing:", err);
+    }
+  }
+
+  // 3. UI Cleanup: Hide "New Item" button
   const nextItemBtn = document.getElementById('next-item-btn');
   if (nextItemBtn) nextItemBtn.style.display = 'none';
 
+  // 4. Switch Screen
   showScreen('screen-addphotos');
+
+  // 5. REFRESH THE GRID: Tell the photo screen to draw the images we just loaded
+  if (window.initPhotoScreen) {
+    window.initPhotoScreen();
+  } else {
+    // Fallback if initPhotoScreen isn't on window yet
+    const grid = document.getElementById('photo-grid');
+    if (grid) window.renderSlots(); 
+  }
 }
 
 /** Handles the back button on Add Photos screen */
