@@ -8,12 +8,10 @@
 <title>Vinted Lister</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%9B%8D%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel='stylesheet' href='styles.css'>
-
 </head>
 <body>
 <div class="app">
 
-<!-- API KEY -->
 <div class="screen active" id="screen-apikey">
   <div class="header" style="justify-content:center;">
     <div style="text-align:center;">
@@ -26,77 +24,69 @@
       <div class="api-icon">🏷️</div>
       <div class="api-title">Vinted Lister</div>
       <div class="api-desc">Enter your Anthropic API key to power AI photo analysis.<br><br>Get yours free at <strong>console.anthropic.com</strong> — create an account, generate a key, and add £10 credit to start.</div>
-      
       <input class="api-input" id="api-key-input" type="text" placeholder="sk-ant-api03-..." autocomplete="off" required />
-      
-      <button class="btn btn-primary" id="api-key-btn" type="submit">Get Started →</button>
-      
+      <button class="btn btn-primary" id="api-key-btn" type="submit" style="margin-bottom:10px;z-index:50;position:relative;">Get Started →</button>
       <div class="api-note">Stored only on this device. Never shared.</div>
     </form>
   </div>
 </div>
 
-<!-- HOME -->
 <div class="screen" id="screen-home">
   <div class="header">
     <div style="flex:1"><h1>Vinted Lister</h1><div style="font-size:11px;color:var(--text3);margin-top:2px;">v<span id="version-display"></span> · <span id="branch-display"></span></div></div>
-    <button class="btn-small" onclick="showScreen('screen-apikey')">⚙️ API Key</button>
+    <button class="btn-small" onclick="window.showScreen('screen-apikey')">⚙️ API Key</button>
   </div>
   <div class="filter-scroll">
-    <button class="tab active" onclick="setFilter('all',this)">All</button>
-    <button class="tab" onclick="setFilter('photos',this)">📷 Photos</button>
-    <button class="tab" onclick="setFilter('analysed',this)">🔍 Analysed</button>
-    <button class="tab" onclick="setFilter('listed',this)">📋 Listed</button>
-    <button class="tab" onclick="setFilter('sold',this)">✅ Sold</button>
-    <button class="tab" onclick="setFilter('archived',this)">🗄️ Archived</button>
+    <button class="tab active" onclick="window.setFilter('all',this)">All</button>
+    <button class="tab" onclick="window.setFilter('photos',this)">📷 Photos</button>
+    <button class="tab" onclick="window.setFilter('analysed',this)">🔍 Analysed</button>
+    <button class="tab" onclick="window.setFilter('listed',this)">📋 Listed</button>
+    <button class="tab" onclick="window.setFilter('sold',this)">✅ Sold</button>
+    <button class="tab" onclick="window.setFilter('archived',this)">🗄️ Archived</button>
   </div>
   <div class="storage-bar-wrap">
     <div class="storage-bar-label"><span>Storage used</span><span id="storage-label">Calculating…</span></div>
     <div class="storage-bar-track"><div class="storage-bar-fill" id="storage-fill" style="width:0%"></div></div>
   </div>
   <div class="content" style="padding-bottom:100px;"><div id="item-list"></div></div>
-  <button id="btn-batch-analyse" onclick="openBatchAnalyse()" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);width:auto;padding:10px 20px;border:1.5px solid var(--border2);border-radius:20px;background:var(--surface);font-size:14px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,0.12);z-index:21;">🔍 Analyse All</button>
+  <button id="btn-batch-analyse" onclick="window.openBatchAnalyse()" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);width:auto;padding:10px 20px;border:1.5px solid var(--border2);border-radius:20px;background:var(--surface);font-size:14px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,0.12);z-index:21;">🔍 Analyse All</button>
   <div class="fab">
-    <button class="btn btn-primary" onclick="startNewItem()" style="font-size:18px;font-weight:700;">＋ &nbsp;New Item</button>
+    <button class="btn btn-primary" onclick="window.startNewItem()" style="font-size:18px;font-weight:700;">＋ &nbsp;New Item</button>
   </div>
 </div>
 
-<!-- ADD PHOTOS -->
 <div class="screen" id="screen-addphotos">
   <div class="header">
-    <button class="header-back" onclick="backFromAddPhotos()">←</button>
+    <button class="header-back" onclick="window.backFromAddPhotos()">←</button>
     <div><h1 id="addphotos-title">Add Photos</h1><div class="header-sub" id="addphotos-sub">Choose your capture method</div></div>
   </div>
   <div class="content" style="padding-bottom: 100px;">
-    <!-- Mode selector -->
     <div class="mode-selector">
-      <button class="mode-btn" id="mode-btn-camera" onclick="setPhotoMode('camera')">📷 Camera</button>
-      <button class="mode-btn" id="mode-btn-library" onclick="setPhotoMode('library')">🖼️ Library</button>
+      <button class="mode-btn" id="mode-btn-camera" onclick="window.setPhotoMode('camera')">📷 Camera</button>
+      <button class="mode-btn" id="mode-btn-library" onclick="window.setPhotoMode('library')">🖼️ Library</button>
     </div>
 
-    <!-- Next photo banner (camera mode) -->
     <div id="next-photo-banner" class="next-photo-banner" style="display:none;">
       <span id="next-photo-text">📷 Ready for next photo</span>
-      <button onclick="triggerNextCamera()">Take Photo</button>
+      <button onclick="window.triggerNextCamera()">Take Photo</button>
     </div>
 
     <div class="photo-grid" id="photo-grid"></div>
     <div id="photo-msg" style="text-align:center;color:var(--text3);font-size:14px;margin-bottom:20px;font-weight:500;">Add at least 1 photo to continue</div>
 
-    <input type="file" id="photo-input-camera"  accept="image/*" capture="environment" onchange="handlePhoto(event,'camera')" />
-    <input type="file" id="photo-input-library" accept=".jpg,.jpeg,.png,.heic,.heif,.webp" multiple onchange="handlePhoto(event,'library')" />
+    <input type="file" id="photo-input-camera"  accept="image/*" capture="environment" onchange="window.handlePhoto(event,'camera')" />
+    <input type="file" id="photo-input-library" accept=".jpg,.jpeg,.png,.heic,.heif,.webp" multiple onchange="window.handlePhoto(event,'library')" />
 
     <div style="display:flex;gap:10px;">
-      <button class="btn btn-teal" id="save-photos-btn" style="flex:1;" onclick="savePhotos()" disabled>🔍 &nbsp;Analyse photos</button>
-      <button class="btn btn-primary" id="next-item-btn" style="flex:1;" onclick="startNewItem()">＋ &nbsp;New Item</button>
+      <button class="btn btn-teal" id="save-photos-btn" style="flex:1;" onclick="window.savePhotos()" disabled>🔍 &nbsp;Analyse photos</button>
+      <button class="btn btn-primary" id="next-item-btn" style="flex:1;" onclick="window.startNewItem()">＋ &nbsp;New Item</button>
     </div>
   </div>
 </div>
 
-<!-- ITEM DETAIL -->
 <div class="screen" id="screen-detail">
   <div class="header">
-    <button class="header-back" onclick="goHome()">←</button>
+    <button class="header-back" onclick="window.goHome()">←</button>
     <div style="flex:1;min-width:0;">
       <h1 id="detail-heading" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Item</h1>
       <div id="detail-badge-wrap"></div>
@@ -108,35 +98,35 @@
     <div class="photo-hint" id="detail-photo-hint" style="display:none;">Tap photos to select for AI analysis</div>
 
     <div id="state-photos">
-      <button class="btn btn-primary" onclick="analyseItem()">🔍 &nbsp;Analyse with AI</button>
-      <button class="btn btn-outline" onclick="openReplacePhotos()">Replace Photos</button>
+      <button class="btn btn-primary" onclick="window.analyseItem()">🔍 &nbsp;Analyse with AI</button>
+      <button class="btn btn-outline" onclick="window.openReplacePhotos()">Replace Photos</button>
     </div>
 
     <div id="state-analysed" style="display:none;">
       <div class="section-title">Listing Details</div>
-      <div class="field"><label>Title</label><input id="f-title" type="text" oninput="markDirty()" /></div>
-      <div class="field"><label>Description</label><textarea id="f-description" oninput="markDirty()"></textarea></div>
-      <div class="field"><label>Category</label><input id="f-category" type="text" oninput="markDirty()" /></div>
-      <div class="field"><label>Brand</label><input id="f-brand" type="text" oninput="markDirty()" /></div>
-      <div class="field"><label>Size</label><input id="f-size" type="text" oninput="markDirty()" /></div>
+      <div class="field"><label>Title</label><input id="f-title" type="text" oninput="window.markDirty()" /></div>
+      <div class="field"><label>Description</label><textarea id="f-description" oninput="window.markDirty()"></textarea></div>
+      <div class="field"><label>Category</label><input id="f-category" type="text" oninput="window.markDirty()" /></div>
+      <div class="field"><label>Brand</label><input id="f-brand" type="text" oninput="window.markDirty()" /></div>
+      <div class="field"><label>Size</label><input id="f-size" type="text" oninput="window.markDirty()" /></div>
       <div class="fields-grid-2col">
         <div class="field"><label>Condition</label>
-          <select id="f-condition" onchange="markDirty()">
+          <select id="f-condition" onchange="window.markDirty()">
             <option>New with tags</option><option>Like new</option><option>Good</option><option>Fair</option><option>Poor</option>
           </select>
         </div>
-        <div class="field"><label>Colour</label><input id="f-colours" type="text" oninput="markDirty()" /></div>
-        <div class="field"><label>Material</label><input id="f-materials" type="text" oninput="markDirty()" /></div>
+        <div class="field"><label>Colour</label><input id="f-colours" type="text" oninput="window.markDirty()" /></div>
+        <div class="field"><label>Material</label><input id="f-materials" type="text" oninput="window.markDirty()" /></div>
       </div>
-      <button class="btn btn-outline" id="save-edits-btn" onclick="saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
+      <button class="btn btn-outline" id="save-edits-btn" onclick="window.saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
       <div class="section-title">Actions</div>
-      <button class="btn btn-primary" onclick="openAddMorePhotos()">📷 &nbsp;Add / Replace Photos &amp; Re-analyse</button>
-      <button class="btn btn-blue" onclick="startCopyFlow()">🏷️ &nbsp;Start Listing</button>
+      <button class="btn btn-primary" onclick="window.openAddMorePhotos()">📷 &nbsp;Add / Replace Photos &amp; Re-analyse</button>
+      <button class="btn btn-blue" onclick="window.startCopyFlow()">🏷️ &nbsp;Start Listing</button>
     </div>
 
     <div class="section-title">Status</div>
     <div class="status-select-wrap">
-      <select class="status-select" id="status-select" onchange="handleSetStatus(this.value)">
+      <select class="status-select" id="status-select" onchange="window.handleSetStatus(this.value)">
         <option value="photos">📷 Photos taken</option>
         <option value="analysed">🔍 Analysed</option>
         <option value="listed">📋 Listed</option>
@@ -145,58 +135,57 @@
       </select>
     </div>
     <div style="margin-top:18px;">
-      <button class="btn btn-danger" onclick="deleteItem()">🗑️ &nbsp;Delete Item</button>
+      <button class="btn btn-danger" onclick="window.deleteItem()">🗑️ &nbsp;Delete Item</button>
     </div>
   </div>
 </div>
 
-<!-- COPY FLOW -->
 <div class="screen" id="screen-copy">
   <div class="header">
-    <button class="header-back" onclick="showScreen('screen-detail')">←</button>
+    <button class="header-back" onclick="window.showScreen('screen-detail')">←</button>
     <div><h1>Copy to Vinted</h1><div class="header-sub">Page <span id="copy-page">1</span> of 2</div></div>
   </div>
   <div class="content" style="display:flex;flex-direction:column;justify-content:space-between;padding-bottom:30px;">
     <div>
       <div id="copy-page-1" class="copy-fields-page">
-        <div class="copy-field-clickable" onclick="copyFieldValue(0)" id="copy-field-0">
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(0)" id="copy-field-0">
           <div class="copy-field-label">Title</div>
           <div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
         </div>
-        <div class="copy-field-clickable" onclick="copyFieldValue(1)" id="copy-field-1">
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(1)" id="copy-field-1">
           <div class="copy-field-label">Description</div>
           <div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
         </div>
-        <div class="copy-field-clickable" onclick="copyFieldValue(2)" id="copy-field-2">
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(2)" id="copy-field-2">
           <div class="copy-field-label">Category</div>
           <div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
         </div>
       </div>
       <div id="copy-page-2" class="copy-fields-page" style="display:none;">
-        <div class="copy-field-clickable" onclick="copyFieldValue(3)" id="copy-field-3">
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(3)" id="copy-field-3">
           <div class="copy-field-label">Brand</div>
           <div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
         </div>
-        <div class="copy-field-clickable" onclick="copyFieldValue(4)" id="copy-field-4">
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(4)" id="copy-field-4">
           <div class="copy-field-label">Size</div>
           <div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
         </div>
-        <div class="copy-field-clickable" onclick="copyFieldValue(5)" id="copy-field-5">
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(5)" id="copy-field-5">
           <div class="copy-field-label">Condition</div>
           <div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
         </div>
-        <div class="copy-field-clickable" onclick="copyFieldValue(6)" id="copy-field-6">
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(6)" id="copy-field-6">
           <div class="copy-field-label">Colour</div>
           <div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
         </div>
-        <div class="copy-field-clickable" onclick="copyFieldValue(7)" id="copy-field-7">
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(7)" id="copy-field-7">
           <div class="copy-field-label">Material</div>
           <div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
@@ -206,15 +195,14 @@
     </div>
     <div style="display:flex;gap:10px;flex-direction:column;">
       <div style="display:flex;gap:10px;">
-        <button class="btn btn-outline" id="btn-prev-page" onclick="prevCopyPage()" style="flex:1;display:none;">← Previous</button>
-        <button class="btn btn-primary" id="btn-next-page" onclick="nextCopyPage()" style="flex:1;">Next →</button>
+        <button class="btn btn-outline" id="btn-prev-page" onclick="window.prevCopyPage()" style="flex:1;display:none;">← Previous</button>
+        <button class="btn btn-primary" id="btn-next-page" onclick="window.nextCopyPage()" style="flex:1;">Next →</button>
       </div>
-      <button class="btn btn-blue" id="btn-done" onclick="finishCopyFlow()" style="width:100%;">✅ &nbsp;Done — Mark as Listed?</button>
+      <button class="btn btn-blue" id="btn-done" onclick="window.finishCopyFlow()" style="width:100%;">✅ &nbsp;Done — Mark as Listed?</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: Batch Analyse -->
 <div class="modal-overlay" id="modal-batch-analyse" style="display:none;">
   <div class="modal">
     <h3 id="batch-title">Analyse items?</h3>
@@ -223,68 +211,62 @@
       <div class="spinner" style="margin:0 auto 12px;"></div>
       <p id="batch-progress-text" style="font-size:15px;font-weight:600;color:var(--text);"></p>
     </div>
-    <button class="btn btn-primary" id="batch-confirm-btn" onclick="runBatchAnalyse()">🔍 &nbsp;Start Analysis</button>
-    <button class="btn btn-outline" id="batch-cancel-btn" onclick="closeModal('modal-batch-analyse')">Cancel</button>
+    <button class="btn btn-primary" id="batch-confirm-btn" onclick="window.runBatchAnalyse()">🔍 &nbsp;Start Analysis</button>
+    <button class="btn btn-outline" id="batch-cancel-btn" onclick="window.closeModal('modal-batch-analyse')">Cancel</button>
   </div>
 </div>
 
-<!-- MODAL: Unsaved photos -->
 <div class="modal-overlay" id="modal-unsaved-photos" style="display:none;">
   <div class="modal">
     <h3>Unsaved photos</h3>
     <p>You have unsaved photos. Save them before leaving?</p>
-    <button class="btn btn-teal" onclick="savePhotos()">Save Photos →</button>
-    <button class="btn btn-danger" onclick="discardAndGoHome()">Discard & Leave</button>
-    <button class="btn btn-outline" onclick="closeModal('modal-unsaved-photos')">Cancel</button>
+    <button class="btn btn-teal" onclick="window.savePhotos()">Save Photos →</button>
+    <button class="btn btn-danger" onclick="window.discardAndGoHome()">Discard & Leave</button>
+    <button class="btn btn-outline" onclick="window.closeModal('modal-unsaved-photos')">Cancel</button>
   </div>
 </div>
 
-<!-- MODAL: Listed? -->
 <div class="modal-overlay" id="modal-listed" style="display:none;">
   <div class="modal">
     <h3>Did you list this item?</h3>
     <p>Mark it as listed so you can track it here.</p>
-    <button class="btn btn-teal"    onclick="confirmListed()">✅ &nbsp;Yes — Mark as Listed</button>
-    <button class="btn btn-outline" onclick="closeModal('modal-listed')">Not yet</button>
+    <button class="btn btn-teal"    onclick="window.confirmListed()">✅ &nbsp;Yes — Mark as Listed</button>
+    <button class="btn btn-outline" onclick="window.closeModal('modal-listed')">Not yet</button>
   </div>
 </div>
 
-<!-- MODAL: Drop photos -->
 <div class="modal-overlay" id="modal-drop-photos" style="display:none;">
   <div class="modal">
     <h3 id="drop-title">Mark as Sold?</h3>
     <p>This will remove photos from the app to save space. Your original photos in your iPhone camera roll are not affected.</p>
-    <button class="btn btn-primary" onclick="confirmDropPhotos()">Yes, remove photos</button>
-    <button class="btn btn-outline" onclick="closeModal('modal-drop-photos')">Cancel</button>
+    <button class="btn btn-primary" onclick="window.confirmDropPhotos()">Yes, remove photos</button>
+    <button class="btn btn-outline" onclick="window.closeModal('modal-drop-photos')">Cancel</button>
   </div>
 </div>
 
-<!-- MODAL: Download / Save photos -->
 <div class="modal-overlay" id="modal-download" style="display:none;">
   <div class="modal">
     <h3>Save Photos</h3>
     <div class="photo-save-tip">📱 <strong>Hold &amp; press each photo</strong> below, then tap <em>"Save to Photos"</em> to add it to your iPhone camera roll.</div>
     <div class="photo-save-grid" id="download-photo-grid"></div>
-    <button class="btn btn-outline" onclick="closeModal('modal-download')">Done</button>
+    <button class="btn btn-outline" onclick="window.closeModal('modal-download')">Done</button>
   </div>
 </div>
 
-<!-- FLOATING SUGGESTIONS BUTTON -->
-<button class="float-suggest" onclick="openSuggestions()" title="Suggestions">💡</button>
+<button class="float-suggest" onclick="window.openSuggestions()" title="Suggestions">💡</button>
 
-<!-- SUGGESTIONS PANEL -->
 <div class="suggest-panel" id="suggest-panel" style="display:none;">
   <div class="suggest-inner">
     <h3>💡 Suggestions</h3>
     <p>Capture ideas, bugs or improvements. Copy all to share.</p>
-    <div class="suggest-input-row">
-      <textarea id="suggest-input" placeholder="Type a suggestion…" onkeydown="suggestKeydown(event)"></textarea>
-      <button class="suggest-add-btn" onclick="addSuggestion()">Add</button>
-    </div>
+    <form class="suggest-input-row" onsubmit="event.preventDefault(); window.addSuggestion();">
+      <textarea id="suggest-input" placeholder="Type a suggestion…" required></textarea>
+      <button class="suggest-add-btn" type="submit">Add</button>
+    </form>
     <div class="suggest-list" id="suggest-list"></div>
     <div class="suggest-actions">
-      <button class="suggest-copy-btn" onclick="copySuggestions()">📋 Copy All</button>
-      <button class="suggest-close-btn" onclick="closeSuggestions()">Close</button>
+      <button class="suggest-copy-btn" onclick="window.copySuggestions()">📋 Copy All</button>
+      <button class="suggest-close-btn" onclick="window.closeSuggestions()">Close</button>
     </div>
   </div>
 </div>
