@@ -165,7 +165,7 @@ export function backFromAddPhotos() {
 
 let currentCopyPage = 1;
 
-/** Entry point for the listing process */
+/** Entry point for the listing process (Page 1) */
 export async function startCopyFlow() {
   const item = appState.currentItem;
   if (!item) return;
@@ -177,9 +177,13 @@ export async function startCopyFlow() {
   const grid = document.getElementById('copy-pics-grid');
   
   if (rec && rec.images && grid) {
-    grid.innerHTML = rec.images.map(img => 
-      `<img src="${img}" alt="Item photo" />`
-    ).join('');
+    // 🚨 UPDATED: Apply the 3-wide grid class and wrap images in slots
+    grid.className = 'photo-grid-3wide'; 
+    grid.innerHTML = rec.images.map(img => `
+      <div class="copy-photo-slot">
+        <img src="${img}" alt="Item photo" />
+      </div>
+    `).join('');
   }
 
   // 2. Map all item data to the copy-field elements
