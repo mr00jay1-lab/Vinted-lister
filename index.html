@@ -109,8 +109,7 @@
         <button class="btn btn-outline" onclick="window.openReplacePhotos()">Replace Photos</button>
       </div>
 
-      <div id="state-analysed" style="display:none;">
-          </div>
+      <div id="state-analysed" style="display:none;"></div>
 
       <div class="section-title">Status</div>
       <div class="status-select-wrap">
@@ -219,6 +218,22 @@
   </div>
 
   <button class="float-suggest" onclick="window.openSuggestions()">💡</button>
+
+  <div class="suggest-panel" id="suggest-panel" style="display:none;">
+    <div class="suggest-inner">
+      <h3>💡 Suggestions</h3>
+      <p>Capture ideas or bugs.</p>
+      <form class="suggest-input-row" onsubmit="window.handleSuggestFormSubmit(event)">
+        <textarea id="suggest-input" placeholder="Type a suggestion…" required></textarea>
+        <button class="suggest-add-btn" type="submit">Add</button>
+      </form>
+      <div class="suggest-list" id="suggest-list"></div>
+      <div class="suggest-actions">
+        <button class="suggest-copy-btn" onclick="window.copySuggestions()">📋 Copy All</button>
+        <button class="suggest-close-btn" onclick="window.closeSuggestions()">Close</button>
+      </div>
+    </div>
+  </div>
 
   <script type='module' src='main.js'></script>
 
