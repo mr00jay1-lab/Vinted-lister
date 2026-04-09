@@ -27,11 +27,18 @@ function hideBanner() {
 export function startNewItem() {
   appState.replacingItem = false;
   appState.addingMorePhotos = false;
+  appState.isEditing = false; // 👈 Add this to clear the edit state
   appState.currentItem = null;
   appState.pendingPhotos = [];
   appState.pendingSlot = null;
+
+  // Restore the "New Item" button just in case it was hidden by openEditPhotos
+  const nextItemBtn = document.getElementById('next-item-btn');
+  if (nextItemBtn) nextItemBtn.style.display = 'flex';
+
   document.getElementById('addphotos-title').textContent = 'Add Photos';
   document.getElementById('addphotos-sub').textContent = 'Choose your capture method';
+  
   appState.photoMode = localStorage.getItem('vinted_photo_mode') || 'camera';
   initPhotoScreen();
   showScreen('screen-addphotos');
