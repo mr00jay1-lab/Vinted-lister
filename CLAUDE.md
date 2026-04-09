@@ -4,7 +4,7 @@
 - **Prod URL:** https://vinted-lister-eight.vercel.app/
 - **Dev/Preview URL:** https://vinted-lister-git-dev-mr00jay1-3402s-projects.vercel.app/
 - **GitHub:** https://github.com/mr00jay1-lab/Vinted-lister
-- Single file app: `index.html` — vanilla JS, no build step, deployed via Vercel
+- modular build
 
 ## Branch Rules
 - All changes go to `dev` branch — never commit directly to `main`
