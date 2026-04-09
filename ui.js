@@ -20,19 +20,6 @@ export async function initApp() {
   document.getElementById('version-display-apikey').textContent = versionNum;
   document.getElementById('branch-display-apikey').textContent = BRANCH_NAME;
   
-  // Bind API key button click handler
-// Bind API key button click handler
-  const apiKeyBtn = document.getElementById('api-key-btn');
-  if (apiKeyBtn) {
-    apiKeyBtn.addEventListener('click', () => {
-      // Force the keyboard to close on mobile before moving on
-      document.getElementById('api-key-input').blur(); 
-      saveApiKey();
-    });
-  }
-  
-  if (!getApiKey()) showScreen('screen-apikey');
-  else goHome();
 }
 
 export function saveApiKey() {
