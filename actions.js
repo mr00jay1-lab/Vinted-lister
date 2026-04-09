@@ -143,13 +143,7 @@ export async function openEditPhotos() {
   showScreen('screen-addphotos');
 
   // 5. REFRESH THE GRID: Tell the photo screen to draw the images we just loaded
-  if (window.initPhotoScreen) {
-    window.initPhotoScreen();
-  } else {
-    // Fallback if initPhotoScreen isn't on window yet
-    const grid = document.getElementById('photo-grid');
-    if (grid) window.renderSlots(); 
-  }
+  initPhotoScreen();
 }
 
 /** Handles the back button on Add Photos screen */
