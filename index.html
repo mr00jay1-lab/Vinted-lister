@@ -102,27 +102,44 @@
       <button class="btn btn-outline" onclick="window.openReplacePhotos()">Replace Photos</button>
     </div>
 
-    <div id="state-analysed" style="display:none;">
-      <div class="section-title">Listing Details</div>
-      <div class="field"><label>Title</label><input id="f-title" type="text" oninput="window.markDirty()" /></div>
-      <div class="field"><label>Description</label><textarea id="f-description" oninput="window.markDirty()"></textarea></div>
-      <div class="field"><label>Category</label><input id="f-category" type="text" oninput="window.markDirty()" /></div>
-      <div class="field"><label>Brand</label><input id="f-brand" type="text" oninput="window.markDirty()" /></div>
-      <div class="field"><label>Size</label><input id="f-size" type="text" oninput="window.markDirty()" /></div>
-      <div class="fields-grid-2col">
-        <div class="field"><label>Condition</label>
-          <select id="f-condition" onchange="window.markDirty()">
-            <option>New with tags</option><option>Like new</option><option>Good</option><option>Fair</option><option>Poor</option>
-          </select>
-        </div>
-        <div class="field"><label>Colour</label><input id="f-colours" type="text" oninput="window.markDirty()" /></div>
-        <div class="field"><label>Material</label><input id="f-materials" type="text" oninput="window.markDirty()" /></div>
-      </div>
-      <button class="btn btn-outline" id="save-edits-btn" onclick="window.saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
-      <div class="section-title">Actions</div>
-      <button class="btn btn-primary" onclick="window.openAddMorePhotos()">📷 &nbsp;Add / Replace Photos &amp; Re-analyse</button>
-      <button class="btn btn-blue" onclick="window.startCopyFlow()">🏷️ &nbsp;Start Listing</button>
+<div id="state-analysed" style="display:none;">
+  <div class="section-title">Listing Details</div>
+  
+  <div class="field"><label>Title</label><input id="f-title" type="text" oninput="window.markDirty()" /></div>
+  <div class="field"><label>Description</label><textarea id="f-description" oninput="window.markDirty()"></textarea></div>
+  <div class="field"><label>Category</label><input id="f-category" type="text" oninput="window.markDirty()" /></div>
+  
+  <div class="fields-grid-2col">
+    <div class="field"><label>Brand</label><input id="f-brand" type="text" oninput="window.markDirty()" /></div>
+    <div class="field"><label>Size</label><input id="f-size" type="text" oninput="window.markDirty()" /></div>
+  </div>
+
+  <div class="fields-grid-2col">
+    <div class="field"><label>Condition</label>
+      <select id="f-condition" onchange="window.markDirty()">
+        <option>New with tags</option><option>Like new</option><option>Good</option><option>Fair</option><option>Poor</option>
+      </select>
     </div>
+    <div class="field"><label>Colour</label><input id="f-colours" type="text" oninput="window.markDirty()" /></div>
+  </div>
+  
+  <div class="field"><label>Material</label><input id="f-materials" type="text" oninput="window.markDirty()" /></div>
+
+  <button class="btn btn-outline" id="save-edits-btn" onclick="window.saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
+  
+  <div class="section-title">Actions</div>
+  <button class="btn btn-primary" onclick="window.openAddMorePhotos()">📷 &nbsp;Add / Replace Photos &amp; Re-analyse</button>
+  <button class="btn btn-blue" onclick="window.startCopyFlow()">🏷️ &nbsp;Start Listing</button>
+</div>
+
+
+
+
+
+
+
+
+    
 
     <div class="section-title">Status</div>
     <div class="status-select-wrap">
