@@ -1,17 +1,23 @@
 import { appState, S_ITEMS, S_PHOTOS } from './state.js';
 import { dbDelete, dbGet, dbGetAll, dbPut } from './db.js';
-import { goHome, renderDetail, renderHome, updateStorageBar, showScreen, closeModal, resetStatePhotos } from './ui.js';
+import { goHome, renderDetail, updateStorageBar, showScreen, closeModal, resetStatePhotos } from './ui.js';
 
+/* ==========================================================================
+   SECTION 1: ITEM CORE NAVIGATION & MANAGEMENT
+   ========================================================================== */
+
+/** Opens a specific item and prepares the detail view */
 export function openItem(id) {
   appState.currentItem = appState.items.find((item) => item.id === id);
   if (!appState.currentItem) return;
   appState.dirty = false;
-  appState.aiSelectedIndices = [0, 1];
+  appState.aiSelectedIndices = [0, 1]; // Default first two photos for AI
   resetStatePhotos();
   renderDetail();
   showScreen('screen-detail');
 }
 
+/** Deletes current item and associated photos from DB */
 export async function deleteItem() {
   if (!confirm('Delete this item? This cannot be undone.')) return;
   await dbDelete(S_ITEMS, appState.currentItem.id);
@@ -20,11 +26,14 @@ export async function deleteItem() {
   goHome();
 }
 
+/** Monitors changes to fields to show the 'Save' button */
 export function markDirty() {
   appState.dirty = true;
-  document.getElementById('save-edits-btn').style.display = 'flex';
+  const saveBtn = document.getElementById('save-edits-btn');
+  if (saveBtn) saveBtn.style.display = 'flex';
 }
 
+/** Saves manually edited fields back to the Database */
 export async function saveEdits() {
   Object.assign(appState.currentItem, {
     title: document.getElementById('f-title').value,
@@ -35,14 +44,24 @@ export async function saveEdits() {
     condition: document.getElementById('f-condition').value,
     colours: document.getElementById('f-colours').value,
     materials: document.getElementById('f-materials').value,
+    price: document.getElementById('f-price') ? document.getElementById('f-price').value : appState.currentItem.price,
   });
+
   await dbPut(S_ITEMS, appState.currentItem);
   appState.items = await dbGetAll(S_ITEMS);
   appState.dirty = false;
-  document.getElementById('save-edits-btn').style.display = 'none';
+  
+  if (document.getElementById('save-edits-btn')) {
+    document.getElementById('save-edits-btn').style.display = 'none';
+  }
   document.getElementById('detail-heading').textContent = appState.currentItem.title || 'Untitled item';
 }
 
+/* ==========================================================================
+   SECTION 2: STATUS & PHOTO OPTIMIZATION
+   ========================================================================== */
+
+/** Handles status changes, prompting to delete photos if marking sold/archived */
 export function handleSetStatus(status) {
   if (['sold', 'archived'].includes(status) && appState.currentItem.hasPhotos) {
     appState.pendingStatus = status;
@@ -53,15 +72,17 @@ export function handleSetStatus(status) {
   }
 }
 
+/** Clears high-res photos to save browser storage space */
 export async function confirmDropPhotos() {
   closeModal('modal-drop-photos');
   await dbDelete(S_PHOTOS, appState.currentItem.id);
   appState.currentItem.hasPhotos = false;
-  appState.currentItem.thumbnail = null;
+  appState.currentItem.thumbnail = null; // Remove thumbnail to save space
   await setStatus(appState.pendingStatus);
   appState.pendingStatus = null;
 }
 
+/** Updates item status in DB and refreshes UI */
 export async function setStatus(status) {
   appState.currentItem.status = status;
   appState.currentItem.statusChangedAt = Date.now();
@@ -72,31 +93,7 @@ export async function setStatus(status) {
   updateStorageBar();
 }
 
-export async function showDownloadModal() {
-  if (!appState.currentItem.hasPhotos) {
-    alert('No photos stored for this item.');
-    return;
-  }
-
-  const rec = await dbGet(S_PHOTOS, appState.currentItem.id);
-  if (!rec?.images?.length) {
-    alert('No photos found.');
-    return;
-  }
-
-  const grid = document.getElementById('download-photo-grid');
-  grid.innerHTML = rec.images
-    .map((photo, index) => `
-      <div class="photo-save-item">
-        <img src="${photo}" alt="Photo ${index + 1}" />
-        <div class="photo-save-label">Hold & save</div>
-      </div>
-    `)
-    .join('');
-
-  document.getElementById('modal-download').style.display = 'flex';
-}
-
+/** Toggles which photos will be sent to AI for analysis */
 export function toggleAiPhoto(index) {
   if (appState.aiSelectedIndices.includes(index)) {
     if (appState.aiSelectedIndices.length <= 1) return;
@@ -105,46 +102,96 @@ export function toggleAiPhoto(index) {
     if (appState.aiSelectedIndices.length >= 10) return;
     appState.aiSelectedIndices = [...appState.aiSelectedIndices, index].sort((a, b) => a - b);
   }
+  renderDetail(); // Refresh UI to show badges
+}
 
-  const grid = document.getElementById('detail-photos');
-  grid.querySelectorAll('.detail-photo-slot').forEach((slot, idx) => {
-    const selected = appState.aiSelectedIndices.includes(idx);
-    slot.classList.toggle('ai-selected', selected);
-    const badge = slot.querySelector('.ai-badge');
-    if (selected && !badge) {
-      const element = document.createElement('div');
-      element.className = 'ai-badge';
-      element.textContent = '🔍 AI';
-      slot.appendChild(element);
-    } else if (!selected && badge) {
-      badge.remove();
-    }
+/* ==========================================================================
+   SECTION 3: LISTING FLOW (THE 3-PAGE COPY SYSTEM)
+   ========================================================================== */
+
+let currentCopyPage = 1;
+
+/** Entry point for the listing process */
+export async function startCopyFlow() {
+  const item = appState.currentItem;
+  if (!item) return;
+
+  currentCopyPage = 1; // Start at Page 1: Photos
+
+  // 1. Populate Photos (Page 1)
+  const rec = await dbGet(S_PHOTOS, item.id);
+  const grid = document.getElementById('copy-pics-grid');
+  if (rec && rec.images && grid) {
+    grid.innerHTML = rec.images.map(img => 
+      `<img src="${img}" style="width:100%; border-radius:8px; margin-bottom:12px;" />`
+    ).join('');
+  }
+
+  // 2. Map all item data to the copy-field elements (Pages 2 & 3)
+  appState.copyFields = [
+    item.title, item.description, item.category,
+    item.brand, item.size, item.condition, item.colours, item.materials
+  ];
+
+  appState.copyFields.forEach((val, i) => {
+    const el = document.querySelector(`#copy-field-${i} .copy-field-value`);
+    if (el) el.textContent = val || '—';
+    const check = document.querySelector(`#copy-field-${i} .copy-field-copied`);
+    if (check) check.style.display = 'none';
   });
+
+  updateCopyUI();
+  showScreen('screen-copy');
 }
 
-export function finishCopyFlow() {
-  document.getElementById('modal-listed').style.display = 'flex';
-}
-
-export async function confirmListed() {
-  await setStatus('listed');
-  closeModal('modal-listed');
-  goHome();
-}
-
-export function skipField() {
-  if (appState.copyIdx < appState.copyFields.length - 1) {
-    appState.copyIdx += 1;
+/** Navigation: Move forward in the copy flow */
+export function nextCopyPage() {
+  if (currentCopyPage < 3) {
+    currentCopyPage++;
+    updateCopyUI();
   }
 }
 
-export function nextField() {
-  appState.copyIdx += 1;
+/** Navigation: Move backward in the copy flow */
+export function prevCopyPage() {
+  if (currentCopyPage > 1) {
+    currentCopyPage--;
+    updateCopyUI();
+  }
 }
 
+/** UI Sync: Shows/Hides pages and buttons based on current step */
+function updateCopyUI() {
+  // Hide all steps
+  document.querySelectorAll('.copy-fields-page').forEach(p => p.style.display = 'none');
+  
+  // Show active step
+  const activeStep = document.getElementById(`copy-step-${currentCopyPage}`);
+  if (activeStep) activeStep.style.display = 'block';
+  
+  // Update header text
+  const pageNumEl = document.getElementById('copy-page-num');
+  if (pageNumEl) pageNumEl.textContent = currentCopyPage;
+
+  // Button logic
+  const btnPrev = document.getElementById('btn-prev-page');
+  const btnNext = document.getElementById('btn-next-page');
+  const btnDone = document.getElementById('btn-done');
+  const btnFinish = document.getElementById('btn-finish-no-save');
+
+  if (btnPrev) btnPrev.style.visibility = currentCopyPage === 1 ? 'hidden' : 'visible';
+  if (btnNext) btnNext.style.display = currentCopyPage === 3 ? 'none' : 'block';
+  if (btnDone) btnDone.style.display = currentCopyPage === 3 ? 'block' : 'none';
+  if (btnFinish) btnFinish.style.display = currentCopyPage === 3 ? 'none' : 'block';
+}
+
+/** Handles actual clipboard copying */
 export function copyFieldValue(fieldIdx) {
-  const value = appState.copyFields[fieldIdx].value;
+  const value = appState.copyFields[fieldIdx];
+  if (!value) return;
+
   navigator.clipboard.writeText(value).catch(() => {
+    // Fallback for non-secure contexts or older browsers
     const textarea = document.createElement('textarea');
     textarea.value = value;
     document.body.appendChild(textarea);
@@ -155,64 +202,14 @@ export function copyFieldValue(fieldIdx) {
   
   const field = document.getElementById(`copy-field-${fieldIdx}`);
   const copiedMsg = field.querySelector('.copy-field-copied');
-  copiedMsg.style.display = 'flex';
-  setTimeout(() => {
-    copiedMsg.style.display = 'none';
-  }, 1500);
+  if (copiedMsg) {
+    copiedMsg.style.display = 'flex';
+    setTimeout(() => { copiedMsg.style.display = 'none'; }, 1500);
+  }
 }
 
-export function nextCopyPage() {
-  appState.copyIdx = 1; // Move to page 2
-  document.getElementById('copy-page-1').style.display = 'none';
-  document.getElementById('copy-page-2').style.display = 'grid';
-  document.getElementById('copy-page').textContent = '2';
-  document.getElementById('btn-prev-page').style.display = 'flex';
-  document.getElementById('btn-next-page').style.display = 'none';
+/** Finalizes the listing and moves item to 'listed' status */
+export async function finishCopyFlow() {
+  await setStatus('listed');
+  goHome();
 }
-
-export function prevCopyPage() {
-  appState.copyIdx = 0; // Move to page 1
-  document.getElementById('copy-page-1').style.display = 'grid';
-  document.getElementById('copy-page-2').style.display = 'none';
-  document.getElementById('copy-page').textContent = '1';
-  document.getElementById('btn-prev-page').style.display = 'none';
-  document.getElementById('btn-next-page').style.display = 'flex';
-}
-
-export function startCopyFlow() {
-  const item = appState.currentItem;
-  appState.copyFields = [
-    { label: 'Title', value: item.title || '' },
-    { label: 'Description', value: item.description || '' },
-    { label: 'Category', value: item.category || '' },
-    { label: 'Brand', value: item.brand || '' },
-    { label: 'Size', value: item.size || '' },
-    { label: 'Condition', value: item.condition || '' },
-    { label: 'Colour', value: item.colours || '' },
-    { label: 'Material', value: item.materials || '' },
-  ];
-  appState.copyIdx = 0;
-  
-  // Render all fields
-  appState.copyFields.forEach((field, idx) => {
-    const fieldEl = document.getElementById(`copy-field-${idx}`);
-    if (fieldEl) {
-      fieldEl.querySelector('.copy-field-value').textContent = field.value || '—';
-    }
-  });
-  
-  // Reset to page 1
-  document.getElementById('copy-page-1').style.display = 'grid';
-  document.getElementById('copy-page-2').style.display = 'none';
-  document.getElementById('copy-page').textContent = '1';
-  document.getElementById('btn-prev-page').style.display = 'none';
-  document.getElementById('btn-next-page').style.display = 'flex';
-  
-  showScreen('screen-copy');
-}
-
-export function renderCopyField() {
-  // This function is replaced by the new click-to-copy logic, kept for compatibility
-}
-
-
