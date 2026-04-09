@@ -16,17 +16,23 @@
 <!-- API KEY -->
 <div class="screen active" id="screen-apikey">
   <div class="header" style="justify-content:center;">
-    <div style="text-align:center;"><h1>Vinted Lister</h1><div style="font-size:11px;color:var(--text3);margin-top:2px;">v<span id="version-display-apikey"></span> · <span id="branch-display-apikey"></span></div></div>
+    <div style="text-align:center;">
+      <h1>Vinted Lister</h1>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">v<span id="version-display-apikey"></span> · <span id="branch-display-apikey"></span></div>
+    </div>
   </div>
   <div class="content">
-    <div class="api-wrap">
+    <form class="api-wrap" onsubmit="event.preventDefault(); window.saveApiKey();">
       <div class="api-icon">🏷️</div>
       <div class="api-title">Vinted Lister</div>
       <div class="api-desc">Enter your Anthropic API key to power AI photo analysis.<br><br>Get yours free at <strong>console.anthropic.com</strong> — create an account, generate a key, and add £10 credit to start.</div>
-      <input class="api-input" id="api-key-input" type="text" placeholder="sk-ant-api03-..." autocomplete="off" />
-      <button class="btn btn-primary" id="api-key-btn" style="margin-bottom:10px;z-index:50;position:relative;">Get Started →</button>
+      
+      <input class="api-input" id="api-key-input" type="text" placeholder="sk-ant-api03-..." autocomplete="off" required />
+      
+      <button class="btn btn-primary" id="api-key-btn" type="submit">Get Started →</button>
+      
       <div class="api-note">Stored only on this device. Never shared.</div>
-    </div>
+    </form>
   </div>
 </div>
 
