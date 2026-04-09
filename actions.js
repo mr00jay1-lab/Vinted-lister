@@ -1,6 +1,7 @@
 import { appState, S_ITEMS, S_PHOTOS } from './state.js';
 import { dbDelete, dbGet, dbGetAll, dbPut } from './db.js';
 import { goHome, renderDetail, updateStorageBar, showScreen, closeModal, resetStatePhotos } from './ui.js';
+import { initPhotoScreen } from './photos.js';
 
 /* ==========================================================================
    SECTION 1: ITEM CORE NAVIGATION & MANAGEMENT
