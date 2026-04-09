@@ -20,6 +20,11 @@ export async function initApp() {
   document.getElementById('version-display-apikey').textContent = versionNum;
   document.getElementById('branch-display-apikey').textContent = BRANCH_NAME;
   
+  // Note: API Key button event listener is removed here. 
+  // It is now handled natively by the HTML <form> submission.
+
+  if (!getApiKey()) showScreen('screen-apikey');
+  else goHome();
 }
 
 export function saveApiKey() {
@@ -32,6 +37,10 @@ export function saveApiKey() {
     alert('Please enter a valid Anthropic API key (starts with sk-)');
     return;
   }
+  
+  // Close keyboard on mobile natively
+  document.getElementById('api-key-input').blur();
+  
   saveApiKeyValue(key);
   goHome();
 }
@@ -88,8 +97,8 @@ export function goHome() {
 
 export function resetStatePhotos() {
   document.getElementById('state-photos').innerHTML = `
-    <button class="btn btn-primary" onclick="analyseItem()">🔍 &nbsp;Analyse with AI</button>
-    <button class="btn btn-outline" onclick="openReplacePhotos()">Replace Photos</button>
+    <button class="btn btn-primary" onclick="window.analyseItem()">🔍 &nbsp;Analyse with AI</button>
+    <button class="btn btn-outline" onclick="window.openReplacePhotos()">Replace Photos</button>
   `;
 }
 
@@ -107,7 +116,7 @@ export async function renderDetail() {
         .map((photo, index) => {
           const selected = appState.aiSelectedIndices.includes(index);
           return `
-            <div class="detail-photo-slot${selected ? ' ai-selected' : ''}" onclick="toggleAiPhoto(${index})">
+            <div class="detail-photo-slot${selected ? ' ai-selected' : ''}" onclick="window.toggleAiPhoto(${index})">
               <img src="${photo}" />${selected ? '<div class="ai-badge">🔍 AI</div>' : ''}
             </div>
           `;
@@ -171,7 +180,7 @@ export async function renderHome() {
         .filter(Boolean)
         .join(' ');
       return `
-        <div class="item-card" onclick="openItem('${item.id}')">
+        <div class="item-card" onclick="window.openItem('${item.id}')">
           <div class="item-thumb">${thumb}</div>
           <div class="item-info">
             <div class="item-title">${item.title || 'Untitled item'}</div>
@@ -190,4 +199,14 @@ export function closeModal(id) {
   if (id === 'modal-listed') showScreen('screen-detail');
 }
 
+// ==========================================
+// 🚨 GLOBAL EXPORTS FOR HTML COMPATIBILITY 🚨
+// ==========================================
+// Because this is an ES module, we must attach these to the window 
+// so the HTML <button onclick="..."> and forms can "see" them.
 window.saveApiKey = saveApiKey;
+window.setFilter = setFilter;
+window.goHome = goHome;
+window.resetStatePhotos = resetStatePhotos;
+window.closeModal = closeModal;
+window.showScreen = showScreen;
