@@ -199,14 +199,3 @@ export function closeModal(id) {
   if (id === 'modal-listed') showScreen('screen-detail');
 }
 
-// ==========================================
-// 🚨 GLOBAL EXPORTS FOR HTML COMPATIBILITY 🚨
-// ==========================================
-// Because this is an ES module, we must attach these to the window 
-// so the HTML <button onclick="..."> and forms can "see" them.
-window.saveApiKey = saveApiKey;
-window.setFilter = setFilter;
-window.goHome = goHome;
-window.resetStatePhotos = resetStatePhotos;
-window.closeModal = closeModal;
-window.showScreen = showScreen;
