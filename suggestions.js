@@ -72,7 +72,3 @@ export function copySuggestions() {
   }
 }
 
-// Make sure it's globally available if called from HTML!
-window.copySuggestions = copySuggestions;
-
-window.deleteSuggestion = deleteSuggestion;
