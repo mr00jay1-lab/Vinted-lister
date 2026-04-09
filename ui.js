@@ -174,7 +174,6 @@ if (analysed) {
 
       <div class="fields-grid-2col">
         <div class="field"><label>Material</label><input id="f-materials" type="text" oninput="window.markDirty()" /></div>
-        <div class="field"><label>Price (£)</label><input id="f-price" type="text" oninput="window.markDirty()" /></div>
       </div>
 
       <button class="btn btn-outline" id="save-edits-btn" onclick="window.saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
@@ -193,7 +192,6 @@ if (analysed) {
     document.getElementById('f-condition').value = item.condition || 'Good';
     document.getElementById('f-colours').value = item.colours || '';
     document.getElementById('f-materials').value = item.materials || '';
-    document.getElementById('f-price').value = item.price || '';
     document.getElementById('save-edits-btn').style.display = 'none';
   }
 
@@ -220,12 +218,15 @@ export async function renderHome() {
     return;
   }
 
-  list.innerHTML = filtered
+ list.innerHTML = filtered
     .map((item) => {
       const thumb = item.thumbnail ? `<img src="${item.thumbnail}" alt="" />` : '<span>👕</span>';
-      const meta = [item.price ? `£${item.price}` : '', item.brand ? `· ${item.brand}` : '']
+      
+      // Fixed: Removed price, added opening bracket [
+      const meta = [item.brand ? `${item.brand}` : '']
         .filter(Boolean)
         .join(' ');
+
       return `
         <div class="item-card" onclick="window.openItem('${item.id}')">
           <div class="item-thumb">${thumb}</div>
