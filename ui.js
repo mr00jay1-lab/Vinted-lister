@@ -307,4 +307,4 @@ export async function renderDetail() {
     statusSelect.className = 'status-select st-' + item.status;
   }
 }
-}
+
