@@ -2,7 +2,7 @@ import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, getApiKey, saveApiKeyVal
 import { dbGet, dbGetAll, dbPut, dbDelete, openDB } from './db.js';
 import { renderSuggestions } from './suggestions.js';
 
-xport async function initApp() {
+export async function initApp() {
   await openDB();
   appState.items = await dbGetAll(S_ITEMS);
   await autoClean();
