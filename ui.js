@@ -179,10 +179,29 @@ export async function renderHome() {
 
 /** Resets the action buttons on the detail screen before analysis */
 export function resetStatePhotos() {
-  document.getElementById('state-photos').innerHTML = `
-    <button class="btn btn-primary" onclick="window.analyseItem()">🔍 &nbsp;Analyse with AI</button>
-    <button class="btn btn-outline" onclick="window.openReplacePhotos()">Replace Photos</button>
-  `;
+  const statePhotos = document.getElementById('state-photos');
+  const stateAnalysed = document.getElementById('state-analysed');
+  
+  if (!statePhotos || !stateAnalysed) return;
+
+  // 1. If item is already analysed, show the AI fields
+  if (appState.currentItem && appState.currentItem.status !== 'photos') {
+    statePhotos.style.display = 'none';
+    stateAnalysed.style.display = 'block';
+  } 
+  // 2. If it's a new item or we are re-analysing, show the split buttons
+  else {
+    statePhotos.style.display = 'block';
+    stateAnalysed.style.display = 'none';
+
+    // 🚨 The New Split Layout 🚨
+    statePhotos.innerHTML = `
+      <div class="copy-row">
+        <button class="btn btn-outline" onclick="window.openEditPhotos()">📷 Edit Photos</button>
+        <button class="btn btn-primary" onclick="window.analyseItem()">🔍 Re-Analyse</button>
+      </div>
+    `;
+  }
 }
 
 /** Renders the full detail page including photos, AI details, and listing forms */
