@@ -88,7 +88,7 @@ export function backFromAddPhotos() {
   if (appState.pendingPhotos.filter(Boolean).length > 0) {
     document.getElementById('modal-unsaved-photos').style.display = 'flex';
   } else if (appState.replacingItem || appState.addingMorePhotos || appState.isEditing) {
-    // 🚨 Updated to handle isEditing
+    // Return to detail screen if we were modifying an existing item
     appState.isEditing = false;
     showScreen('screen-detail');
   } else {
@@ -100,7 +100,14 @@ export function backFromAddPhotos() {
 export function discardAndGoHome() {
   closeModal('modal-unsaved-photos');
   appState.pendingPhotos = [];
-  if (appState.replacingItem || appState.addingMorePhotos) {
+  
+  // Reset UI and flags if we were in Edit mode
+  if (appState.isEditing) {
+    appState.isEditing = false;
+    const nextItemBtn = document.getElementById('next-item-btn');
+    if (nextItemBtn) nextItemBtn.style.display = 'flex';
+    showScreen('screen-detail');
+  } else if (appState.replacingItem || appState.addingMorePhotos) {
     showScreen('screen-detail');
   } else {
     goHome();
