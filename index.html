@@ -62,11 +62,12 @@
     </div>
   </div>
 
-  <div class="screen" id="screen-addphotos">
+<div class="screen" id="screen-addphotos">
     <div class="header">
       <button class="header-back" onclick="window.backFromAddPhotos()">←</button>
       <div><h1 id="addphotos-title">Add Photos</h1><div class="header-sub" id="addphotos-sub">Choose your capture method</div></div>
     </div>
+
     <div class="content" style="padding-bottom: 100px;">
       <div class="mode-selector">
         <button class="mode-btn" id="mode-btn-camera" onclick="window.setPhotoMode('camera')">📷 Camera</button>
@@ -79,10 +80,11 @@
       </div>
 
       <div class="photo-grid" id="photo-grid"></div>
-      <div id="photo-msg" style="text-align:center;color:var(--text3);font-size:14px;margin-bottom:20px;font-weight:500;">Add at least 1 photo to continue</div>
 
       <input type="file" id="photo-input-camera"  accept="image/*" capture="environment" onchange="window.handlePhoto(event,'camera')" />
       <input type="file" id="photo-input-library" accept=".jpg,.jpeg,.png,.heic,.heif,.webp" multiple onchange="window.handlePhoto(event,'library')" />
+      
+      <div id="photo-msg" style="text-align:center;color:var(--text3);font-size:14px;margin-bottom:20px;font-weight:500;">Add at least 1 photo to continue</div>
 
       <div style="display:flex;gap:10px;">
         <button class="btn btn-teal" id="save-photos-btn" style="flex:1;" onclick="window.savePhotos()" disabled>Continue</button>
