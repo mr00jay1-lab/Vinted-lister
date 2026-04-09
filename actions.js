@@ -215,11 +215,4 @@ export function renderCopyField() {
   // This function is replaced by the new click-to-copy logic, kept for compatibility
 }
 
-function resetStatePhotos() {
-  document.getElementById('state-photos').innerHTML = `
-    <button class="btn btn-primary" onclick="analyseItem()">🔍 &nbsp;Analyse with AI</button>
-    <button class="btn btn-outline" onclick="openReplacePhotos()">Replace Photos</button>
-  `;
-}
-
 
