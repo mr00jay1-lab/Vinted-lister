@@ -150,7 +150,41 @@ export async function renderDetail() {
   document.getElementById('state-photos').style.display = analysed ? 'none' : 'block';
   document.getElementById('state-analysed').style.display = analysed ? 'block' : 'none';
 
-  if (analysed) {
+if (analysed) {
+    // 1. REBUILD the HTML structure to match your new 2-column plan
+    document.getElementById('state-analysed').innerHTML = `
+      <div class="section-title">Listing Details</div>
+      <div class="field"><label>Title</label><input id="f-title" type="text" oninput="window.markDirty()" /></div>
+      <div class="field"><label>Description</label><textarea id="f-description" oninput="window.markDirty()"></textarea></div>
+      <div class="field"><label>Category</label><input id="f-category" type="text" oninput="window.markDirty()" /></div>
+      
+      <div class="fields-grid-2col">
+        <div class="field"><label>Brand</label><input id="f-brand" type="text" oninput="window.markDirty()" /></div>
+        <div class="field"><label>Size</label><input id="f-size" type="text" oninput="window.markDirty()" /></div>
+      </div>
+
+      <div class="fields-grid-2col">
+        <div class="field"><label>Condition</label>
+          <select id="f-condition" onchange="window.markDirty()">
+            <option>New with tags</option><option>Like new</option><option>Good</option><option>Fair</option><option>Poor</option>
+          </select>
+        </div>
+        <div class="field"><label>Colour</label><input id="f-colours" type="text" oninput="window.markDirty()" /></div>
+      </div>
+
+      <div class="fields-grid-2col">
+        <div class="field"><label>Material</label><input id="f-materials" type="text" oninput="window.markDirty()" /></div>
+        <div class="field"><label>Price (£)</label><input id="f-price" type="text" oninput="window.markDirty()" /></div>
+      </div>
+
+      <button class="btn btn-outline" id="save-edits-btn" onclick="window.saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
+      
+      <div class="section-title">Actions</div>
+      <button class="btn btn-primary" onclick="window.openAddMorePhotos()">📷 &nbsp;Add / Replace Photos &amp; Re-analyse</button>
+      <button class="btn btn-blue" onclick="window.startCopyFlow()">🏷️ &nbsp;Start Listing</button>
+    `;
+
+    // 2. NOW fill the values (must happen AFTER innerHTML is set)
     document.getElementById('f-title').value = item.title || '';
     document.getElementById('f-description').value = item.description || '';
     document.getElementById('f-category').value = item.category || '';
@@ -159,7 +193,6 @@ export async function renderDetail() {
     document.getElementById('f-condition').value = item.condition || 'Good';
     document.getElementById('f-colours').value = item.colours || '';
     document.getElementById('f-materials').value = item.materials || '';
-    document.getElementById('f-parcel').value = item.parcel || '';
     document.getElementById('f-price').value = item.price || '';
     document.getElementById('save-edits-btn').style.display = 'none';
   }
