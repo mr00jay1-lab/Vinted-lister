@@ -91,7 +91,7 @@
     </div>
   </div>
 
-  <div class="screen" id="screen-detail">
+<div class="screen" id="screen-detail">
     <div class="header">
       <button class="header-back" onclick="window.goHome()">←</button>
       <div style="flex:1;min-width:0;">
@@ -99,9 +99,12 @@
         <div id="detail-badge-wrap"></div>
       </div>
     </div>
+
     <div class="content" style="padding-bottom:30px;">
       <div class="section-title">Photos</div>
-      <div class="photo-grid" id="detail-photos"></div>
+      
+      <div class="photo-grid-3wide" id="detail-photos"></div>
+      
       <div class="photo-hint" id="detail-photo-hint" style="display:none;">Tap photos to select for AI analysis</div>
 
       <div id="state-photos">
@@ -121,6 +124,7 @@
           <option value="archived">🗄️ Archived</option>
         </select>
       </div>
+
       <div style="margin-top:18px;">
         <button class="btn btn-danger" onclick="window.deleteItem()">🗑️ &nbsp;Delete Item</button>
       </div>
