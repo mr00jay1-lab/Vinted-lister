@@ -14,8 +14,7 @@ Return ONLY valid JSON, no markdown, no explanation:
   "size": "size from label if visible, else empty string",
   "condition": "New with tags|Like new|Good|Fair|Poor",
   "colours": ["primary colour", "secondary colour if present"],
-  "materials": ["primary material", "secondary material if identifiable"],
-  "parcel_size": "XS|S|M|L|XL — best guess based on item type and size"
+  "materials": ["primary material", "secondary material if identifiable"]
 }`;
 
 function formatAnalysisResult(item, json) {
@@ -29,7 +28,6 @@ function formatAnalysisResult(item, json) {
     condition: json.condition || 'Good',
     colours: Array.isArray(json.colours) ? json.colours.join(', ') : (json.colours || ''),
     materials: Array.isArray(json.materials) ? json.materials.join(', ') : (json.materials || ''),
-    parcel: (json.parcel_size || '').replace(/[^XSML]/g, ''),
     status: 'analysed',
   };
 }
