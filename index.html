@@ -23,7 +23,7 @@
       <form class="api-wrap" id="api-key-form" onsubmit="window.handleApiFormSubmit(event)">
         <div class="api-icon">🏷️</div>
         <div class="api-title">Vinted Lister</div>
-        <div class="api-desc">Enter your Anthropic API key to power AI photo analysis.<br><br>Get yours free at <strong>console.anthropic.com</strong> — create an account, generate a key, and add £10 credit to start.</div>
+        <div class="api-desc">Enter your Anthropic API key to power AI photo analysis.<br><br>Get yours free at <strong>console.anthropic.com</strong>.</div>
         <input class="api-input" id="api-key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="current-password" required />
         <button class="btn btn-primary" id="api-key-btn" type="submit" style="margin-bottom:10px;z-index:50;position:relative;">Get Started →</button>
         <div class="api-note">Stored only on this device. Never shared.</div>
@@ -51,7 +51,9 @@
       <div class="storage-bar-track"><div class="storage-bar-fill" id="storage-fill" style="width:0%"></div></div>
     </div>
 
-    <div class="content" style="padding-bottom:100px;"><div id="item-list"></div></div>
+    <div class="content" style="padding-bottom:100px;">
+      <div id="item-list"></div>
+    </div>
     
     <button id="btn-batch-analyse" onclick="window.openBatchAnalyse()" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);width:auto;padding:10px 20px;border:1.5px solid var(--border2);border-radius:20px;background:var(--surface);font-size:14px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,0.12);z-index:21;">🔍 Analyse All</button>
     
@@ -108,7 +110,7 @@
       </div>
 
       <div id="state-analysed" style="display:none;">
-        </div>
+          </div>
 
       <div class="section-title">Status</div>
       <div class="status-select-wrap">
@@ -129,37 +131,28 @@
   <div class="screen" id="screen-copy">
     <div class="header">
       <button class="header-back" onclick="window.showScreen('screen-detail')">←</button>
-      <div>
-        <h1>Copy to Vinted</h1>
-        <div class="header-sub">Step <span id="copy-page-num">1</span> of 3</div>
-      </div>
+      <div><h1>Copy to Vinted</h1><div class="header-sub">Step <span id="copy-page-num">1</span> of 3</div></div>
     </div>
 
     <div class="content" style="display:flex;flex-direction:column;justify-content:space-between;padding-bottom:30px;">
       
       <div id="copy-step-1" class="copy-fields-page">
-        <div class="copy-instr" style="margin-bottom:15px;">
-          <strong>Step 1: Save Photos</strong><br>
-          Hold images to save to gallery.
-        </div>
-        <div id="copy-pics-grid" class="photos-grid" style="margin-bottom:20px;"></div>
+        <div class="copy-instr" style="margin-bottom:15px;"><strong>Step 1: Save Photos</strong><br>Hold images to save to gallery.</div>
+        <div id="copy-pics-grid" class="photos-grid-3wide"></div>
       </div>
 
       <div id="copy-step-2" class="copy-fields-page" style="display:none;">
         <div class="copy-instr" style="margin-bottom:15px;">Tap values to copy.</div>
         <div class="copy-field-clickable" onclick="window.copyFieldValue(0)" id="copy-field-0">
-          <div class="copy-field-label">Title</div>
-          <div class="copy-field-value"></div>
+          <div class="copy-field-label">Title</div><div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
         </div>
         <div class="copy-field-clickable" onclick="window.copyFieldValue(1)" id="copy-field-1">
-          <div class="copy-field-label">Description</div>
-          <div class="copy-field-value"></div>
+          <div class="copy-field-label">Description</div><div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
         </div>
         <div class="copy-field-clickable" onclick="window.copyFieldValue(2)" id="copy-field-2">
-          <div class="copy-field-label">Category</div>
-          <div class="copy-field-value"></div>
+          <div class="copy-field-label">Category</div><div class="copy-field-value"></div>
           <div class="copy-field-copied" style="display:none;">✓</div>
         </div>
       </div>
@@ -184,12 +177,10 @@
 
       <div style="display:flex;gap:10px;flex-direction:column;margin-top:20px;">
         <a href="https://www.vinted.co.uk" target="_blank" rel="noopener" class="btn btn-blue" style="text-decoration:none;text-align:center;">📲 &nbsp;Launch Vinted</a>
-        
         <div style="display:flex;gap:10px;">
           <button class="btn btn-outline" id="btn-prev-page" onclick="window.prevCopyPage()" style="flex:1; visibility:hidden;">← Back</button>
           <button class="btn btn-primary" id="btn-next-page" onclick="window.nextCopyPage()" style="flex:1;">Next →</button>
         </div>
-
         <button class="btn btn-subtle" id="btn-finish-no-save" onclick="window.showScreen('screen-home')" style="width:100%;">Finish / Don't mark listed</button>
         <button class="btn btn-blue" id="btn-done" onclick="window.finishCopyFlow()" style="width:100%; display:none;">✅ &nbsp;Mark as Listed</button>
       </div>
@@ -199,10 +190,9 @@
   <div class="modal-overlay" id="modal-batch-analyse" style="display:none;">
     <div class="modal">
       <h3 id="batch-title">Analyse items?</h3>
-      <p id="batch-desc">This will analyse all items with photos using AI.</p>
       <div id="batch-progress" style="display:none;text-align:center;margin-bottom:16px;">
         <div class="spinner" style="margin:0 auto 12px;"></div>
-        <p id="batch-progress-text" style="font-size:15px;font-weight:600;color:var(--text);"></p>
+        <p id="batch-progress-text"></p>
       </div>
       <button class="btn btn-primary" id="batch-confirm-btn" onclick="window.runBatchAnalyse()">🔍 &nbsp;Start Analysis</button>
       <button class="btn btn-outline" id="batch-cancel-btn" onclick="window.closeModal('modal-batch-analyse')">Cancel</button>
@@ -212,57 +202,23 @@
   <div class="modal-overlay" id="modal-unsaved-photos" style="display:none;">
     <div class="modal">
       <h3>Unsaved photos</h3>
-      <p>You have unsaved photos. Save them before leaving?</p>
+      <p>Save them before leaving?</p>
       <button class="btn btn-teal" onclick="window.savePhotos()">Save Photos →</button>
       <button class="btn btn-danger" onclick="window.discardAndGoHome()">Discard & Leave</button>
       <button class="btn btn-outline" onclick="window.closeModal('modal-unsaved-photos')">Cancel</button>
     </div>
   </div>
 
-  <div class="modal-overlay" id="modal-listed" style="display:none;">
-    <div class="modal">
-      <h3>Did you list this item?</h3>
-      <p>Mark it as listed so you can track it here.</p>
-      <button class="btn btn-teal" onclick="window.confirmListed()">✅ &nbsp;Yes — Mark as Listed</button>
-      <button class="btn btn-outline" onclick="window.closeModal('modal-listed')">Not yet</button>
-    </div>
-  </div>
-
   <div class="modal-overlay" id="modal-drop-photos" style="display:none;">
     <div class="modal">
-      <h3 id="drop-title">Mark as Sold?</h3>
-      <p>This will remove photos from the app to save space. Your original photos in your iPhone camera roll are not affected.</p>
+      <h3 id="drop-title">Delete Photos?</h3>
+      <p>This saves space but keeps the item record.</p>
       <button class="btn btn-primary" onclick="window.confirmDropPhotos()">Yes, remove photos</button>
       <button class="btn btn-outline" onclick="window.closeModal('modal-drop-photos')">Cancel</button>
     </div>
   </div>
 
-  <div class="modal-overlay" id="modal-download" style="display:none;">
-    <div class="modal">
-      <h3>Save Photos</h3>
-      <div class="photo-save-tip">📱 <strong>Hold &amp; press each photo</strong> below, then tap <em>"Save to Photos"</em> to add it to your iPhone camera roll.</div>
-      <div class="photo-save-grid" id="download-photo-grid"></div>
-      <button class="btn btn-outline" onclick="window.closeModal('modal-download')">Done</button>
-    </div>
-  </div>
-
-  <button class="float-suggest" onclick="window.openSuggestions()" title="Suggestions">💡</button>
-
-  <div class="suggest-panel" id="suggest-panel" style="display:none;">
-    <div class="suggest-inner">
-      <h3>💡 Suggestions</h3>
-      <p>Capture ideas, bugs or improvements. Copy all to share.</p>
-      <form class="suggest-input-row" onsubmit="window.handleSuggestFormSubmit(event)">
-        <textarea id="suggest-input" placeholder="Type a suggestion…" required></textarea>
-        <button class="suggest-add-btn" type="submit">Add</button>
-      </form>
-      <div class="suggest-list" id="suggest-list"></div>
-      <div class="suggest-actions">
-        <button class="suggest-copy-btn" onclick="window.copySuggestions()">📋 Copy All</button>
-        <button class="suggest-close-btn" onclick="window.closeSuggestions()">Close</button>
-      </div>
-    </div>
-  </div>
+  <button class="float-suggest" onclick="window.openSuggestions()">💡</button>
 
   <script type='module' src='main.js'></script>
 
