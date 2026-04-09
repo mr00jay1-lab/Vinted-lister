@@ -188,3 +188,8 @@ export async function runBatchAnalyse() {
   renderHome();
   updateStorageBar();
 }
+
+window.analyseItem = analyseItem;
+window.openReplacePhotos = openReplacePhotos;
+window.toggleAiPhoto = toggleAiPhoto;
+window.openItem = openItem;
