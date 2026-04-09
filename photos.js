@@ -90,18 +90,7 @@ export function initPhotoScreen() {
    SECTION 2: NAVIGATION & EXIT GUARDS
    ========================================================================== */
 
-/** Handles the back button, checking for unsaved changes first */
-export function backFromAddPhotos() {
-  if (appState.pendingPhotos.filter(Boolean).length > 0) {
-    document.getElementById('modal-unsaved-photos').style.display = 'flex';
-  } else if (appState.replacingItem || appState.addingMorePhotos || appState.isEditing) {
-    // Return to detail screen if we were modifying an existing item
-    appState.isEditing = false;
-    showScreen('screen-detail');
-  } else {
-    goHome();
-  }
-}
+
 
 /** Discards the current session and returns to appropriate screen */
 export function discardAndGoHome() {
