@@ -268,7 +268,7 @@ export async function savePhotos(startNewAfter = false) {
   const item = {
     id, status: 'photos', thumbnail, hasPhotos: true,
     title: '', description: '', category: '', brand: '', size: '', condition: '',
-    colours: '', materials: '', parcel: '', price: '', createdAt: Date.now(),
+    colours: '', materials: '', createdAt: Date.now(),
   };
   await dbPut(S_ITEMS, item);
   await dbPut(S_PHOTOS, { id, images });
