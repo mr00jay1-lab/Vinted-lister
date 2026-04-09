@@ -210,11 +210,13 @@ export async function renderDetail() {
         .join('');
       hintEl.style.display = 'block';
     } else {
-      grid.innerHTML = '<p style="font-size:13px;color:var(--text3);grid-column:span 2;">Photos not found.</p>';
+      // 🚨 UPDATED: Changed span 2 to span 3 to match your 3-wide grid
+      grid.innerHTML = '<p style="font-size:13px;color:var(--text3);grid-column:span 3;text-align:center;">Photos not found.</p>';
       hintEl.style.display = 'none';
     }
   } else {
-    grid.innerHTML = '<p style="font-size:13px;color:var(--text3);grid-column:span 2;">Photos removed to save space.</p>';
+    // 🚨 UPDATED: Changed span 2 to span 3 to match your 3-wide grid
+    grid.innerHTML = '<p style="font-size:13px;color:var(--text3);grid-column:span 3;text-align:center;">Photos removed to save space.</p>';
     hintEl.style.display = 'none';
   }
 
