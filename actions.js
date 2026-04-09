@@ -109,36 +109,6 @@ export function toggleAiPhoto(index) {
   renderDetail(); 
 }
 
-/** Logic for the 'Continue' button on Add Photos screen */
-export async function savePhotos() {
-  // Ensure we have current photos from appState
-  const photos = appState.tempPhotos; 
-  if (!photos || photos.length === 0) return;
-
-  // 1. Update the Item record
-  appState.currentItem.thumbnail = photos[0];
-  appState.currentItem.hasPhotos = true;
-  await dbPut(S_ITEMS, appState.currentItem);
-
-  // 2. Save high-res photos to separate store
-  await dbPut(S_PHOTOS, { id: appState.currentItem.id, images: photos });
-
-  // 3. Navigation: Handle Edit vs New Item flow
-  if (appState.isEditing) {
-    appState.isEditing = false;
-    
-    // Show the "New Item" button again for future items
-    const nextItemBtn = document.getElementById('next-item-btn');
-    if (nextItemBtn) nextItemBtn.style.display = 'flex';
-    
-    await renderDetail();
-    showScreen('screen-detail');
-  } else {
-    appState.items = await dbGetAll(S_ITEMS);
-    goHome();
-  }
-}
-
 /** Redirects to Add Photos screen in "Edit Mode" */
 export function openEditPhotos() {
   if (!appState.currentItem) return;
