@@ -68,3 +68,5 @@ export function copySuggestions() {
     alert('Copied! Paste into WhatsApp or anywhere you like.');
   });
 }
+
+window.deleteSuggestion = deleteSuggestion;
