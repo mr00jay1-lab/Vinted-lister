@@ -4,6 +4,11 @@ import { compressTo } from './utils.js';
 import { analyseItem } from './analysis.js';
 import { renderDetail, renderHome, goHome, showScreen, closeModal } from './ui.js';
 
+/* ==========================================================================
+   SECTION 1: SCREEN INITIALIZATION & MODES
+   ========================================================================== */
+
+/** Sets global photo source (Camera vs Gallery) and updates UI buttons */
 export function setPhotoMode(mode) {
   savePhotoMode(mode);
   document.getElementById('mode-btn-camera').classList.toggle('active', mode === 'camera');
@@ -12,10 +17,13 @@ export function setPhotoMode(mode) {
   renderSlots();
 }
 
+/** Hides the "Take another photo?" banner */
 function hideBanner() {
-  document.getElementById('next-photo-banner').style.display = 'none';
+  const banner = document.getElementById('next-photo-banner');
+  if (banner) banner.style.display = 'none';
 }
 
+/** Resets all states for a completely fresh item */
 export function startNewItem() {
   appState.replacingItem = false;
   appState.addingMorePhotos = false;
@@ -29,6 +37,7 @@ export function startNewItem() {
   showScreen('screen-addphotos');
 }
 
+/** Prepares UI to overwrite existing photos */
 export async function openReplacePhotos() {
   appState.replacingItem = true;
   appState.addingMorePhotos = false;
@@ -45,6 +54,7 @@ export async function openReplacePhotos() {
   showScreen('screen-addphotos');
 }
 
+/** Prepares UI to add to existing photos */
 export async function openAddMorePhotos() {
   appState.addingMorePhotos = true;
   appState.replacingItem = false;
@@ -61,6 +71,7 @@ export async function openAddMorePhotos() {
   showScreen('screen-addphotos');
 }
 
+/** Syncs the photo screen state with current app settings */
 export function initPhotoScreen() {
   hideBanner();
   document.getElementById('mode-btn-camera').classList.toggle('active', appState.photoMode === 'camera');
@@ -68,6 +79,11 @@ export function initPhotoScreen() {
   renderSlots();
 }
 
+/* ==========================================================================
+   SECTION 2: NAVIGATION & EXIT GUARDS
+   ========================================================================== */
+
+/** Handles the back button, checking for unsaved changes first */
 export function backFromAddPhotos() {
   if (appState.pendingPhotos.filter(Boolean).length > 0) {
     document.getElementById('modal-unsaved-photos').style.display = 'flex';
@@ -78,6 +94,7 @@ export function backFromAddPhotos() {
   }
 }
 
+/** Discards the current session and returns to appropriate screen */
 export function discardAndGoHome() {
   closeModal('modal-unsaved-photos');
   appState.pendingPhotos = [];
@@ -88,6 +105,11 @@ export function discardAndGoHome() {
   }
 }
 
+/* ==========================================================================
+   SECTION 3: PHOTO GRID & SLOT MANAGEMENT
+   ========================================================================== */
+
+/** Draws the interactive photo slots (placeholders or images) */
 export function renderSlots() {
   const grid = document.getElementById('photo-grid');
   const filled = appState.pendingPhotos.filter(Boolean).length;
@@ -119,12 +141,12 @@ export function renderSlots() {
     ? `${count} photo${count > 1 ? 's' : ''} ready — tap any to replace`
     : 'Add at least 1 photo to continue';
   
-  // Update button state
+  // Disable "Continue" button if no photos exist
   const analyzeBtn = document.getElementById('save-photos-btn');
-  analyzeBtn.disabled = count === 0;
-  document.getElementById('save-photos-btn').disabled = count === 0;
+  if (analyzeBtn) analyzeBtn.disabled = count === 0;
 }
 
+/** Removes a specific photo and re-compacts the list */
 export function removeSlot(index) {
   appState.pendingPhotos[index] = null;
   while (appState.pendingPhotos.length && !appState.pendingPhotos[appState.pendingPhotos.length - 1]) {
@@ -134,19 +156,16 @@ export function removeSlot(index) {
   renderSlots();
 }
 
+/** Triggers the native OS file/camera picker */
 export function slotTapped(index) {
   appState.pendingSlot = index;
-  if (appState.photoMode === 'camera') {
-    const input = document.getElementById('photo-input-camera');
-    input.value = '';
-    input.click();
-  } else {
-    const input = document.getElementById('photo-input-library');
-    input.value = '';
-    input.click();
-  }
+  const inputId = appState.photoMode === 'camera' ? 'photo-input-camera' : 'photo-input-library';
+  const input = document.getElementById(inputId);
+  input.value = '';
+  input.click();
 }
 
+/** Automatically triggers camera for the next available empty slot */
 export function triggerNextCamera() {
   let next = -1;
   for (let i = 0; i < MAX_PHOTOS; i += 1) {
@@ -166,6 +185,11 @@ export function triggerNextCamera() {
   input.click();
 }
 
+/* ==========================================================================
+   SECTION 4: IMAGE PROCESSING (FILE HANDLING)
+   ========================================================================== */
+
+/** Processes files selected by user, compresses them, and saves to state */
 export function handlePhoto(event, mode) {
   const files = Array.from(event.target.files || []);
   event.target.value = '';
@@ -175,6 +199,7 @@ export function handlePhoto(event, mode) {
   }
 
   if (mode === 'library') {
+    // Handling multiple files from Gallery
     let slotIndex = appState.pendingSlot !== null ? appState.pendingSlot : appState.pendingPhotos.filter(Boolean).length;
     let processed = 0;
     const maxFiles = Math.min(files.length, MAX_PHOTOS - (appState.pendingSlot !== null ? appState.pendingSlot : 0));
@@ -196,6 +221,7 @@ export function handlePhoto(event, mode) {
       reader.readAsDataURL(file);
     });
   } else {
+    // Handling single file from Camera
     const file = files[0];
     const slot = appState.pendingSlot !== null ? appState.pendingSlot : appState.pendingPhotos.filter(Boolean).length;
     const reader = new FileReader();
@@ -222,17 +248,24 @@ export function handlePhoto(event, mode) {
   }
 }
 
+/* ==========================================================================
+   SECTION 5: FINALIZING & DB STORAGE
+   ========================================================================== */
+
+/** Saves pending photos to IndexedDB and navigates to Detail screen */
 export async function savePhotos(startNewAfter = false) {
   document.getElementById('modal-unsaved-photos').style.display = 'none';
   const photos = appState.pendingPhotos.filter(Boolean);
   if (!photos.length) return;
 
+  // Use existing thumbnail or generate from first photo
   let thumbnail = photos[0].thumbnail;
   if (!thumbnail) {
     thumbnail = appState.currentItem?.thumbnail || await compressTo(photos[0].dataUrl, 100, 0.7);
   }
   const images = photos.map((photo) => photo.dataUrl);
 
+  // LOGIC A: Adding more photos to existing item
   if (appState.addingMorePhotos && appState.currentItem) {
     appState.currentItem.thumbnail = thumbnail;
     appState.currentItem.hasPhotos = true;
@@ -243,12 +276,12 @@ export async function savePhotos(startNewAfter = false) {
     appState.currentItem = appState.items.find((item) => item.id === appState.currentItem.id);
     await renderDetail();
     
-    // NEW ROUTING LOGIC
     if (startNewAfter) { startNewItem(); } 
     else { showScreen('screen-detail'); analyseItem(); }
     return;
   }
 
+  // LOGIC B: Replacing photos on existing item
   if (appState.replacingItem && appState.currentItem) {
     appState.currentItem.thumbnail = thumbnail;
     appState.currentItem.hasPhotos = true;
@@ -258,12 +291,12 @@ export async function savePhotos(startNewAfter = false) {
     appState.currentItem = appState.items.find((item) => item.id === appState.currentItem.id);
     await renderDetail();
     
-    // NEW ROUTING LOGIC
     if (startNewAfter) { startNewItem(); } 
     else { showScreen('screen-detail'); }
     return;
   }
 
+  // LOGIC C: Creating a brand new item
   const id = `item_${Date.now()}`;
   const item = {
     id, status: 'photos', thumbnail, hasPhotos: true,
@@ -274,26 +307,21 @@ export async function savePhotos(startNewAfter = false) {
   await dbPut(S_PHOTOS, { id, images });
   appState.items = await dbGetAll(S_ITEMS);
   
-// NEW ROUTING LOGIC
   if (startNewAfter) {
     startNewItem();
   } else { 
-    // 🚨 BRACKET START HERE
     appState.currentItem = item; 
     showScreen('screen-detail');
     renderDetail();
-    // 🚨 BRACKET END HERE
   }
 }
 
+/** Utility to save current batch and immediately open a blank camera screen */
 export async function saveAndStartNewItem() {
   const photos = appState.pendingPhotos.filter(Boolean);
-  
-  // If there are photos, save them quietly, then reset the screen
   if (photos.length > 0) {
-    await savePhotos(true); // Pass 'true' to signal we want to stay here
+    await savePhotos(true); 
   } else {
-    // If no photos were taken, just do a normal reset
     startNewItem();
   }
 }
