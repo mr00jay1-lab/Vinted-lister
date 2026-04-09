@@ -62,7 +62,7 @@
     </div>
   </div>
 
-<div class="screen" id="screen-addphotos">
+  <div class="screen" id="screen-addphotos">
     <div class="header">
       <button class="header-back" onclick="window.backFromAddPhotos()">←</button>
       <div><h1 id="addphotos-title">Add Photos</h1><div class="header-sub" id="addphotos-sub">Choose your capture method</div></div>
@@ -81,8 +81,8 @@
 
       <div class="photo-grid" id="photo-grid"></div>
 
-      <input type="file" id="photo-input-camera"  accept="image/*" capture="environment" onchange="window.handlePhoto(event,'camera')" />
-      <input type="file" id="photo-input-library" accept=".jpg,.jpeg,.png,.heic,.heif,.webp" multiple onchange="window.handlePhoto(event,'library')" />
+      <input type="file" id="photo-input-camera" accept="image/*" capture="environment" onchange="window.handlePhoto(event,'camera')" style="display:none;" />
+      <input type="file" id="photo-input-library" accept=".jpg,.jpeg,.png,.heic,.heif,.webp" multiple onchange="window.handlePhoto(event,'library')" style="display:none;" />
       
       <div id="photo-msg" style="text-align:center;color:var(--text3);font-size:14px;margin-bottom:20px;font-weight:500;">Add at least 1 photo to continue</div>
 
@@ -93,7 +93,7 @@
     </div>
   </div>
 
-<div class="screen" id="screen-detail">
+  <div class="screen" id="screen-detail">
     <div class="header">
       <button class="header-back" onclick="window.goHome()">←</button>
       <div style="flex:1;min-width:0;">
@@ -109,9 +109,11 @@
       
       <div class="photo-hint" id="detail-photo-hint" style="display:none;">Tap photos to select for AI analysis</div>
 
-      <div id="state-photos">
-        <button class="btn btn-primary" onclick="window.analyseItem()">🔍 &nbsp;Analyse with AI</button>
-        <button class="btn btn-outline" onclick="window.openReplacePhotos()">Replace Photos</button>
+      <div id="state-photos" style="margin-top:10px;">
+        <div class="copy-row">
+          <button class="btn btn-outline" onclick="window.openEditPhotos()">📷 Edit Photos</button>
+          <button class="btn btn-primary" onclick="window.analyseItem()">🔍 Re-Analyse</button>
+        </div>
       </div>
 
       <div id="state-analysed" style="display:none;"></div>
@@ -143,7 +145,7 @@
       
       <div id="copy-step-1" class="copy-fields-page">
         <div class="copy-instr" style="margin-bottom:15px;"><strong>Step 1: Save Photos</strong><br>Hold images to save to gallery.</div>
-        <div id="copy-pics-grid" class="photos-grid-3wide"></div>
+        <div id="copy-pics-grid" class="photo-grid-3wide"></div>
       </div>
 
       <div id="copy-step-2" class="copy-fields-page" style="display:none;">
