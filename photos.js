@@ -274,13 +274,15 @@ export async function savePhotos(startNewAfter = false) {
   await dbPut(S_PHOTOS, { id, images });
   appState.items = await dbGetAll(S_ITEMS);
   
-  // NEW ROUTING LOGIC
+// NEW ROUTING LOGIC
   if (startNewAfter) {
     startNewItem();
-  } else // 🚨 THE FIX: Set this as current item and show details
+  } else { 
+    // 🚨 BRACKET START HERE
     appState.currentItem = item; 
     showScreen('screen-detail');
     renderDetail();
+    // 🚨 BRACKET END HERE
   }
 }
 
