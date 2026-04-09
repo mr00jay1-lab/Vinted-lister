@@ -1,6 +1,7 @@
 import { appState, S_ITEMS, S_PHOTOS } from './state.js';
 import { dbDelete, dbGet, dbGetAll, dbPut } from './db.js';
 import { goHome, renderDetail, renderHome, updateStorageBar, showScreen, closeModal } from './ui.js';
+import { goHome, renderDetail, renderHome, updateStorageBar, showScreen, closeModal, resetStatePhotos } from './ui.js';
 
 export function openItem(id) {
   appState.currentItem = appState.items.find((item) => item.id === id);

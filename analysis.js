@@ -110,8 +110,8 @@ export async function analyseItem() {
     document.getElementById('state-photos').innerHTML = `
       <div style="padding:20px;text-align:center;">
         <p style="color:var(--red);margin-bottom:16px;font-size:15px;">Analysis failed: ${error.message}</p>
-        <button class="btn btn-primary" onclick="resetStatePhotos();analyseItem()">Try Again</button>
-        <button class="btn btn-outline" style="margin-top:8px;" onclick="resetStatePhotos()">Cancel</button>
+<button class="btn btn-primary" onclick="window.resetStatePhotos();window.analyseItem()">Try Again</button>
+<button class="btn btn-outline" style="margin-top:8px;" onclick="window.resetStatePhotos()">Cancel</button>
       </div>
     `;
   }

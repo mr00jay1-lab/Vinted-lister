@@ -98,9 +98,9 @@ export function renderSlots() {
     const photo = appState.pendingPhotos[i];
     if (photo) {
       html += `
-        <div class="photo-slot" onclick="slotTapped(${i})">
+       <div class="photo-slot" onclick="window.slotTapped(${i})">
           <img src="${photo.dataUrl}" />
-          <button class="remove-btn" onclick="event.stopPropagation();removeSlot(${i})">✕</button>
+          <button class="remove-btn" onclick="event.stopPropagation();window.removeSlot(${i})">✕</button>
         </div>
       `;
     } else {

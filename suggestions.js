@@ -10,7 +10,7 @@ export function renderSuggestions() {
     .map((suggestion, index) => `
       <div class="suggest-item">
         <div class="suggest-item-text">${index + 1}. ${suggestion}</div>
-        <button class="suggest-item-del" onclick="deleteSuggestion(${index})">✕</button>
+<button class="suggest-item-del" onclick="window.deleteSuggestion(${index})">✕</button>
       </div>
     `)
     .join('');
@@ -23,13 +23,6 @@ export function openSuggestions() {
 
 export function closeSuggestions() {
   document.getElementById('suggest-panel').style.display = 'none';
-}
-
-export function suggestKeydown(event) {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault();
-    addSuggestion();
-  }
 }
 
 export function addSuggestion() {

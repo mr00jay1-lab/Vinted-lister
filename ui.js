@@ -40,6 +40,17 @@ export function saveApiKey() {
   goHome();
 }
 
+export function handleApiFormSubmit(event) {
+  if (event) event.preventDefault(); // Stop the reload instantly
+  saveApiKey();                      // Run your logic
+}
+
+export function handleSuggestFormSubmit(event) {
+  if (event) event.preventDefault();
+  window.addSuggestion(); // Explicitly call the global one
+}
+
+
 export function showScreen(id) {
   document.querySelectorAll('.screen').forEach((screen) => screen.classList.remove('active'));
   document.getElementById(id).classList.add('active');

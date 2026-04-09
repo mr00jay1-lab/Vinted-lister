@@ -20,7 +20,7 @@
     </div>
   </div>
   <div class="content">
-<form class="api-wrap" id="api-key-form" action="javascript:void(0);" onsubmit="window.saveApiKey(); return false;">
+<form class="api-wrap" id="api-key-form" onsubmit="window.handleApiFormSubmit(event)">
       <div class="api-icon">🏷️</div>
       <div class="api-title">Vinted Lister</div>
       <div class="api-desc">Enter your Anthropic API key to power AI photo analysis.<br><br>Get yours free at <strong>console.anthropic.com</strong> — create an account, generate a key, and add £10 credit to start.</div>
@@ -259,7 +259,7 @@
   <div class="suggest-inner">
     <h3>💡 Suggestions</h3>
     <p>Capture ideas, bugs or improvements. Copy all to share.</p>
-    <form class="suggest-input-row" onsubmit="event.preventDefault(); window.addSuggestion();">
+<form class="suggest-input-row" onsubmit="window.handleSuggestFormSubmit(event)">
       <textarea id="suggest-input" placeholder="Type a suggestion…" required></textarea>
       <button class="suggest-add-btn" type="submit">Add</button>
     </form>
