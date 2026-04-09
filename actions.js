@@ -121,16 +121,24 @@ export async function startCopyFlow() {
   // 1. Populate Photos (Page 1)
   const rec = await dbGet(S_PHOTOS, item.id);
   const grid = document.getElementById('copy-pics-grid');
+  
   if (rec && rec.images && grid) {
+    // 🚨 FIX: Removed inline styles so the CSS .photos-grid-3wide can take over
     grid.innerHTML = rec.images.map(img => 
-      `<img src="${img}" style="width:100%; border-radius:8px; margin-bottom:12px;" />`
+      `<img src="${img}" alt="Item photo" />`
     ).join('');
   }
 
   // 2. Map all item data to the copy-field elements (Pages 2 & 3)
   appState.copyFields = [
-    item.title, item.description, item.category,
-    item.brand, item.size, item.condition, item.colours, item.materials
+    item.title, 
+    item.description, 
+    item.category,
+    item.brand, 
+    item.size, 
+    item.condition, 
+    item.colours, 
+    item.materials
   ];
 
   appState.copyFields.forEach((val, i) => {
