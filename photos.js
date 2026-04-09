@@ -87,7 +87,9 @@ export function initPhotoScreen() {
 export function backFromAddPhotos() {
   if (appState.pendingPhotos.filter(Boolean).length > 0) {
     document.getElementById('modal-unsaved-photos').style.display = 'flex';
-  } else if (appState.replacingItem || appState.addingMorePhotos) {
+  } else if (appState.replacingItem || appState.addingMorePhotos || appState.isEditing) {
+    // 🚨 Updated to handle isEditing
+    appState.isEditing = false;
     showScreen('screen-detail');
   } else {
     goHome();
@@ -251,52 +253,54 @@ export function handlePhoto(event, mode) {
 /* ==========================================================================
    SECTION 5: FINALIZING & DB STORAGE
    ========================================================================== */
-
 /** Saves pending photos to IndexedDB and navigates to Detail screen */
 export async function savePhotos(startNewAfter = false) {
   document.getElementById('modal-unsaved-photos').style.display = 'none';
   const photos = appState.pendingPhotos.filter(Boolean);
   if (!photos.length) return;
 
-  // Use existing thumbnail or generate from first photo
   let thumbnail = photos[0].thumbnail;
   if (!thumbnail) {
     thumbnail = appState.currentItem?.thumbnail || await compressTo(photos[0].dataUrl, 100, 0.7);
   }
   const images = photos.map((photo) => photo.dataUrl);
 
-  // LOGIC A: Adding more photos to existing item
-  if (appState.addingMorePhotos && appState.currentItem) {
+  // LOGIC A & B: Handling Existing Item (Adding, Replacing, or Editing)
+  if ((appState.addingMorePhotos || appState.replacingItem || appState.isEditing) && appState.currentItem) {
     appState.currentItem.thumbnail = thumbnail;
     appState.currentItem.hasPhotos = true;
-    appState.currentItem.status = 'photos';
+    
+    // If it was just 'photos' status, keep it. If it was higher, keep it.
+    if (!appState.currentItem.status) appState.currentItem.status = 'photos';
+
     await dbPut(S_PHOTOS, { id: appState.currentItem.id, images });
     await dbPut(S_ITEMS, appState.currentItem);
+    
     appState.items = await dbGetAll(S_ITEMS);
     appState.currentItem = appState.items.find((item) => item.id === appState.currentItem.id);
+    
+    // Reset our Edit flag and restore UI
+    appState.isEditing = false;
+    const nextItemBtn = document.getElementById('next-item-btn');
+    if (nextItemBtn) nextItemBtn.style.display = 'flex';
+
     await renderDetail();
     
-    if (startNewAfter) { startNewItem(); } 
-    else { showScreen('screen-detail'); analyseItem(); }
+    if (startNewAfter) { 
+      startNewItem(); 
+    } else { 
+      showScreen('screen-detail'); 
+      // If we were "Adding More", we usually want a re-analysis
+      if (appState.addingMorePhotos) analyseItem(); 
+    }
+    
+    // Reset mode flags
+    appState.addingMorePhotos = false;
+    appState.replacingItem = false;
     return;
   }
 
-  // LOGIC B: Replacing photos on existing item
-  if (appState.replacingItem && appState.currentItem) {
-    appState.currentItem.thumbnail = thumbnail;
-    appState.currentItem.hasPhotos = true;
-    await dbPut(S_PHOTOS, { id: appState.currentItem.id, images });
-    await dbPut(S_ITEMS, appState.currentItem);
-    appState.items = await dbGetAll(S_ITEMS);
-    appState.currentItem = appState.items.find((item) => item.id === appState.currentItem.id);
-    await renderDetail();
-    
-    if (startNewAfter) { startNewItem(); } 
-    else { showScreen('screen-detail'); }
-    return;
-  }
-
-  // LOGIC C: Creating a brand new item
+  // LOGIC C: Creating a brand new item (unchanged)
   const id = `item_${Date.now()}`;
   const item = {
     id, status: 'photos', thumbnail, hasPhotos: true,
@@ -315,6 +319,7 @@ export async function savePhotos(startNewAfter = false) {
     renderDetail();
   }
 }
+
 
 /** Utility to save current batch and immediately open a blank camera screen */
 export async function saveAndStartNewItem() {
