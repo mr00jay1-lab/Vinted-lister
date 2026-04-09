@@ -77,7 +77,7 @@ export async function confirmDropPhotos() {
   closeModal('modal-drop-photos');
   await dbDelete(S_PHOTOS, appState.currentItem.id);
   appState.currentItem.hasPhotos = false;
-  appState.currentItem.thumbnail = null; // Remove thumbnail to save space
+  appState.currentItem.thumbnail = null; 
   await setStatus(appState.pendingStatus);
   appState.pendingStatus = null;
 }
@@ -93,6 +93,10 @@ export async function setStatus(status) {
   updateStorageBar();
 }
 
+/* ==========================================================================
+   SECTION 3: PHOTO MANAGEMENT (EDIT & TOGGLE)
+   ========================================================================== */
+
 /** Toggles which photos will be sent to AI for analysis */
 export function toggleAiPhoto(index) {
   if (appState.aiSelectedIndices.includes(index)) {
@@ -102,11 +106,38 @@ export function toggleAiPhoto(index) {
     if (appState.aiSelectedIndices.length >= 10) return;
     appState.aiSelectedIndices = [...appState.aiSelectedIndices, index].sort((a, b) => a - b);
   }
-  renderDetail(); // Refresh UI to show badges
+  renderDetail(); 
+}
+
+/** Redirects to Add Photos screen in "Edit Mode" */
+export function openEditPhotos() {
+  if (!appState.currentItem) return;
+
+  appState.isEditing = true; 
+  
+  // Hide "New Item" button to keep user focused on current item
+  const nextItemBtn = document.getElementById('next-item-btn');
+  if (nextItemBtn) nextItemBtn.style.display = 'none';
+
+  showScreen('screen-addphotos');
+}
+
+/** Handles the back button on Add Photos screen */
+export function backFromAddPhotos() {
+  if (appState.isEditing) {
+    appState.isEditing = false;
+    // Restore button for future use
+    const nextItemBtn = document.getElementById('next-item-btn');
+    if (nextItemBtn) nextItemBtn.style.display = 'flex';
+    renderDetail();
+    showScreen('screen-detail');
+  } else {
+    goHome();
+  }
 }
 
 /* ==========================================================================
-   SECTION 3: LISTING FLOW (THE 3-PAGE COPY SYSTEM)
+   SECTION 4: LISTING FLOW (THE 3-PAGE COPY SYSTEM)
    ========================================================================== */
 
 let currentCopyPage = 1;
@@ -116,20 +147,19 @@ export async function startCopyFlow() {
   const item = appState.currentItem;
   if (!item) return;
 
-  currentCopyPage = 1; // Start at Page 1: Photos
+  currentCopyPage = 1; 
 
-  // 1. Populate Photos (Page 1)
+  // 1. Populate Photos (Page 1) 
   const rec = await dbGet(S_PHOTOS, item.id);
   const grid = document.getElementById('copy-pics-grid');
   
   if (rec && rec.images && grid) {
-    // 🚨 FIX: Removed inline styles so the CSS .photos-grid-3wide can take over
     grid.innerHTML = rec.images.map(img => 
       `<img src="${img}" alt="Item photo" />`
     ).join('');
   }
 
-  // 2. Map all item data to the copy-field elements (Pages 2 & 3)
+  // 2. Map all item data to the copy-field elements
   appState.copyFields = [
     item.title, 
     item.description, 
@@ -170,18 +200,14 @@ export function prevCopyPage() {
 
 /** UI Sync: Shows/Hides pages and buttons based on current step */
 function updateCopyUI() {
-  // Hide all steps
   document.querySelectorAll('.copy-fields-page').forEach(p => p.style.display = 'none');
   
-  // Show active step
   const activeStep = document.getElementById(`copy-step-${currentCopyPage}`);
   if (activeStep) activeStep.style.display = 'block';
   
-  // Update header text
   const pageNumEl = document.getElementById('copy-page-num');
   if (pageNumEl) pageNumEl.textContent = currentCopyPage;
 
-  // Button logic
   const btnPrev = document.getElementById('btn-prev-page');
   const btnNext = document.getElementById('btn-next-page');
   const btnDone = document.getElementById('btn-done');
@@ -199,7 +225,6 @@ export function copyFieldValue(fieldIdx) {
   if (!value) return;
 
   navigator.clipboard.writeText(value).catch(() => {
-    // Fallback for non-secure contexts or older browsers
     const textarea = document.createElement('textarea');
     textarea.value = value;
     document.body.appendChild(textarea);
