@@ -222,7 +222,7 @@ export function handlePhoto(event, mode) {
   }
 }
 
-export async function savePhotos() {
+export async function savePhotos(startNewAfter = false) {
   document.getElementById('modal-unsaved-photos').style.display = 'none';
   const photos = appState.pendingPhotos.filter(Boolean);
   if (!photos.length) return;
@@ -242,8 +242,10 @@ export async function savePhotos() {
     appState.items = await dbGetAll(S_ITEMS);
     appState.currentItem = appState.items.find((item) => item.id === appState.currentItem.id);
     await renderDetail();
-    showScreen('screen-detail');
-    analyseItem();
+    
+    // NEW ROUTING LOGIC
+    if (startNewAfter) { startNewItem(); } 
+    else { showScreen('screen-detail'); analyseItem(); }
     return;
   }
 
@@ -255,30 +257,39 @@ export async function savePhotos() {
     appState.items = await dbGetAll(S_ITEMS);
     appState.currentItem = appState.items.find((item) => item.id === appState.currentItem.id);
     await renderDetail();
-    showScreen('screen-detail');
+    
+    // NEW ROUTING LOGIC
+    if (startNewAfter) { startNewItem(); } 
+    else { showScreen('screen-detail'); }
     return;
   }
 
   const id = `item_${Date.now()}`;
   const item = {
-    id,
-    status: 'photos',
-    thumbnail,
-    hasPhotos: true,
-    title: '',
-    description: '',
-    category: '',
-    brand: '',
-    size: '',
-    condition: '',
-    colours: '',
-    materials: '',
-    parcel: '',
-    price: '',
-    createdAt: Date.now(),
+    id, status: 'photos', thumbnail, hasPhotos: true,
+    title: '', description: '', category: '', brand: '', size: '', condition: '',
+    colours: '', materials: '', parcel: '', price: '', createdAt: Date.now(),
   };
   await dbPut(S_ITEMS, item);
   await dbPut(S_PHOTOS, { id, images });
   appState.items = await dbGetAll(S_ITEMS);
-  goHome();
+  
+  // NEW ROUTING LOGIC
+  if (startNewAfter) {
+    startNewItem();
+  } else {
+    goHome();
+  }
+}
+
+export async function saveAndStartNewItem() {
+  const photos = appState.pendingPhotos.filter(Boolean);
+  
+  // If there are photos, save them quietly, then reset the screen
+  if (photos.length > 0) {
+    await savePhotos(true); // Pass 'true' to signal we want to stay here
+  } else {
+    // If no photos were taken, just do a normal reset
+    startNewItem();
+  }
 }
