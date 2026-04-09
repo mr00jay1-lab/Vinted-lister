@@ -53,20 +53,26 @@ export function copySuggestions() {
     alert('No suggestions to copy yet.');
     return;
   }
+  
   const text = 'Vinted Lister Suggestions:\n\n' + appState.suggestions.map((suggestion, index) => `${index + 1}. ${suggestion}`).join('\n');
-  navigator.clipboard.writeText(text).then(() => {
-    const button = document.querySelector('.suggest-copy-btn');
-    button.textContent = '✓ Copied!';
-    setTimeout(() => { button.textContent = '📋 Copy All'; }, 2000);
-  }).catch(() => {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-    alert('Copied! Paste into WhatsApp or anywhere you like.');
-  });
+  const button = document.querySelector('.suggest-copy-btn');
+  
+  // Use modern clipboard API
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      button.textContent = '✓ Copied!';
+      setTimeout(() => { button.textContent = '📋 Copy All'; }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+      alert('Unable to copy automatically. Please select and copy manually.');
+    });
+  } else {
+    // Ultimate fallback for older environments
+    alert('Clipboard API not available. Please copy manually.');
+  }
 }
+
+// Make sure it's globally available if called from HTML!
+window.copySuggestions = copySuggestions;
 
 window.deleteSuggestion = deleteSuggestion;
