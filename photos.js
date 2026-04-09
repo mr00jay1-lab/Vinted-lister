@@ -277,8 +277,10 @@ export async function savePhotos(startNewAfter = false) {
   // NEW ROUTING LOGIC
   if (startNewAfter) {
     startNewItem();
-  } else {
-    goHome();
+  } else // 🚨 THE FIX: Set this as current item and show details
+    appState.currentItem = item; 
+    showScreen('screen-detail');
+    renderDetail();
   }
 }
 
