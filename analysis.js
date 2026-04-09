@@ -4,20 +4,37 @@ import { parseAnthropicJson } from './utils.js';
 import { renderDetail, renderHome, resetStatePhotos, closeModal, showScreen, updateStorageBar } from './ui.js';
 
 /* ==========================================================================
-   SECTION 1: AI CONFIGURATION & PROMPT
+   SECTION 1: AI CONFIGURATION & PROMPTS
    ========================================================================== */
 
-const ANALYSIS_PROMPT = `Analyse these photos of a second-hand clothing/fashion item for a Vinted listing.
-Return ONLY valid JSON, no markdown, no explanation:
+// 1. Define the persona
+const PROMPT_PERSONA = "You are an expert Vinted seller known for fast sales and honest descriptions.";
+
+// 2. Define the rules
+const PROMPT_RULES = `
+- Title: Concise, max 50 chars, include brand + item + colour.
+- Description: 1-2 sentences in English. Focus on fit and style. 
+- Inspection: Look very closely at the seams and edges for any pilling or fading. Mention any visible scratches, marks, or flaws honestly.
+- Unknowns: If brand or size is not visible, use "Unknown" or an empty string.
+- Formatting: Return ONLY the JSON object. 
+- Constraint: STRICTLY do not include any text, markdown code blocks (like \` \` \`json), or explanations before or after the JSON.
+`;
+
+// 3. Combine them into the final prompt used by the API
+const ANALYSIS_PROMPT = `
+${PROMPT_PERSONA}
+${PROMPT_RULES}
+
+Return ONLY valid JSON. No markdown, no explanation, no backticks.
 {
-  "title": "concise listing title max 50 chars, include brand+item+colour",
-  "description": "2-3 sentences for a Vinted buyer. Mention fit, style, any visible scratches, marks or flaws honestly. English only.",
-  "category": "Vinted category e.g. Women's Clothing > Dresses",
-  "brand": "brand name or Unknown",
-  "size": "size from label if visible, else empty string",
+  "title": "listing title",
+  "description": "buyer description",
+  "category": "Vinted category path",
+  "brand": "brand name",
+  "size": "size label",
   "condition": "New with tags|Like new|Good|Fair|Poor",
-  "colours": ["primary colour", "secondary colour if present"],
-  "materials": ["primary material", "secondary material if identifiable"]
+  "colours": ["list", "of", "colours"],
+  "materials": ["list", "of", "materials"]
 }`;
 
 /* ==========================================================================
