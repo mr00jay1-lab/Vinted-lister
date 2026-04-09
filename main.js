@@ -17,3 +17,5 @@ Object.assign(window, exposed);
 ui.initApp().catch((error) => {
   console.error('Failed to initialize app:', error);
 });
+
+window.analyseItem = analyseItem;
