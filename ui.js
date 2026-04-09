@@ -229,24 +229,31 @@ export async function renderDetail() {
         .join('');
       hintEl.style.display = 'block';
     } else {
-      // 🚨 UPDATED: Changed span 2 to span 3 to match your 3-wide grid
       grid.innerHTML = '<p style="font-size:13px;color:var(--text3);grid-column:span 3;text-align:center;">Photos not found.</p>';
       hintEl.style.display = 'none';
     }
   } else {
-    // 🚨 UPDATED: Changed span 2 to span 3 to match your 3-wide grid
     grid.innerHTML = '<p style="font-size:13px;color:var(--text3);grid-column:span 3;text-align:center;">Photos removed to save space.</p>';
     hintEl.style.display = 'none';
   }
 
   // --- Analysis/Form Section ---
   const analysed = ['analysed', 'listed', 'sold', 'archived'].includes(item.status);
+  
+  // Update the initial state-photos area (pre-analysis)
   document.getElementById('state-photos').style.display = analysed ? 'none' : 'block';
-  document.getElementById('state-analysed').style.display = analysed ? 'block' : 'none';
+  document.getElementById('state-photos').innerHTML = `
+    <div class="copy-row">
+      <button class="btn btn-outline" onclick="window.openEditPhotos()">📷 Edit Photos</button>
+      <button class="btn btn-primary" onclick="window.analyseItem()">🔍 Analyse with AI</button>
+    </div>
+  `;
+
+  const stateAnalysed = document.getElementById('state-analysed');
+  stateAnalysed.style.display = analysed ? 'block' : 'none';
 
   if (analysed) {
-    // Rebuild UI structure with 2-column layout for small fields
-    document.getElementById('state-analysed').innerHTML = `
+    stateAnalysed.innerHTML = `
       <div class="section-title">Listing Details</div>
       <div class="field"><label>Title</label><input id="f-title" type="text" oninput="window.markDirty()" /></div>
       <div class="field"><label>Description</label><textarea id="f-description" oninput="window.markDirty()"></textarea></div>
@@ -270,11 +277,16 @@ export async function renderDetail() {
         <div class="field"><label>Material</label><input id="f-materials" type="text" oninput="window.markDirty()" /></div>
       </div>
 
-      <button class="btn btn-outline" id="save-edits-btn" onclick="window.saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
+      <button class="btn btn-outline" id="save-edits-btn" onclick="window.saveEdits()" style="display:none; width:100%; margin-bottom:10px;">💾 &nbsp;Save Changes</button>
       
       <div class="section-title">Actions</div>
-      <button class="btn btn-primary" onclick="window.openAddMorePhotos()">📷 &nbsp;Add / Replace Photos &amp; Re-analyse</button>
-      <button class="btn btn-blue" onclick="window.startCopyFlow()">🏷️ &nbsp;Start Listing</button>
+      
+      <div class="copy-row">
+        <button class="btn btn-outline" onclick="window.openEditPhotos()">📷 Edit Photos</button>
+        <button class="btn btn-primary" onclick="window.analyseItem()">🔍 Re-Analyse</button>
+      </div>
+
+      <button class="btn btn-blue" onclick="window.startCopyFlow()" style="width:100%; margin-top:10px;">🏷️ &nbsp;Start Listing</button>
     `;
 
     // Fill the inputs with current item data
@@ -286,7 +298,6 @@ export async function renderDetail() {
     document.getElementById('f-condition').value = item.condition || 'Good';
     document.getElementById('f-colours').value = item.colours || '';
     document.getElementById('f-materials').value = item.materials || '';
-    document.getElementById('save-edits-btn').style.display = 'none';
   }
 
   // Sync the status dropdown
@@ -295,4 +306,5 @@ export async function renderDetail() {
     statusSelect.value = item.status;
     statusSelect.className = 'status-select st-' + item.status;
   }
+}
 }
