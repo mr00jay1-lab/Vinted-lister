@@ -6,18 +6,30 @@ All notable changes to Vinted Lister are documented here.
 
 ## [Unreleased] — dev
 
-### Fixed
-- **Bug:** Add Photos back button now shows "save before leaving?" prompt when user has taken photos but not saved them — affected new item flow only
-
-### Architecture (Items)
 | # | Description | Status |
 |---|-------------|--------|
-| 15 | **Arch:** Delete dead `backFromAddPhotos` in `photos.js` — `actions.js` version silently overwrites it via `main.js` spread; `photos.js` version is unreachable dead code | In dev |
 | 16 | **Arch:** Replace 3 photo-mode flags (`replacingItem`, `addingMorePhotos`, `isEditing`) with a single `photoContext` enum (`'new'|'replace'|'addMore'|'edit'`) — currently set/cleared in 13 places across 2 files | Raised |
 | 17 | **Arch:** Move detail screen form fields from JS template strings (`ui.js:256`) to static HTML in `index.html` — currently impossible to find by searching HTML; changing fields requires editing JS | Raised |
-| 18 | **Arch:** Move `currentCopyPage` from module-level `let` in `actions.js` to `appState.copyPage` — currently invisible to any other module | In dev |
-| 19 | **Arch:** Extract photo-area HTML into named render functions (`renderPhotosActions()`, `renderAnalysisSpinner()`, `renderAnalysisError()`) — same UI region's innerHTML is set in 4 places across `ui.js` and `analysis.js` | In dev |
-| 20 | **Arch:** Add thin setter functions for key state mutations in `state.js` — currently any file mutates `appState` directly; setters give a single point to add logging or side-effects for phase 2 | In dev |
+
+---
+
+## v1.4 — 2026-04-10
+
+### Fixed
+- **Bug #21:** Add Photos back button now shows "save before leaving?" prompt when user has taken photos but not saved them — new item flow was going straight to home without warning
+- **Bug #22:** Unsaved photos prompt no longer appears when opening edit mode without making any changes — `photosDirty` flag now tracks actual user edits rather than DB loads
+- **Bug #23:** "Save Photos →" in the unsaved-photos prompt now returns to the correct screen — home for new-item flow, item detail for edit/replace flows (previously always went to item detail)
+
+### Changed
+- **Version display** — banner now shows `v1.4 · dev`; version read directly from `state.js` constants, parsing simplified
+- **Item cards** — meta line now shows `Brand · Size` when either is set
+
+### Architecture
+- **#15** Deleted dead `backFromAddPhotos` from `photos.js` — `actions.js` version wins via `main.js` spread
+- **#18** Moved `currentCopyPage` from module-level `let` in `actions.js` to `appState.copyPage` in `state.js`
+- **#19** Extracted `renderPhotosActions()`, `renderAnalysisSpinner()`, `renderAnalysisError()` into `ui.js`; replaced 4 inline `innerHTML` sites across `ui.js` and `analysis.js`
+- **#20** Added `setItems()` and `setCurrentItem()` setters in `state.js`; all direct mutation sites across `ui.js`, `photos.js`, `actions.js`, `analysis.js` updated to use them
+- Added `photosDirty` and `photosReturnScreen` to `appState` to make photo-screen navigation explicit and reliable
 
 ---
 

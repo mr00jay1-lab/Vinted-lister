@@ -3,7 +3,7 @@ export const DB_VER = 1;
 export const S_ITEMS = 'items';
 export const S_PHOTOS = 'photos';
 
-export const APP_VERSION = 'v1.3';
+export const APP_VERSION = 'v1.4';
 export const BRANCH_NAME = 'dev';
 
 export const MAX_PHOTOS = 10;
