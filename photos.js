@@ -267,8 +267,13 @@ export function handlePhoto(event, mode) {
 /* ==========================================================================
    SECTION 5: FINALIZING & DB STORAGE
    ========================================================================== */
-/** Saves pending photos to IndexedDB and navigates to Detail screen */
-export async function savePhotos(startNewAfter = false) {
+/**
+ * Saves pending photos to IndexedDB then navigates.
+ * startNewAfter — true when "+ New Item" button triggers save-then-new flow
+ * backToOrigin  — true when called from the "unsaved photos" modal; navigates
+ *                 to photosReturnScreen instead of always going to detail
+ */
+export async function savePhotos(startNewAfter = false, backToOrigin = false) {
   document.getElementById('modal-unsaved-photos').style.display = 'none';
   appState.photosDirty = false;
   const photos = appState.pendingPhotos.filter(Boolean);
@@ -280,42 +285,36 @@ export async function savePhotos(startNewAfter = false) {
   }
   const images = photos.map((photo) => photo.dataUrl);
 
-  // LOGIC A & B: Handling Existing Item (Adding, Replacing, or Editing)
+  // LOGIC A & B: Existing item (edit / replace / addMore)
   if ((appState.addingMorePhotos || appState.replacingItem || appState.isEditing) && appState.currentItem) {
     appState.currentItem.thumbnail = thumbnail;
     appState.currentItem.hasPhotos = true;
-    
-    // If it was just 'photos' status, keep it. If it was higher, keep it.
     if (!appState.currentItem.status) appState.currentItem.status = 'photos';
 
     await dbPut(S_PHOTOS, { id: appState.currentItem.id, images });
     await dbPut(S_ITEMS, appState.currentItem);
-
     setItems(await dbGetAll(S_ITEMS));
     setCurrentItem(appState.items.find((item) => item.id === appState.currentItem.id));
-    
-    // Reset our Edit flag and restore UI
+
+    const wasAddingMore = appState.addingMorePhotos;
     appState.isEditing = false;
+    appState.addingMorePhotos = false;
+    appState.replacingItem = false;
     const nextItemBtn = document.getElementById('next-item-btn');
     if (nextItemBtn) nextItemBtn.style.display = 'flex';
 
     await renderDetail();
-    
-    if (startNewAfter) { 
-      startNewItem(); 
-    } else { 
-      showScreen('screen-detail'); 
-      // If we were "Adding More", we usually want a re-analysis
-      if (appState.addingMorePhotos) analyseItem(); 
+
+    if (startNewAfter) {
+      startNewItem();
+    } else {
+      showScreen('screen-detail');
+      if (wasAddingMore) analyseItem();
     }
-    
-    // Reset mode flags
-    appState.addingMorePhotos = false;
-    appState.replacingItem = false;
     return;
   }
 
-  // LOGIC C: Creating a brand new item (unchanged)
+  // LOGIC C: Brand new item
   const id = `item_${Date.now()}`;
   const item = {
     id, status: 'photos', thumbnail, hasPhotos: true,
@@ -328,6 +327,10 @@ export async function savePhotos(startNewAfter = false) {
 
   if (startNewAfter) {
     startNewItem();
+  } else if (backToOrigin) {
+    // User was navigating away — save the item but return to where they came from
+    setCurrentItem(item);
+    goHome();
   } else {
     setCurrentItem(item);
     showScreen('screen-detail');
