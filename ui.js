@@ -1,4 +1,4 @@
-import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, getApiKey, saveApiKeyValue, APP_VERSION, BRANCH_NAME, S_ITEMS, S_PHOTOS } from './state.js';
+import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, getApiKey, saveApiKeyValue, APP_VERSION, BRANCH_NAME, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
 import { dbGet, dbGetAll, dbPut, dbDelete, openDB } from './db.js';
 import { renderSuggestions } from './suggestions.js';
 
@@ -43,7 +43,7 @@ export async function autoClean() {
       await dbPut(S_ITEMS, item);
     }
   }
-  appState.items = await dbGetAll(S_ITEMS);
+  setItems(await dbGetAll(S_ITEMS));
 }
 
 /* ==========================================================================
@@ -123,6 +123,52 @@ export async function updateStorageBar() {
 }
 
 /* ==========================================================================
+   SECTION 3b: PHOTO-AREA RENDER HELPERS
+   Single source of truth for the #state-photos region.
+   Call these instead of setting innerHTML directly elsewhere.
+   ========================================================================== */
+
+/** Renders the Edit Photos / Analyse action buttons */
+export function renderPhotosActions() {
+  const el = document.getElementById('state-photos');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="copy-row">
+      <button class="btn btn-outline" onclick="window.openEditPhotos()">📷 Edit Photos</button>
+      <button class="btn btn-primary" onclick="window.analyseItem()">🔍 Analyse with AI</button>
+    </div>
+  `;
+}
+
+/** Renders the spinner shown during AI analysis */
+export function renderAnalysisSpinner() {
+  const el = document.getElementById('state-photos');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="spinner-wrap" style="padding: 20px 0;">
+      <div class="spinner"></div>
+      <p style="font-size:16px;font-weight:600;color:var(--text);margin-top:12px;">Analysing photos…</p>
+      <p style="font-size:13px;color:var(--text3);margin-top:6px;">Usually takes 10–15 seconds</p>
+    </div>
+  `;
+}
+
+/** Renders the error state with a retry option */
+export function renderAnalysisError(message) {
+  const el = document.getElementById('state-photos');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="padding:20px;text-align:center;">
+      <p style="color:var(--red);margin-bottom:16px;font-size:15px;">Analysis failed: ${message}</p>
+      <div class="copy-row">
+        <button class="btn btn-primary" onclick="window.analyseItem()">Try Again</button>
+        <button class="btn btn-outline" onclick="window.renderPhotosActions()">Cancel</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ==========================================================================
    SECTION 4: HOME SCREEN RENDERING
    ========================================================================== */
 
@@ -181,26 +227,15 @@ export async function renderHome() {
 export function resetStatePhotos() {
   const statePhotos = document.getElementById('state-photos');
   const stateAnalysed = document.getElementById('state-analysed');
-  
   if (!statePhotos || !stateAnalysed) return;
 
-  // 1. If item is already analysed, show the AI fields
   if (appState.currentItem && appState.currentItem.status !== 'photos') {
     statePhotos.style.display = 'none';
     stateAnalysed.style.display = 'block';
-  } 
-  // 2. If it's a new item or we are re-analysing, show the split buttons
-  else {
+  } else {
     statePhotos.style.display = 'block';
     stateAnalysed.style.display = 'none';
-
-    // 🚨 The New Split Layout 🚨
-    statePhotos.innerHTML = `
-      <div class="copy-row">
-        <button class="btn btn-outline" onclick="window.openEditPhotos()">📷 Edit Photos</button>
-        <button class="btn btn-primary" onclick="window.analyseItem()">🔍 Re-Analyse</button>
-      </div>
-    `;
+    renderPhotosActions();
   }
 }
 
@@ -242,12 +277,7 @@ export async function renderDetail() {
   
   // Update the initial state-photos area (pre-analysis)
   document.getElementById('state-photos').style.display = analysed ? 'none' : 'block';
-  document.getElementById('state-photos').innerHTML = `
-    <div class="copy-row">
-      <button class="btn btn-outline" onclick="window.openEditPhotos()">📷 Edit Photos</button>
-      <button class="btn btn-primary" onclick="window.analyseItem()">🔍 Analyse with AI</button>
-    </div>
-  `;
+  if (!analysed) renderPhotosActions();
 
   const stateAnalysed = document.getElementById('state-analysed');
   stateAnalysed.style.display = analysed ? 'block' : 'none';

@@ -34,6 +34,7 @@ export const appState = {
   addingMorePhotos: false,
   copyFields: [],
   copyIdx: 0,
+  copyPage: 1,
   dirty: false,
   pendingStatus: null,
   aiSelectedIndices: [0, 1],
@@ -57,4 +58,16 @@ export function savePhotoMode(mode) {
 
 export function saveSuggestions() {
   localStorage.setItem('vinted_suggestions', JSON.stringify(appState.suggestions));
+}
+
+// ── State setters ──────────────────────────────────────────────
+// Use these instead of mutating appState directly — gives a single
+// hook to add logging, validation, or server-sync in phase 2.
+
+export function setItems(items) {
+  appState.items = items;
+}
+
+export function setCurrentItem(item) {
+  appState.currentItem = item;
 }

@@ -1,4 +1,4 @@
-import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS } from './state.js';
+import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
 import { dbPut, dbGet, dbGetAll } from './db.js';
 import { compressTo } from './utils.js';
 import { analyseItem } from './analysis.js';
@@ -89,19 +89,6 @@ export function initPhotoScreen() {
 /* ==========================================================================
    SECTION 2: NAVIGATION & EXIT GUARDS
    ========================================================================== */
-
-/** Handles the back button, checking for unsaved changes first */
-export function backFromAddPhotos() {
-  if (appState.pendingPhotos.filter(Boolean).length > 0) {
-    document.getElementById('modal-unsaved-photos').style.display = 'flex';
-  } else if (appState.replacingItem || appState.addingMorePhotos || appState.isEditing) {
-    // Return to detail screen if we were modifying an existing item
-    appState.isEditing = false;
-    showScreen('screen-detail');
-  } else {
-    goHome();
-  }
-}
 
 /** Discards the current session and returns to appropriate screen */
 export function discardAndGoHome() {
@@ -289,9 +276,9 @@ export async function savePhotos(startNewAfter = false) {
 
     await dbPut(S_PHOTOS, { id: appState.currentItem.id, images });
     await dbPut(S_ITEMS, appState.currentItem);
-    
-    appState.items = await dbGetAll(S_ITEMS);
-    appState.currentItem = appState.items.find((item) => item.id === appState.currentItem.id);
+
+    setItems(await dbGetAll(S_ITEMS));
+    setCurrentItem(appState.items.find((item) => item.id === appState.currentItem.id));
     
     // Reset our Edit flag and restore UI
     appState.isEditing = false;
@@ -323,12 +310,12 @@ export async function savePhotos(startNewAfter = false) {
   };
   await dbPut(S_ITEMS, item);
   await dbPut(S_PHOTOS, { id, images });
-  appState.items = await dbGetAll(S_ITEMS);
-  
+  setItems(await dbGetAll(S_ITEMS));
+
   if (startNewAfter) {
     startNewItem();
-  } else { 
-    appState.currentItem = item; 
+  } else {
+    setCurrentItem(item);
     showScreen('screen-detail');
     renderDetail();
   }

@@ -1,7 +1,7 @@
-import { appState, S_PHOTOS, S_ITEMS, getApiKey } from './state.js';
+import { appState, S_PHOTOS, S_ITEMS, getApiKey, setItems, setCurrentItem } from './state.js';
 import { dbGet, dbPut, dbGetAll } from './db.js';
 import { parseAnthropicJson } from './utils.js';
-import { renderDetail, renderHome, resetStatePhotos, closeModal, showScreen, updateStorageBar } from './ui.js';
+import { renderDetail, renderHome, resetStatePhotos, closeModal, showScreen, updateStorageBar, renderAnalysisSpinner, renderAnalysisError } from './ui.js';
 
 /* ==========================================================================
    SECTION 1: AI CONFIGURATION & PROMPTS
@@ -124,14 +124,7 @@ export async function analyseItem() {
   statePhotos.style.display = 'block';
   stateAnalysed.style.display = 'none';
 
-  // We replace the buttons with the spinner while working
-  statePhotos.innerHTML = `
-    <div class="spinner-wrap" style="padding: 20px 0;">
-      <div class="spinner"></div>
-      <p style="font-size:16px;font-weight:600;color:var(--text);margin-top:12px;">Analysing photos…</p>
-      <p style="font-size:13px;color:var(--text3);margin-top:6px;">Usually takes 10–15 seconds</p>
-    </div>
-  `;
+  renderAnalysisSpinner();
 
   const itemId = appState.currentItem?.id;
   const rec = appState.currentItem?.hasPhotos ? await dbGet(S_PHOTOS, itemId) : null;
@@ -153,11 +146,11 @@ export async function analyseItem() {
     // Guard against user navigating away during the 10s wait
     if (!appState.currentItem || appState.currentItem.id !== itemId) return;
 
-    appState.currentItem = formatAnalysisResult(appState.currentItem, json);
+    setCurrentItem(formatAnalysisResult(appState.currentItem, json));
     await dbPut(S_ITEMS, appState.currentItem);
-    
-    appState.items = await dbGetAll(S_ITEMS);
-    appState.currentItem = appState.items.find((item) => item.id === itemId);
+
+    setItems(await dbGetAll(S_ITEMS));
+    setCurrentItem(appState.items.find((item) => item.id === itemId));
     
     // This will draw the AI fields AND restore the buttons via renderDetail
     await renderDetail();
@@ -165,15 +158,7 @@ export async function analyseItem() {
   } catch (error) {
     if (!appState.currentItem || appState.currentItem.id !== itemId) return;
     
-    statePhotos.innerHTML = `
-      <div style="padding:20px;text-align:center;">
-        <p style="color:var(--red);margin-bottom:16px;font-size:15px;">Analysis failed: ${error.message}</p>
-        <div class="copy-row">
-           <button class="btn btn-primary" onclick="window.analyseItem()">Try Again</button>
-           <button class="btn btn-outline" onclick="window.resetStatePhotos()">Cancel</button>
-        </div>
-      </div>
-    `;
+    renderAnalysisError(error.message);
   }
 }
 
@@ -221,7 +206,7 @@ export async function runBatchAnalyse() {
     done++;
   }
 
-  appState.items = await dbGetAll(S_ITEMS);
+  setItems(await dbGetAll(S_ITEMS));
   closeModal('modal-batch-analyse');
   renderHome();
   updateStorageBar();

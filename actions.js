@@ -1,4 +1,4 @@
-import { appState, S_ITEMS, S_PHOTOS } from './state.js';
+import { appState, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
 import { dbDelete, dbGet, dbGetAll, dbPut } from './db.js';
 import { goHome, renderDetail, updateStorageBar, showScreen, closeModal, resetStatePhotos } from './ui.js';
 import { initPhotoScreen } from './photos.js';
@@ -23,7 +23,7 @@ export async function deleteItem() {
   if (!confirm('Delete this item? This cannot be undone.')) return;
   await dbDelete(S_ITEMS, appState.currentItem.id);
   await dbDelete(S_PHOTOS, appState.currentItem.id);
-  appState.items = await dbGetAll(S_ITEMS);
+  setItems(await dbGetAll(S_ITEMS));
   goHome();
 }
 
@@ -49,7 +49,7 @@ export async function saveEdits() {
   });
 
   await dbPut(S_ITEMS, appState.currentItem);
-  appState.items = await dbGetAll(S_ITEMS);
+  setItems(await dbGetAll(S_ITEMS));
   appState.dirty = false;
   
   if (document.getElementById('save-edits-btn')) {
@@ -88,8 +88,8 @@ export async function setStatus(status) {
   appState.currentItem.status = status;
   appState.currentItem.statusChangedAt = Date.now();
   await dbPut(S_ITEMS, appState.currentItem);
-  appState.items = await dbGetAll(S_ITEMS);
-  appState.currentItem = appState.items.find((item) => item.id === appState.currentItem.id);
+  setItems(await dbGetAll(S_ITEMS));
+  setCurrentItem(appState.items.find((item) => item.id === appState.currentItem.id));
   await renderDetail();
   updateStorageBar();
 }
@@ -163,14 +163,12 @@ export function backFromAddPhotos() {
    SECTION 4: LISTING FLOW (THE 3-PAGE COPY SYSTEM)
    ========================================================================== */
 
-let currentCopyPage = 1;
-
 /** Entry point for the listing process (Page 1) */
 export async function startCopyFlow() {
   const item = appState.currentItem;
   if (!item) return;
 
-  currentCopyPage = 1; 
+  appState.copyPage = 1;
 
   // 1. Populate Photos (Page 1) 
   const rec = await dbGet(S_PHOTOS, item.id);
@@ -211,16 +209,16 @@ export async function startCopyFlow() {
 
 /** Navigation: Move forward in the copy flow */
 export function nextCopyPage() {
-  if (currentCopyPage < 3) {
-    currentCopyPage++;
+  if (appState.copyPage < 3) {
+    appState.copyPage++;
     updateCopyUI();
   }
 }
 
 /** Navigation: Move backward in the copy flow */
 export function prevCopyPage() {
-  if (currentCopyPage > 1) {
-    currentCopyPage--;
+  if (appState.copyPage > 1) {
+    appState.copyPage--;
     updateCopyUI();
   }
 }
@@ -228,22 +226,22 @@ export function prevCopyPage() {
 /** UI Sync: Shows/Hides pages and buttons based on current step */
 function updateCopyUI() {
   document.querySelectorAll('.copy-fields-page').forEach(p => p.style.display = 'none');
-  
-  const activeStep = document.getElementById(`copy-step-${currentCopyPage}`);
+
+  const activeStep = document.getElementById(`copy-step-${appState.copyPage}`);
   if (activeStep) activeStep.style.display = 'block';
-  
+
   const pageNumEl = document.getElementById('copy-page-num');
-  if (pageNumEl) pageNumEl.textContent = currentCopyPage;
+  if (pageNumEl) pageNumEl.textContent = appState.copyPage;
 
   const btnPrev = document.getElementById('btn-prev-page');
   const btnNext = document.getElementById('btn-next-page');
   const btnDone = document.getElementById('btn-done');
   const btnFinish = document.getElementById('btn-finish-no-save');
 
-  if (btnPrev) btnPrev.style.visibility = currentCopyPage === 1 ? 'hidden' : 'visible';
-  if (btnNext) btnNext.style.display = currentCopyPage === 3 ? 'none' : 'block';
-  if (btnDone) btnDone.style.display = currentCopyPage === 3 ? 'block' : 'none';
-  if (btnFinish) btnFinish.style.display = currentCopyPage === 3 ? 'none' : 'block';
+  if (btnPrev) btnPrev.style.visibility = appState.copyPage === 1 ? 'hidden' : 'visible';
+  if (btnNext) btnNext.style.display = appState.copyPage === 3 ? 'none' : 'block';
+  if (btnDone) btnDone.style.display = appState.copyPage === 3 ? 'block' : 'none';
+  if (btnFinish) btnFinish.style.display = appState.copyPage === 3 ? 'none' : 'block';
 }
 
 /** Handles actual clipboard copying */
