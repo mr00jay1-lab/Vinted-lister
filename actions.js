@@ -115,8 +115,10 @@ export async function openEditPhotos() {
   const item = appState.currentItem;
   if (!item) return;
 
-  // 1. Set the flag so savePhotos knows to return here
-  appState.isEditing = true; 
+  // 1. Set flags so savePhotos/back knows we came from detail
+  appState.isEditing = true;
+  appState.photosDirty = false;
+  appState.photosReturnScreen = 'screen-detail';
   
   // 2. LOAD THE PHOTOS: Fetch from DB and put into the pending area
   appState.pendingPhotos = [];
@@ -148,25 +150,21 @@ export async function openEditPhotos() {
 
 /** Handles the back button on Add Photos screen */
 export function backFromAddPhotos() {
-  const hasPhotos = appState.pendingPhotos.filter(Boolean).length > 0;
-
-  if (appState.isEditing) {
-    // Editing mode: ask before leaving if photos changed
-    if (hasPhotos) {
-      document.getElementById('modal-unsaved-photos').style.display = 'flex';
-    } else {
+  if (appState.photosDirty) {
+    // User has added or removed a photo — ask before leaving
+    document.getElementById('modal-unsaved-photos').style.display = 'flex';
+  } else {
+    // Nothing changed — clean up and navigate straight back
+    if (appState.isEditing) {
       appState.isEditing = false;
       const nextItemBtn = document.getElementById('next-item-btn');
       if (nextItemBtn) nextItemBtn.style.display = 'flex';
-      renderDetail();
       showScreen('screen-detail');
+    } else if (appState.photosReturnScreen === 'screen-home') {
+      goHome();
+    } else {
+      showScreen(appState.photosReturnScreen);
     }
-  } else if (hasPhotos) {
-    // New item mode with pending photos: ask before discarding
-    document.getElementById('modal-unsaved-photos').style.display = 'flex';
-  } else {
-    // New item mode with no photos: just go home
-    goHome();
   }
 }
 

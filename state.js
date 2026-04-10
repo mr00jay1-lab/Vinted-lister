@@ -30,6 +30,8 @@ export const appState = {
   currentItem: null,
   filter: 'all',
   pendingPhotos: [],
+  photosDirty: false,        // true only when user adds/removes a photo (not on DB load)
+  photosReturnScreen: 'screen-home', // where back/discard should navigate to
   replacingItem: false,
   addingMorePhotos: false,
   copyFields: [],

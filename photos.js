@@ -27,7 +27,9 @@ function hideBanner() {
 export function startNewItem() {
   appState.replacingItem = false;
   appState.addingMorePhotos = false;
-  appState.isEditing = false; // 👈 Add this to clear the edit state
+  appState.isEditing = false;
+  appState.photosDirty = false;
+  appState.photosReturnScreen = 'screen-home';
   appState.currentItem = null;
   appState.pendingPhotos = [];
   appState.pendingSlot = null;
@@ -48,6 +50,8 @@ export function startNewItem() {
 export async function openReplacePhotos() {
   appState.replacingItem = true;
   appState.addingMorePhotos = false;
+  appState.photosDirty = false;
+  appState.photosReturnScreen = 'screen-detail';
   appState.pendingPhotos = [];
   if (appState.currentItem && appState.currentItem.hasPhotos) {
     const rec = await dbGet(S_PHOTOS, appState.currentItem.id);
@@ -65,6 +69,8 @@ export async function openReplacePhotos() {
 export async function openAddMorePhotos() {
   appState.addingMorePhotos = true;
   appState.replacingItem = false;
+  appState.photosDirty = false;
+  appState.photosReturnScreen = 'screen-detail';
   appState.pendingPhotos = [];
   if (appState.currentItem && appState.currentItem.hasPhotos) {
     const rec = await dbGet(S_PHOTOS, appState.currentItem.id);
@@ -90,21 +96,25 @@ export function initPhotoScreen() {
    SECTION 2: NAVIGATION & EXIT GUARDS
    ========================================================================== */
 
-/** Discards the current session and returns to appropriate screen */
+/** Discards the current session and returns to the screen that launched photos */
 export function discardAndGoHome() {
   closeModal('modal-unsaved-photos');
   appState.pendingPhotos = [];
-  
-  // Reset UI and flags if we were in Edit mode
+  appState.photosDirty = false;
+
+  // Clean up mode flags
   if (appState.isEditing) {
     appState.isEditing = false;
     const nextItemBtn = document.getElementById('next-item-btn');
     if (nextItemBtn) nextItemBtn.style.display = 'flex';
-    showScreen('screen-detail');
-  } else if (appState.replacingItem || appState.addingMorePhotos) {
-    showScreen('screen-detail');
-  } else {
+  }
+  appState.replacingItem = false;
+  appState.addingMorePhotos = false;
+
+  if (appState.photosReturnScreen === 'screen-home') {
     goHome();
+  } else {
+    showScreen(appState.photosReturnScreen);
   }
 }
 
@@ -152,6 +162,7 @@ export function renderSlots() {
 /** Removes a specific photo and re-compacts the list */
 export function removeSlot(index) {
   appState.pendingPhotos[index] = null;
+  appState.photosDirty = true;
   while (appState.pendingPhotos.length && !appState.pendingPhotos[appState.pendingPhotos.length - 1]) {
     appState.pendingPhotos.pop();
   }
@@ -215,6 +226,7 @@ export function handlePhoto(event, mode) {
         const thumbnail = await compressTo(dataUrl, 100, 0.7);
         const medium = await compressTo(dataUrl, 1200, 0.85);
         appState.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
+        appState.photosDirty = true;
         processed += 1;
         if (processed === maxFiles) {
           hideBanner();
@@ -234,6 +246,7 @@ export function handlePhoto(event, mode) {
       const medium = await compressTo(dataUrl, 1200, 0.85);
       appState.pendingPhotos[slot] = { dataUrl: medium, thumbnail };
       appState.pendingSlot = null;
+      appState.photosDirty = true;
       renderSlots();
 
       const filled = appState.pendingPhotos.filter(Boolean).length;
@@ -257,6 +270,7 @@ export function handlePhoto(event, mode) {
 /** Saves pending photos to IndexedDB and navigates to Detail screen */
 export async function savePhotos(startNewAfter = false) {
   document.getElementById('modal-unsaved-photos').style.display = 'none';
+  appState.photosDirty = false;
   const photos = appState.pendingPhotos.filter(Boolean);
   if (!photos.length) return;
 
