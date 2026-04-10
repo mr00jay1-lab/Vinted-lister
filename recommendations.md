@@ -59,3 +59,23 @@ Variables like `currentCopyPage` live inside `actions.js`.
 `thumbnail` is `null` when loading from the DB, forcing `savePhotos()` to manually fall back to `currentItem.thumbnail`.
 * **The Problem:** Leaking data structural quirks into action/UI logic creates messy conditional statements throughout the app.
 * **The Fix:** Handle data normalization at the boundary. When `dbGet()` fetches an item, a utility function should format the data structure properly *before* it enters `appState`. The UI and action logic shouldn't have to guess if a thumbnail exists or needs re-compressing.
+
+💡 Potential Optimization: Batch Analysis Logic
+In your current runBatchAnalyse() function, the code is hard-coded to pull only the first two images:
+
+JavaScript
+const images = rec?.images?.slice(0, 2) || [];
+The Suggestion
+Since you have already implemented appState.aiSelectedIndices to allow users to pick the "best" photos for the AI, you should update the batch logic to respect those choices. This ensures Claude analyzes the specific angles (like labels or close-ups) that the user intentionally selected.
+
+Updated Logic Idea:
+
+JavaScript
+// Map the user's specific selections instead of a generic slice
+const images = (item.aiSelectedIndices || [0, 1]) // Fallback to first two if none selected
+  .filter(index => index < (rec?.images?.length || 0))
+  .map(index => rec.images[index]);
+Why do this?
+Better Accuracy: Users often take a "label" photo at position 3 or 4. Slicing (0, 2) might miss the brand/size info.
+
+Consistency: The Batch Analysis will now produce the same high-quality results as the Single Item Analysis.
