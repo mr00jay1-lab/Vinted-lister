@@ -1,1286 +1,360 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Vinted Lister">
-<title>Vinted Lister</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-:root {
-  --bg: #f5f5f7; --surface: #ffffff; --surface2: #f0f0f0;
-  --text: #111111; --text2: #666666; --text3: #999999;
-  --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.2);
-  --navy: #1a1a2e; --teal: #0F6E56; --blue: #185FA5;
-  --amber: #854F0B; --red: #A32D2D; --gray: #5F5E5A;
-  --radius: 16px; --radius-sm: 12px;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1c1c1e; --surface: #2c2c2e; --surface2: #3a3a3c;
-    --text: #ffffff; --text2: #ababab; --text3: #6e6e73;
-    --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
-  }
-}
-body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; min-height: -webkit-fill-available; }
-.app { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--bg); position: relative; overflow-x: hidden; }
-.screen { display: none; flex-direction: column; min-height: 100vh; }
-.screen.active { display: flex; }
-.header { background: var(--surface); padding: max(44px, env(safe-area-inset-top, 44px)) 20px 12px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
-.header-back { width: 44px; height: 44px; border-radius: 50%; background: var(--surface2); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; color: var(--text); }
-.header h1 { font-size: 20px; font-weight: 700; color: var(--text); }
-.header-sub { font-size: 13px; color: var(--text2); margin-top: 1px; }
-.content { flex: 1; padding: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.btn { width: 100%; padding: 16px; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; transition: opacity 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
-.btn:active { opacity: 0.8; transform: scale(0.98); }
-.btn-primary { background: var(--navy); color: #fff; }
-.btn-teal    { background: var(--teal); color: #fff; }
-.btn-blue    { background: var(--blue); color: #fff; }
-.btn-outline { background: var(--surface); color: var(--text); border: 1.5px solid var(--border2); }
-.btn-danger  { background: var(--surface); color: var(--red); border: 1.5px solid var(--red); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-.btn-small { padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border2); background: var(--surface2); font-size: 13px; cursor: pointer; color: var(--text2); font-family: inherit; }
-.fab { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; padding: 12px 16px 32px; background: linear-gradient(to top, var(--bg) 80%, transparent); z-index: 20; }
-.badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-.badge-photos   { background: #dbeafe; color: #1e40af; }
-.badge-analysed { background: #dcfce7; color: #166534; }
-.badge-listed   { background: #d1fae5; color: #065f46; }
-.badge-sold     { background: #fef3c7; color: #92400e; }
-.badge-archived { background: #f3f4f6; color: #374151; }
-.filter-scroll { overflow-x: auto; display: flex; gap: 8px; padding: 10px 16px 2px; scrollbar-width: none; }
-.filter-scroll::-webkit-scrollbar { display: none; }
-.tab { padding: 8px 16px; border-radius: 20px; border: 1.5px solid var(--border2); background: var(--surface); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; color: var(--text2); flex-shrink: 0; font-family: inherit; }
-.tab.active { background: var(--navy); color: #fff; border-color: var(--navy); }
-.storage-bar-wrap { margin: 6px 16px 0; background: var(--surface); border-radius: 10px; padding: 8px 14px; border: 0.5px solid var(--border); }
-.storage-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text3); margin-bottom: 6px; font-weight: 600; }
-.storage-bar-track { height: 5px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
-.storage-bar-fill { height: 100%; border-radius: 4px; background: var(--teal); transition: width 0.4s; }
-.storage-bar-fill.warn   { background: var(--amber); }
-.storage-bar-fill.danger { background: var(--red); }
-.item-card { background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 14px; margin-bottom: 10px; cursor: pointer; display: flex; gap: 14px; align-items: center; -webkit-user-select: none; }
-.item-card:active { background: var(--surface2); }
-.item-thumb { width: 68px; height: 68px; border-radius: 10px; background: var(--surface2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; }
-.item-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.item-info { flex: 1; min-width: 0; }
-.item-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-meta  { font-size: 13px; color: var(--text2); margin-bottom: 7px; }
-.chevron { color: var(--text3); font-size: 20px; }
-
-/* Photo mode selector */
-.mode-selector { display: flex; gap: 8px; margin-bottom: 16px; background: var(--surface2); border-radius: var(--radius-sm); padding: 4px; }
-.mode-btn { flex: 1; padding: 12px 8px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; background: transparent; color: var(--text2); transition: all 0.2s; }
-.mode-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
-
-/* Photo grid — dynamic columns */
-.photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-#photo-grid { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-.photo-slot { aspect-ratio: 1; border-radius: var(--radius-sm); border: 2px dashed var(--border2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; background: var(--surface2); }
-.photo-slot img { width: 100%; height: 100%; object-fit: cover; }
-.photo-slot .slot-icon  { font-size: 30px; }
-.photo-slot .slot-label { font-size: 12px; color: var(--text3); margin-top: 4px; font-weight: 500; }
-.photo-slot .remove-btn { position: absolute; top: 7px; right: 7px; width: 28px; height: 28px; background: rgba(0,0,0,0.65); border-radius: 50%; border: none; color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2; }
-.add-more-slot { grid-column: span 2; border-radius: var(--radius-sm); border: 2px dashed var(--border2); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; cursor: pointer; background: var(--surface2); font-size: 15px; font-weight: 600; color: var(--text2); }
-
-/* Next photo prompt banner */
-.next-photo-banner { background: var(--navy); color: #fff; border-radius: var(--radius-sm); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.next-photo-banner span { font-size: 15px; font-weight: 600; }
-.next-photo-banner button { padding: 10px 18px; border: none; border-radius: 10px; background: #fff; color: var(--navy); font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
-
-.section-title { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin: 14px 0 8px; }
-.field { background: var(--surface); border-radius: var(--radius-sm); border: 0.5px solid var(--border); padding: 10px 14px; margin-bottom: 7px; }
-.field label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
-.field input, .field textarea, .field select { width: 100%; border: none; background: transparent; font-size: 16px; color: var(--text); outline: none; font-family: inherit; resize: none; -webkit-appearance: none; }
-.field textarea { min-height: 90px; line-height: 1.5; }
-.detail-photo-slot { aspect-ratio:1; border-radius:var(--radius-sm); overflow:hidden; background:var(--surface2); position:relative; cursor:pointer; border:3px solid transparent; transition:border-color 0.15s; }
-.detail-photo-slot img { width:100%; height:100%; object-fit:cover; }
-.detail-photo-slot.ai-selected { border-color:var(--teal); }
-.ai-badge { position:absolute; bottom:6px; left:6px; background:var(--teal); color:#fff; font-size:11px; font-weight:700; padding:3px 7px; border-radius:8px; pointer-events:none; }
-.photo-hint { font-size:13px; color:var(--text3); text-align:center; margin:-6px 0 14px; font-weight:500; }
-.copy-row { display:flex; gap:10px; margin-bottom:10px; }
-.copy-row .btn { margin-bottom:0; flex:1; }
-.status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-.status-btn { padding: 15px 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border2); background: var(--surface); font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; color: var(--text2); font-family: inherit; }
-.status-btn.current { border-width: 2.5px; }
-.sb-listed   { border-color: var(--teal);  color: var(--teal); }
-.sb-sold     { border-color: var(--amber); color: var(--amber); }
-.sb-archived { border-color: var(--gray);  color: var(--gray); }
-.sb-photos   { border-color: var(--blue);  color: var(--blue); }
-.sb-analysed { border-color: #166634;      color: #166634; }
-.status-select-wrap { margin-bottom: 8px; }
-.status-select { width: 100%; padding: 18px 16px; border-radius: var(--radius-sm); border: 2px solid var(--border2); background: var(--surface); font-size: 16px; font-weight: 700; color: var(--text); font-family: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
-.status-select.st-photos   { border-color: var(--blue);  color: var(--blue); }
-.status-select.st-analysed { border-color: #166634;      color: #166634; }
-.status-select.st-listed   { border-color: var(--teal);  color: var(--teal); }
-.status-select.st-sold     { border-color: var(--amber); color: var(--amber); }
-.status-select.st-archived { border-color: var(--gray);  color: var(--gray); }
-.copy-card { background: var(--surface); border-radius: 20px; padding: 28px 22px; margin-bottom: 18px; border: 0.5px solid var(--border); }
-.copy-label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
-.copy-value { font-size: 22px; font-weight: 600; color: var(--text); line-height: 1.35; }
-.copy-value.long { font-size: 16px; line-height: 1.6; }
-.dots { display: flex; gap: 7px; justify-content: center; margin-bottom: 22px; }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); transition: background 0.2s; }
-.dot.active { background: var(--navy); }
-.copied-msg { text-align: center; font-size: 14px; color: var(--teal); font-weight: 700; margin-bottom: 10px; opacity: 0; transition: opacity 0.25s; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 100; padding: 20px; }
-.modal { background: var(--surface); border-radius: 20px; padding: 28px 20px 20px; width: 100%; max-width: 430px; }
-.modal h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-.modal p  { font-size: 15px; color: var(--text2); margin-bottom: 22px; line-height: 1.5; }
-.spinner-wrap { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; text-align: center; }
-.spinner { width: 44px; height: 44px; border: 4px solid var(--border); border-top-color: var(--navy); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 18px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.empty { text-align: center; padding: 70px 20px; }
-.empty .icon { font-size: 56px; margin-bottom: 14px; }
-.empty h2 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
-.empty p  { font-size: 15px; color: var(--text2); line-height: 1.5; }
-.api-wrap  { padding: 40px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.api-icon  { font-size: 72px; margin-bottom: 22px; }
-.api-title { font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 12px; }
-.api-desc  { font-size: 15px; color: var(--text2); line-height: 1.65; margin-bottom: 30px; }
-.api-input { width: 100%; padding: 17px 15px; border-radius: var(--radius-sm); border: 1.5px solid var(--border2); font-size: 14px; font-family: monospace; outline: none; background: var(--surface); color: var(--text); margin-bottom: 12px; }
-.api-input:focus { border-color: var(--navy); }
-.api-note  { font-size: 12px; color: var(--text3); margin-top: 10px; line-height: 1.5; }
-input[type="file"] { display: none; }
-
-/* Bottom back button */
-.bottom-nav { padding: 12px 16px 36px; background: var(--bg); border-top: 0.5px solid var(--border); display: flex; gap: 10px; }
-.btn-back-bottom { flex: 1; padding: 16px; border: 1.5px solid var(--border2); border-radius: var(--radius); background: var(--surface); font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text2); display: flex; align-items: center; justify-content: center; gap: 6px; }
-
-/* Photos save modal with hold-to-save */
-.photo-save-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.photo-save-item { border-radius: var(--radius-sm); overflow: hidden; position: relative; aspect-ratio: 1; }
-.photo-save-item img { width: 100%; height: 100%; object-fit: cover; }
-.photo-save-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 11px; font-weight: 600; text-align: center; padding: 5px; }
-.photo-save-tip { background: var(--surface2); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px; font-size: 14px; color: var(--text2); line-height: 1.5; text-align: center; }
-
-/* Floating suggestions button */
-.float-suggest { position: fixed; bottom: 90px; right: calc(50% - 215px + 12px); width: 42px; height: 42px; border-radius: 50%; background: var(--surface); border: 1.5px solid var(--border2); box-shadow: 0 2px 10px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; z-index: 30; transition: transform 0.15s; }
-.float-suggest:active { transform: scale(0.9); }
-@media (max-width: 430px) { .float-suggest { right: 12px; } }
-
-/* Suggestions panel */
-.suggest-panel { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; padding: 20px; }
-.suggest-inner { background: var(--surface); border-radius: 20px; padding: 24px 20px 20px; width: 100%; max-width: 430px; max-height: 75vh; display: flex; flex-direction: column; }
-.suggest-inner h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-.suggest-inner p { font-size: 13px; color: var(--text3); margin-bottom: 14px; }
-.suggest-input-row { display: flex; gap: 8px; margin-bottom: 14px; }
-.suggest-input-row textarea { flex: 1; padding: 12px; border-radius: 10px; border: 1.5px solid var(--border2); font-size: 15px; font-family: inherit; outline: none; background: var(--surface2); color: var(--text); resize: none; height: 60px; }
-.suggest-input-row textarea:focus { border-color: var(--navy); }
-.suggest-add-btn { padding: 0 16px; border: none; border-radius: 10px; background: var(--navy); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; align-self: flex-end; height: 44px; }
-.suggest-list { flex: 1; overflow-y: auto; margin-bottom: 14px; }
-.suggest-item { background: var(--surface2); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; }
-.suggest-item-text { flex: 1; font-size: 14px; color: var(--text); line-height: 1.4; }
-.suggest-item-del { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; }
-.suggest-empty { text-align: center; color: var(--text3); font-size: 14px; padding: 20px; }
-.suggest-actions { display: flex; gap: 8px; }
-.suggest-actions button { flex: 1; padding: 14px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; border: none; }
-.suggest-copy-btn { background: var(--teal); color: #fff; }
-.suggest-close-btn { background: var(--surface2); color: var(--text2); }
-</style>
+  <!--
+    HEAD — Page setup (not visible to the user)
+    - styles.css    → all colours, layout, and spacing
+    - viewport meta → prevents iOS pinch-to-zoom
+    - The 🏷️ icon is built from text — no separate image file needed
+  -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Vinted Lister">
+  <title>Vinted Lister</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%9B%8D%EF%B8%8F%3C/text%3E%3C/svg%3E">
+  <link rel='stylesheet' href='styles.css'>
 </head>
 <body>
 <div class="app">
 
-<!-- API KEY -->
-<div class="screen active" id="screen-apikey">
-  <div class="content">
-    <div class="api-wrap">
-      <div class="api-icon">🏷️</div>
-      <div class="api-title">Vinted Lister</div>
-      <div class="api-desc">Enter your Anthropic API key to power AI photo analysis.<br><br>Get yours free at <strong>console.anthropic.com</strong> — create an account, generate a key, and add £10 credit to start.</div>
-      <input class="api-input" id="api-key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="off" />
-      <button class="btn btn-primary" onclick="saveApiKey()">Get Started →</button>
-      <div class="api-note">Stored only on this device. Never shared.</div>
+  <!-- ============================================================
+    SCREEN: API KEY  (id="screen-apikey")
+    First screen shown if no Anthropic API key has been saved yet.
+    Once the user enters a valid key (starts with "sk-") it is saved
+    to localStorage on this device only and never sent anywhere.
+    After saving, the app goes straight to the Home screen.
+    JS: handleApiFormSubmit() → saveApiKey() in ui.js
+    ============================================================ -->
+  <div class="screen active" id="screen-apikey">
+    <div class="header" style="justify-content:center;">
+      <div style="text-align:center;">
+        <h1>Vinted Lister</h1>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">v<span id="version-display-apikey"></span> · <span id="branch-display-apikey"></span></div>
+      </div>
+    </div>
+    <div class="content">
+      <form class="api-wrap" id="api-key-form" onsubmit="window.handleApiFormSubmit(event)">
+        <div class="api-icon">🏷️</div>
+        <div class="api-title">Vinted Lister</div>
+        <div class="api-desc">Enter your Anthropic API key to power AI photo analysis.<br><br>Get yours free at <strong>console.anthropic.com</strong>.</div>
+        <input class="api-input" id="api-key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="current-password" required />
+        <button class="btn btn-primary" id="api-key-btn" type="submit" style="margin-bottom:10px;z-index:50;position:relative;">Get Started →</button>
+        <div class="api-note">Stored only on this device. Never shared.</div>
+      </form>
     </div>
   </div>
-</div>
 
-<!-- HOME -->
-<div class="screen" id="screen-home">
-  <div class="header">
-    <div style="flex:1"><h1>Vinted Lister</h1></div>
-    <button class="btn-small" onclick="showScreen('screen-apikey')">⚙️ API Key</button>
-  </div>
-  <div class="filter-scroll">
-    <button class="tab active" onclick="setFilter('all',this)">All</button>
-    <button class="tab" onclick="setFilter('photos',this)">📷 Photos</button>
-    <button class="tab" onclick="setFilter('analysed',this)">🔍 Analysed</button>
-    <button class="tab" onclick="setFilter('listed',this)">📋 Listed</button>
-    <button class="tab" onclick="setFilter('sold',this)">✅ Sold</button>
-    <button class="tab" onclick="setFilter('archived',this)">🗄️ Archived</button>
-  </div>
-  <div class="storage-bar-wrap">
-    <div class="storage-bar-label"><span>Storage used</span><span id="storage-label">Calculating…</span></div>
-    <div class="storage-bar-track"><div class="storage-bar-fill" id="storage-fill" style="width:0%"></div></div>
-  </div>
-  <div class="content" style="padding-bottom:100px;"><div id="item-list"></div></div>
-  <button id="btn-batch-analyse" onclick="openBatchAnalyse()" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);width:auto;padding:10px 20px;border:1.5px solid var(--border2);border-radius:20px;background:var(--surface);font-size:14px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,0.12);z-index:21;">🔍 Analyse All</button>
-  <div class="fab">
-    <button class="btn btn-primary" onclick="startNewItem()" style="font-size:18px;font-weight:700;">＋ &nbsp;New Item</button>
-  </div>
-</div>
+  <!-- ============================================================
+    SCREEN: HOME  (id="screen-home")
+    The main list of all items. Always shown after login.
 
-<!-- ADD PHOTOS -->
-<div class="screen" id="screen-addphotos">
-  <div class="header">
-    <button class="header-back" onclick="backFromAddPhotos()">←</button>
-    <div><h1 id="addphotos-title">Add Photos</h1><div class="header-sub" id="addphotos-sub">Choose your capture method</div></div>
-  </div>
-  <div class="content" style="padding-bottom: 100px;">
-    <!-- Mode selector -->
-    <div class="mode-selector">
-      <button class="mode-btn" id="mode-btn-camera" onclick="setPhotoMode('camera')">📷 Camera</button>
-      <button class="mode-btn" id="mode-btn-library" onclick="setPhotoMode('library')">🖼️ Library</button>
+    - filter-scroll      → tab buttons (All / Photos / Analysed etc.)
+                           setFilter() in ui.js controls which tab is active
+    - storage-bar-wrap   → shows how much browser storage is used
+    - #item-list         → EMPTY HERE — renderHome() in ui.js builds the
+                           item cards and injects them at runtime
+    - #btn-batch-analyse → hidden by default; only appears when items
+                           exist with "Photos taken" status
+    - .fab               → the big "+ New Item" button, fixed to screen bottom
+    ============================================================ -->
+  <div class="screen" id="screen-home">
+    <div class="header">
+      <div style="flex:1"><h1>Vinted Lister</h1><div style="font-size:11px;color:var(--text3);margin-top:2px;">v<span id="version-display"></span> · <span id="branch-display"></span></div></div>
+      <button class="btn-small" onclick="window.showScreen('screen-apikey')">⚙️ API Key</button>
+    </div>
+    
+    <div class="filter-scroll">
+      <button class="tab active" onclick="window.setFilter('all',this)">All</button>
+      <button class="tab" onclick="window.setFilter('photos',this)">📷 Photos</button>
+      <button class="tab" onclick="window.setFilter('analysed',this)">🔍 Analysed</button>
+      <button class="tab" onclick="window.setFilter('listed',this)">📋 Listed</button>
+      <button class="tab" onclick="window.setFilter('sold',this)">✅ Sold</button>
+      <button class="tab" onclick="window.setFilter('archived',this)">🗄️ Archived</button>
     </div>
 
-    <!-- Next photo banner (camera mode) -->
-    <div id="next-photo-banner" class="next-photo-banner" style="display:none;">
-      <span id="next-photo-text">📷 Ready for next photo</span>
-      <button onclick="triggerNextCamera()">Take Photo</button>
+    <div class="storage-bar-wrap">
+      <div class="storage-bar-label"><span>Storage used</span><span id="storage-label">Calculating…</span></div>
+      <div class="storage-bar-track"><div class="storage-bar-fill" id="storage-fill" style="width:0%"></div></div>
     </div>
 
-    <div class="photo-grid" id="photo-grid"></div>
-    <div id="photo-msg" style="text-align:center;color:var(--text3);font-size:14px;margin-bottom:20px;font-weight:500;">Add at least 1 photo to continue</div>
-
-    <input type="file" id="photo-input-camera"  accept="image/*" capture="environment" onchange="handlePhoto(event,'camera')" />
-    <input type="file" id="photo-input-library" accept=".jpg,.jpeg,.png,.heic,.heif,.webp" multiple onchange="handlePhoto(event,'library')" />
-
-    <button class="btn btn-teal" id="save-photos-btn" onclick="savePhotos()" disabled>Save Photos →</button>
-  </div>
-</div>
-
-<!-- ITEM DETAIL -->
-<div class="screen" id="screen-detail">
-  <div class="header">
-    <button class="header-back" onclick="goHome()">←</button>
-    <div style="flex:1;min-width:0;">
-      <h1 id="detail-heading" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Item</h1>
-      <div id="detail-badge-wrap"></div>
+    <div class="content" style="padding-bottom:100px;">
+      <div id="item-list"></div>
+    </div>
+    
+    <button id="btn-batch-analyse" onclick="window.openBatchAnalyse()" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);width:auto;padding:10px 20px;border:1.5px solid var(--border2);border-radius:20px;background:var(--surface);font-size:14px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,0.12);z-index:21;">🔍 Analyse All</button>
+    
+    <div class="fab">
+      <button class="btn btn-primary" onclick="window.startNewItem()" style="font-size:18px;font-weight:700;">＋ &nbsp;New Item</button>
     </div>
   </div>
-  <div class="content" style="padding-bottom:30px;">
-    <div class="section-title">Photos</div>
-    <div class="photo-grid" id="detail-photos"></div>
-    <div class="photo-hint" id="detail-photo-hint" style="display:none;">Tap photos to select for AI analysis</div>
 
-    <div id="state-photos">
-      <button class="btn btn-primary" onclick="analyseItem()">🔍 &nbsp;Analyse with AI</button>
-      <button class="btn btn-outline" onclick="openReplacePhotos()">Replace Photos</button>
+  <!-- ============================================================
+    SCREEN: ADD PHOTOS  (id="screen-addphotos")
+    Used for 3 situations: adding photos to a new item, replacing
+    photos on an existing item, and editing photos from the detail view.
+    The header title/subtitle change based on which situation we're in.
+
+    - mode-selector          → Camera vs Library toggle;
+                               choice is remembered in localStorage
+    - #next-photo-banner     → banner that appears after a camera shot
+                               offering "Take another?" — hidden by default
+    - #photo-grid            → EMPTY HERE — renderSlots() in photos.js
+                               builds the photo tiles at runtime
+    - photo-input-camera     → hidden file input wired to the camera
+    - photo-input-library    → hidden file input wired to the photo library
+      Both inputs are INVISIBLE. Tapping a photo slot triggers them via
+      slotTapped() in photos.js — the browser then opens the picker.
+    - #photo-msg             → status text ("Add at least 1 photo" etc.)
+    - Continue button        → savePhotos() — saves to database, goes to Detail
+    - + New Item button      → saves current photos then starts a fresh item
+    ============================================================ -->
+  <div class="screen" id="screen-addphotos">
+    <div class="header">
+      <button class="header-back" onclick="window.backFromAddPhotos()">←</button>
+      <div><h1 id="addphotos-title">Add Photos</h1><div class="header-sub" id="addphotos-sub">Choose your capture method</div></div>
     </div>
 
-    <div id="state-analysed" style="display:none;">
-      <div class="section-title">Listing Details</div>
-      <div class="field"><label>Title</label><input id="f-title" type="text" oninput="markDirty()" /></div>
-      <div class="field"><label>Description</label><textarea id="f-description" oninput="markDirty()"></textarea></div>
-      <div class="field"><label>Category</label><input id="f-category" type="text" oninput="markDirty()" /></div>
-      <div class="field"><label>Brand</label><input id="f-brand" type="text" oninput="markDirty()" /></div>
-      <div class="field"><label>Size</label><input id="f-size" type="text" oninput="markDirty()" /></div>
-      <div class="field"><label>Condition</label>
-        <select id="f-condition" onchange="markDirty()">
-          <option>New with tags</option><option>Like new</option><option>Good</option><option>Fair</option><option>Poor</option>
+    <div class="content" style="padding-bottom: 100px;">
+      <div class="mode-selector">
+        <button class="mode-btn" id="mode-btn-camera" onclick="window.setPhotoMode('camera')">📷 Camera</button>
+        <button class="mode-btn" id="mode-btn-library" onclick="window.setPhotoMode('library')">🖼️ Library</button>
+      </div>
+
+      <div id="next-photo-banner" class="next-photo-banner" style="display:none;">
+        <span id="next-photo-text">📷 Ready for next photo</span>
+        <button onclick="window.triggerNextCamera()">Take Photo</button>
+      </div>
+
+      <div class="photo-grid" id="photo-grid"></div>
+
+      <input type="file" id="photo-input-camera" accept="image/*" capture="environment" onchange="window.handlePhoto(event,'camera')" style="display:none;" />
+      <input type="file" id="photo-input-library" accept=".jpg,.jpeg,.png,.heic,.heif,.webp" multiple onchange="window.handlePhoto(event,'library')" style="display:none;" />
+      
+      <div id="photo-msg" style="text-align:center;color:var(--text3);font-size:14px;margin-bottom:20px;font-weight:500;">Add at least 1 photo to continue</div>
+
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-teal" id="save-photos-btn" style="flex:1;" onclick="window.savePhotos()" disabled>Continue</button>
+        <button class="btn btn-primary" id="next-item-btn" style="flex:1;" onclick="window.saveAndStartNewItem()">＋ &nbsp;New Item</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+    SCREEN: ITEM DETAIL  (id="screen-detail")
+    Shows everything for one item: photos, AI fields, status, actions.
+
+    - #detail-photos     → EMPTY HERE — renderDetail() in ui.js fills
+                           this with the item's photos at runtime
+    - #detail-photo-hint → "Tap photos to select for AI analysis" hint
+    - #state-photos      → shown when item is NOT yet analysed.
+                           ⚠️ The buttons inside here are REPLACED BY JS
+                           at runtime (renderDetail / analysis.js).
+                           What you see below is just the starting HTML.
+    - #state-analysed    → shown when item IS analysed.
+                           ⚠️ ENTIRELY BUILT BY JS — renderDetail() in ui.js
+                           injects all the form fields (Title, Description etc.)
+                           here at runtime. They do not exist in this file.
+    - #status-select     → dropdown to move the item through its lifecycle:
+                           Photos → Analysed → Listed → Sold → Archived
+    ============================================================ -->
+  <div class="screen" id="screen-detail">
+    <div class="header">
+      <button class="header-back" onclick="window.goHome()">←</button>
+      <div style="flex:1;min-width:0;">
+        <h1 id="detail-heading" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Item</h1>
+        <div id="detail-badge-wrap"></div>
+      </div>
+    </div>
+
+    <div class="content" style="padding-bottom:30px;">
+      <div class="section-title">Photos</div>
+      
+      <div class="photo-grid-3wide" id="detail-photos"></div>
+      
+      <div class="photo-hint" id="detail-photo-hint" style="display:none;">Tap photos to select for AI analysis</div>
+
+      <div id="state-photos" style="margin-top:10px;">
+        <div class="copy-row">
+          <button class="btn btn-outline" onclick="window.openEditPhotos()">📷 Edit Photos</button>
+          <button class="btn btn-primary" onclick="window.analyseItem()">🔍 Re-Analyse</button>
+        </div>
+      </div>
+
+      <div id="state-analysed" style="display:none;"></div>
+
+      <div class="section-title">Status</div>
+      <div class="status-select-wrap">
+        <select class="status-select" id="status-select" onchange="window.handleSetStatus(this.value)">
+          <option value="photos">📷 Photos taken</option>
+          <option value="analysed">🔍 Analysed</option>
+          <option value="listed">📋 Listed</option>
+          <option value="sold">✅ Sold</option>
+          <option value="archived">🗄️ Archived</option>
         </select>
       </div>
-      <div class="field"><label>Colour</label><input id="f-colours" type="text" oninput="markDirty()" /></div>
-      <div class="field"><label>Material</label><input id="f-materials" type="text" oninput="markDirty()" /></div>
-      <div class="field"><label>Parcel Size</label>
-        <select id="f-parcel" onchange="markDirty()">
-          <option value="">— select —</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option>
-        </select>
+
+      <div style="margin-top:18px;">
+        <button class="btn btn-danger" onclick="window.deleteItem()">🗑️ &nbsp;Delete Item</button>
       </div>
-      <div class="field"><label>Price (£)</label><input id="f-price" type="number" oninput="markDirty()" /></div>
-      <button class="btn btn-outline" id="save-edits-btn" onclick="saveEdits()" style="display:none;">💾 &nbsp;Save Changes</button>
-      <div class="section-title">Actions</div>
-      <button class="btn btn-teal" onclick="showDownloadModal()">⬇️ &nbsp;Save Photos to Gallery</button>
-      <button class="btn btn-primary" onclick="openAddMorePhotos()">📷 &nbsp;Add / Replace Photos &amp; Re-analyse</button>
-      <button class="btn btn-blue" onclick="startCopyFlow()">🏷️ &nbsp;Start Listing</button>
-    </div>
-
-    <div class="section-title">Status</div>
-    <div class="status-select-wrap">
-      <select class="status-select" id="status-select" onchange="handleSetStatus(this.value)">
-        <option value="photos">📷 Photos taken</option>
-        <option value="analysed">🔍 Analysed</option>
-        <option value="listed">📋 Listed</option>
-        <option value="sold">✅ Sold</option>
-        <option value="archived">🗄️ Archived</option>
-      </select>
-    </div>
-    <div style="margin-top:18px;">
-      <button class="btn btn-danger" onclick="deleteItem()">🗑️ &nbsp;Delete Item</button>
     </div>
   </div>
-</div>
 
-<!-- COPY FLOW -->
-<div class="screen" id="screen-copy">
-  <div class="header">
-    <button class="header-back" onclick="showScreen('screen-detail')">←</button>
-    <div><h1>Copy to Vinted</h1><div class="header-sub" id="copy-progress">Field 1 of 9</div></div>
-  </div>
-  <div class="content" style="display:flex;flex-direction:column;justify-content:space-between;padding-bottom:30px;">
-    <div>
-      <a href="https://www.vinted.co.uk" target="_blank" rel="noopener" class="btn btn-blue" style="margin-bottom:18px;text-decoration:none;">📲 &nbsp;Open Vinted App First</a>
-      <div class="dots" id="copy-dots"></div>
-      <div class="copy-card">
-        <div class="copy-label" id="copy-label">Title</div>
-        <div class="copy-value" id="copy-value">—</div>
+  <!-- ============================================================
+    SCREEN: COPY TO VINTED  (id="screen-copy")
+    3-step wizard for copying listing fields into the Vinted app.
+    Managed by startCopyFlow() / nextCopyPage() / prevCopyPage() in actions.js.
+
+    Step 1 (#copy-step-1) → item photos — hold each photo to save to iPhone
+    Step 2 (#copy-step-2) → tap to copy: Title / Description / Category
+    Step 3 (#copy-step-3) → tap to copy: Brand / Size / Condition / Colour / Material
+
+    Only ONE step is visible at a time — the others have display:none.
+    updateCopyUI() in actions.js controls which step is shown.
+
+    copy-field-0 to copy-field-7:
+      Values filled by startCopyFlow() from the current item's data.
+      Tapping any field calls copyFieldValue(index) → copies to clipboard.
+
+    Bottom buttons:
+      "← Back" / "Next →"  → navigate between steps
+      "Mark as Listed"      → finishCopyFlow() sets status to 'listed', goes home
+      "Finish / Don't mark" → goes home without changing the item's status
+    ============================================================ -->
+  <div class="screen" id="screen-copy">
+    <div class="header">
+      <button class="header-back" onclick="window.showScreen('screen-detail')">←</button>
+      <div><h1>Copy to Vinted</h1><div class="header-sub">Step <span id="copy-page-num">1</span> of 3</div></div>
+    </div>
+
+    <div class="content" style="display:flex;flex-direction:column;justify-content:space-between;padding-bottom:30px;">
+      
+      <div id="copy-step-1" class="copy-fields-page">
+        <div class="copy-instr" style="margin-bottom:15px;"><strong>Step 1: Save Photos</strong><br>Hold images to save to gallery.</div>
+        <div id="copy-pics-grid" class="photo-grid-3wide"></div>
       </div>
-      <div class="copied-msg" id="copied-msg">✓ Copied to clipboard!</div>
-    </div>
-    <div>
-      <div class="copy-row" id="copy-action-row">
-        <button class="btn btn-primary" id="btn-copy" onclick="copyField()">Copy this field</button>
-        <button class="btn btn-outline" id="btn-skip" onclick="skipField()">Skip →</button>
+
+      <div id="copy-step-2" class="copy-fields-page" style="display:none;">
+        <div class="copy-instr" style="margin-bottom:15px;">Tap values to copy.</div>
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(0)" id="copy-field-0">
+          <div class="copy-field-label">Title</div><div class="copy-field-value"></div>
+          <div class="copy-field-copied" style="display:none;">✓</div>
+        </div>
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(1)" id="copy-field-1">
+          <div class="copy-field-label">Description</div><div class="copy-field-value"></div>
+          <div class="copy-field-copied" style="display:none;">✓</div>
+        </div>
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(2)" id="copy-field-2">
+          <div class="copy-field-label">Category</div><div class="copy-field-value"></div>
+          <div class="copy-field-copied" style="display:none;">✓</div>
+        </div>
       </div>
-      <button class="btn btn-teal"   id="btn-next"   onclick="nextField()"  style="display:none;">Next →</button>
-      <button class="btn btn-blue"   id="btn-done" onclick="finishCopyFlow()" style="display:none;">✅ &nbsp;Done — Mark as Listed?</button>
-    </div>
-  </div>
-</div>
 
-<!-- MODAL: Batch Analyse -->
-<div class="modal-overlay" id="modal-batch-analyse" style="display:none;">
-  <div class="modal">
-    <h3 id="batch-title">Analyse items?</h3>
-    <p id="batch-desc">This will analyse all items with photos using AI.</p>
-    <div id="batch-progress" style="display:none;text-align:center;margin-bottom:16px;">
-      <div class="spinner" style="margin:0 auto 12px;"></div>
-      <p id="batch-progress-text" style="font-size:15px;font-weight:600;color:var(--text);"></p>
-    </div>
-    <button class="btn btn-primary" id="batch-confirm-btn" onclick="runBatchAnalyse()">🔍 &nbsp;Start Analysis</button>
-    <button class="btn btn-outline" id="batch-cancel-btn" onclick="closeModal('modal-batch-analyse')">Cancel</button>
-  </div>
-</div>
-
-<!-- MODAL: Unsaved photos -->
-<div class="modal-overlay" id="modal-unsaved-photos" style="display:none;">
-  <div class="modal">
-    <h3>Unsaved photos</h3>
-    <p>You have unsaved photos. Save them before leaving?</p>
-    <button class="btn btn-teal" onclick="savePhotos()">Save Photos →</button>
-    <button class="btn btn-danger" onclick="discardAndGoHome()">Discard & Leave</button>
-    <button class="btn btn-outline" onclick="closeModal('modal-unsaved-photos')">Cancel</button>
-  </div>
-</div>
-
-<!-- MODAL: Listed? -->
-<div class="modal-overlay" id="modal-listed" style="display:none;">
-  <div class="modal">
-    <h3>Did you list this item?</h3>
-    <p>Mark it as listed so you can track it here.</p>
-    <button class="btn btn-teal"    onclick="confirmListed()">✅ &nbsp;Yes — Mark as Listed</button>
-    <button class="btn btn-outline" onclick="closeModal('modal-listed')">Not yet</button>
-  </div>
-</div>
-
-<!-- MODAL: Drop photos -->
-<div class="modal-overlay" id="modal-drop-photos" style="display:none;">
-  <div class="modal">
-    <h3 id="drop-title">Mark as Sold?</h3>
-    <p>This will remove photos from the app to save space. Your original photos in your iPhone camera roll are not affected.</p>
-    <button class="btn btn-primary" onclick="confirmDropPhotos()">Yes, remove photos</button>
-    <button class="btn btn-outline" onclick="closeModal('modal-drop-photos')">Cancel</button>
-  </div>
-</div>
-
-<!-- MODAL: Download / Save photos -->
-<div class="modal-overlay" id="modal-download" style="display:none;">
-  <div class="modal">
-    <h3>Save Photos</h3>
-    <div class="photo-save-tip">📱 <strong>Hold &amp; press each photo</strong> below, then tap <em>"Save to Photos"</em> to add it to your iPhone camera roll.</div>
-    <div class="photo-save-grid" id="download-photo-grid"></div>
-    <button class="btn btn-outline" onclick="closeModal('modal-download')">Done</button>
-  </div>
-</div>
-
-<!-- FLOATING SUGGESTIONS BUTTON -->
-<button class="float-suggest" onclick="openSuggestions()" title="Suggestions">💡</button>
-
-<!-- SUGGESTIONS PANEL -->
-<div class="suggest-panel" id="suggest-panel" style="display:none;">
-  <div class="suggest-inner">
-    <h3>💡 Suggestions</h3>
-    <p>Capture ideas, bugs or improvements. Copy all to share.</p>
-    <div class="suggest-input-row">
-      <textarea id="suggest-input" placeholder="Type a suggestion…" onkeydown="suggestKeydown(event)"></textarea>
-      <button class="suggest-add-btn" onclick="addSuggestion()">Add</button>
-    </div>
-    <div class="suggest-list" id="suggest-list"></div>
-    <div class="suggest-actions">
-      <button class="suggest-copy-btn" onclick="copySuggestions()">📋 Copy All</button>
-      <button class="suggest-close-btn" onclick="closeSuggestions()">Close</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// ── IndexedDB ──────────────────────────────────────────────────────────
-const DB_NAME = 'VintedListerDB', DB_VER = 1;
-const S_ITEMS = 'items', S_PHOTOS = 'photos';
-let db = null;
-
-function openDB() {
-  return new Promise((res, rej) => {
-    const r = indexedDB.open(DB_NAME, DB_VER);
-    r.onupgradeneeded = e => {
-      const d = e.target.result;
-      if (!d.objectStoreNames.contains(S_ITEMS))  d.createObjectStore(S_ITEMS,  { keyPath:'id' });
-      if (!d.objectStoreNames.contains(S_PHOTOS)) d.createObjectStore(S_PHOTOS, { keyPath:'id' });
-    };
-    r.onsuccess = e => { db = e.target.result; res(); };
-    r.onerror   = e => rej(e.target.error);
-  });
-}
-const tx = (store, mode='readonly') => db.transaction(store, mode).objectStore(store);
-const dbGet    = (s,k) => new Promise((res,rej) => { const r=tx(s).get(k);    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
-const dbGetAll = (s)   => new Promise((res,rej) => { const r=tx(s).getAll();  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
-const dbPut    = (s,v) => new Promise((res,rej) => { const r=tx(s,'readwrite').put(v);    r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); });
-const dbDelete = (s,k) => new Promise((res,rej) => { const r=tx(s,'readwrite').delete(k); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); });
-
-// ── State ──────────────────────────────────────────────────────────────
-let items=[], currentItem=null, filter='all';
-let pendingPhotos=[], replacingItem=false, addingMorePhotos=false;
-let copyFields=[], copyIdx=0, dirty=false, pendingStatus=null;
-let aiSelectedIndices = [0, 1];
-let photoMode = localStorage.getItem('vinted_photo_mode') || 'camera';
-let pendingSlot = null; // for camera mode: which slot we're filling next
-const MAX_PHOTOS = 10;
-const DEFAULT_PHOTOS = 4;
-
-// ── Storage bar ────────────────────────────────────────────────────────
-async function updateStorageBar() {
-  try {
-    if (navigator.storage && navigator.storage.estimate) {
-      const { usage=0, quota=100*1024*1024 } = await navigator.storage.estimate();
-      const pct = Math.min(100, (usage/quota)*100);
-      const fill = document.getElementById('storage-fill');
-      fill.style.width = pct+'%';
-      fill.className = 'storage-bar-fill'+(pct>80?' danger':pct>50?' warn':'');
-      document.getElementById('storage-label').textContent = `${(usage/1024/1024).toFixed(1)} MB used`;
-    } else {
-      document.getElementById('storage-label').textContent = 'Storage OK';
-      document.getElementById('storage-fill').style.width = '5%';
-    }
-  } catch(e) { document.getElementById('storage-label').textContent = 'Storage OK'; }
-}
-
-// ── Auto-clean old sold/archived photos (30 days) ─────────────────────
-async function autoClean() {
-  const cutoff = Date.now() - 30*24*60*60*1000;
-  for (const item of items) {
-    if (['sold','archived'].includes(item.status) && item.hasPhotos && (item.statusChangedAt||0) < cutoff) {
-      await dbDelete(S_PHOTOS, item.id);
-      item.hasPhotos = false;
-      item.thumbnail = null;
-      await dbPut(S_ITEMS, item);
-    }
-  }
-  items = await dbGetAll(S_ITEMS);
-}
-
-// ── Nav ────────────────────────────────────────────────────────────────
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
-}
-function goHome() { renderHome(); updateStorageBar(); showScreen('screen-home'); }
-
-function backFromAddPhotos() {
-  if (pendingPhotos.filter(Boolean).length > 0) {
-    document.getElementById('modal-unsaved-photos').style.display = 'flex';
-  } else if (replacingItem || addingMorePhotos) {
-    showScreen('screen-detail');
-  } else {
-    goHome();
-  }
-}
-
-function discardAndGoHome() {
-  closeModal('modal-unsaved-photos');
-  pendingPhotos = [];
-  if (replacingItem || addingMorePhotos) {
-    showScreen('screen-detail');
-  } else {
-    goHome();
-  }
-}
-
-// ── Init ───────────────────────────────────────────────────────────────
-async function init() {
-  await openDB();
-  items = await dbGetAll(S_ITEMS);
-  await autoClean();
-  renderSuggestions();
-  if (!localStorage.getItem('vinted_api_key')) showScreen('screen-apikey');
-  else goHome();
-}
-
-// ── API Key ────────────────────────────────────────────────────────────
-function saveApiKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!key.startsWith('sk-')) { alert('Please enter a valid Anthropic API key (starts with sk-)'); return; }
-  localStorage.setItem('vinted_api_key', key);
-  goHome();
-}
-
-// ── Filter ─────────────────────────────────────────────────────────────
-function setFilter(f, el) {
-  filter = f;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  renderHome();
-}
-
-// ── Home ───────────────────────────────────────────────────────────────
-const SL = { photos:'📷 Photos taken', analysed:'🔍 Analysed', listed:'📋 Listed', sold:'✅ Sold', archived:'🗄️ Archived' };
-const SB = { photos:'badge-photos', analysed:'badge-analysed', listed:'badge-listed', sold:'badge-sold', archived:'badge-archived' };
-
-function renderHome() {
-  const list = document.getElementById('item-list');
-  // Show Analyse All button only when there are items with photos status
-  const photoItems = items.filter(i => i.status === 'photos');
-  const batchBtn = document.getElementById('btn-batch-analyse');
-  if (batchBtn) batchBtn.style.display = photoItems.length ? 'flex' : 'none';
-  // "All" tab hides archived; show archived only when explicitly filtered
-  const filtered = [...items].reverse().filter(i => {
-    if (filter === 'all') return i.status !== 'archived';
-    return i.status === filter;
-  });
-  if (!filtered.length) {
-    list.innerHTML=`<div class="empty"><div class="icon">👗</div><h2>${filter==='all'?'No items yet':'Nothing here'}</h2><p>${filter==='all'?'Tap the button below to photograph your first item.':'No items with this status yet.'}</p></div>`;
-    return;
-  }
-  list.innerHTML = filtered.map(item => {
-    const thumb = item.thumbnail ? `<img src="${item.thumbnail}" alt="" />` : '<span>👕</span>';
-    const meta  = [item.price?`£${item.price}`:'', item.brand?`· ${item.brand}`:''].filter(Boolean).join(' ');
-    return `<div class="item-card" onclick="openItem('${item.id}')">
-      <div class="item-thumb">${thumb}</div>
-      <div class="item-info">
-        <div class="item-title">${item.title||'Untitled item'}</div>
-        <div class="item-meta">${meta}</div>
-        <span class="badge ${SB[item.status]}">${SL[item.status]}</span>
+      <div id="copy-step-3" class="copy-fields-page" style="display:none;">
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(3)" id="copy-field-3">
+          <div class="copy-field-label">Brand</div><div class="copy-field-value"></div>
+        </div>
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(4)" id="copy-field-4">
+          <div class="copy-field-label">Size</div><div class="copy-field-value"></div>
+        </div>
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(5)" id="copy-field-5">
+          <div class="copy-field-label">Condition</div><div class="copy-field-value"></div>
+        </div>
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(6)" id="copy-field-6">
+          <div class="copy-field-label">Colour</div><div class="copy-field-value"></div>
+        </div>
+        <div class="copy-field-clickable" onclick="window.copyFieldValue(7)" id="copy-field-7">
+          <div class="copy-field-label">Material</div><div class="copy-field-value"></div>
+        </div>
       </div>
-      <div class="chevron">›</div>
-    </div>`;
-  }).join('');
-}
 
-// ── Photo mode selector ────────────────────────────────────────────────
-function setPhotoMode(mode) {
-  photoMode = mode;
-  localStorage.setItem('vinted_photo_mode', mode);
-  document.getElementById('mode-btn-camera').classList.toggle('active', mode==='camera');
-  document.getElementById('mode-btn-library').classList.toggle('active', mode==='library');
-  hideBanner();
-  renderSlots();
-}
-
-function hideBanner() {
-  document.getElementById('next-photo-banner').style.display = 'none';
-}
-
-// ── Photos ─────────────────────────────────────────────────────────────
-function startNewItem() {
-  replacingItem = false;
-  addingMorePhotos = false;
-  currentItem = null;
-  pendingPhotos = [];
-  pendingSlot = null;
-  document.getElementById('addphotos-title').textContent = 'Add Photos';
-  document.getElementById('addphotos-sub').textContent = 'Choose your capture method';
-  // Use last saved mode (defaults to camera on first launch)
-  photoMode = localStorage.getItem('vinted_photo_mode') || 'camera';
-  initPhotoScreen();
-  showScreen('screen-addphotos');
-}
-
-async function openReplacePhotos() {
-  replacingItem = true;
-  addingMorePhotos = false;
-  pendingPhotos = [];
-  if (currentItem.hasPhotos) {
-    const rec = await dbGet(S_PHOTOS, currentItem.id);
-    if (rec && rec.images) {
-      pendingPhotos = rec.images.map(img => ({ dataUrl: img, thumbnail: null }));
-    }
-  }
-  document.getElementById('addphotos-title').textContent = 'Replace Photos';
-  document.getElementById('addphotos-sub').textContent = 'Edit or replace existing photos';
-  initPhotoScreen();
-  showScreen('screen-addphotos');
-}
-
-async function openAddMorePhotos() {
-  addingMorePhotos = true;
-  replacingItem = false;
-  pendingPhotos = [];
-  if (currentItem.hasPhotos) {
-    const rec = await dbGet(S_PHOTOS, currentItem.id);
-    if (rec && rec.images) {
-      pendingPhotos = rec.images.map(img => ({ dataUrl: img, thumbnail: null }));
-    }
-  }
-  document.getElementById('addphotos-title').textContent = 'Add / Replace Photos';
-  document.getElementById('addphotos-sub').textContent = 'Add more or swap existing photos';
-  initPhotoScreen();
-  showScreen('screen-addphotos');
-}
-
-function initPhotoScreen() {
-  hideBanner();
-  // Apply saved mode
-  document.getElementById('mode-btn-camera').classList.toggle('active', photoMode==='camera');
-  document.getElementById('mode-btn-library').classList.toggle('active', photoMode==='library');
-  renderSlots();
-}
-
-function renderSlots() {
-  const grid = document.getElementById('photo-grid');
-  const filled = pendingPhotos.filter(Boolean).length;
-  const totalSlots = Math.min(MAX_PHOTOS, filled < DEFAULT_PHOTOS ? DEFAULT_PHOTOS : filled + 1);
-
-  let html = '';
-  for (let i = 0; i < totalSlots; i++) {
-    if (pendingPhotos[i]) {
-      html += `<div class="photo-slot" onclick="slotTapped(${i})">
-        <img src="${pendingPhotos[i].dataUrl}" />
-        <button class="remove-btn" onclick="event.stopPropagation();removeSlot(${i})">✕</button>
-      </div>`;
-    } else {
-      html += `<div class="photo-slot" onclick="slotTapped(${i})">
-        <div class="slot-icon">＋</div>
-        <div class="slot-label">Photo ${i+1}</div>
-      </div>`;
-    }
-  }
-
-  grid.innerHTML = html;
-
-  const count = pendingPhotos.filter(Boolean).length;
-  document.getElementById('photo-msg').textContent = count
-    ? `${count} photo${count>1?'s':''} ready — tap any to replace`
-    : 'Add at least 1 photo to continue';
-  document.getElementById('save-photos-btn').disabled = count === 0;
-}
-
-function removeSlot(i) {
-  pendingPhotos[i] = null;
-  // Compact: remove nulls from the middle only if trailing
-  while (pendingPhotos.length && !pendingPhotos[pendingPhotos.length-1]) {
-    pendingPhotos.pop();
-  }
-  hideBanner();
-  renderSlots();
-}
-
-function slotTapped(i) {
-  pendingSlot = i;
-  if (photoMode === 'camera') {
-    // Reset file input so same photo can be retaken
-    const inp = document.getElementById('photo-input-camera');
-    inp.value = '';
-    inp.click();
-  } else {
-    const inp = document.getElementById('photo-input-library');
-    inp.value = '';
-    inp.click();
-  }
-}
-
-function triggerNextCamera() {
-  // Find next empty slot
-  let next = -1;
-  for (let i = 0; i < MAX_PHOTOS; i++) {
-    if (!pendingPhotos[i]) { next = i; break; }
-  }
-  if (next === -1) { hideBanner(); renderSlots(); return; }
-  pendingSlot = next;
-  const inp = document.getElementById('photo-input-camera');
-  inp.value = '';
-  inp.click();
-}
-
-function handlePhoto(e, mode) {
-  const files = Array.from(e.target.files);
-  e.target.value = '';
-  if (!files.length) {
-    if (!pendingPhotos.filter(Boolean).length) goHome();
-    return;
-  }
-
-  if (mode === 'library') {
-    // Multi-select: fill slots from pendingSlot onwards
-    let slotIdx = pendingSlot !== null ? pendingSlot : pendingPhotos.filter(Boolean).length;
-    let processed = 0;
-    files.forEach(file => {
-      if (slotIdx >= MAX_PHOTOS) return;
-      const currentSlot = slotIdx++;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        compressTo(ev.target.result, 100, 0.7, thumb =>
-          compressTo(ev.target.result, 1200, 0.85, medium => {
-            pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail: thumb };
-            processed++;
-            if (processed === Math.min(files.length, MAX_PHOTOS - (pendingSlot !== null ? pendingSlot : 0))) {
-              hideBanner();
-              renderSlots();
-            }
-          })
-        );
-      };
-      reader.readAsDataURL(file);
-    });
-  } else {
-    // Camera: single shot
-    const file = files[0];
-    const slot = pendingSlot !== null ? pendingSlot : pendingPhotos.filter(Boolean).length;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      compressTo(ev.target.result, 100, 0.7, thumb =>
-        compressTo(ev.target.result, 1200, 0.85, medium => {
-          pendingPhotos[slot] = { dataUrl: medium, thumbnail: thumb };
-          pendingSlot = null;
-          renderSlots();
-          // Show "take next photo" banner if under limit
-          const filled = pendingPhotos.filter(Boolean).length;
-          if (filled < MAX_PHOTOS) {
-            const nextEmpty = pendingPhotos.findIndex((p,i) => !p && i < MAX_PHOTOS);
-            const nextSlot = nextEmpty === -1 ? filled : nextEmpty;
-            document.getElementById('next-photo-text').textContent = `📷 Photo ${filled} saved — take another?`;
-            document.getElementById('next-photo-banner').style.display = 'flex';
-            pendingSlot = nextSlot;
-          } else {
-            hideBanner();
-          }
-        })
-      );
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-function compressTo(dataUrl, maxW, quality, cb) {
-  const img = new Image();
-  img.onload = () => {
-    const scale = Math.min(1, maxW/img.width);
-    const c = document.createElement('canvas');
-    c.width=img.width*scale; c.height=img.height*scale;
-    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-    cb(c.toDataURL('image/jpeg', quality));
-  };
-  img.src = dataUrl;
-}
-
-async function savePhotos() {
-  document.getElementById('modal-unsaved-photos').style.display = 'none';
-  const photos = pendingPhotos.filter(Boolean);
-  if (!photos.length) return;
-  // Thumbnail may be null when photos were loaded from DB (no re-compression done)
-  // Generate it on the fly if missing, otherwise fall back to existing item thumbnail
-  let thumbnail = photos[0].thumbnail;
-  if (!thumbnail) {
-    thumbnail = currentItem?.thumbnail ||
-      await new Promise(res => compressTo(photos[0].dataUrl, 100, 0.7, res));
-  }
-  const images = photos.map(p=>p.dataUrl);
-
-  if (addingMorePhotos && currentItem) {
-    // Save photos then trigger re-analysis
-    currentItem.thumbnail = thumbnail;
-    currentItem.hasPhotos = true;
-    currentItem.status = 'photos'; // reset so re-analyse is triggered
-    await dbPut(S_PHOTOS, {id: currentItem.id, images});
-    await dbPut(S_ITEMS, currentItem);
-    items = await dbGetAll(S_ITEMS);
-    currentItem = items.find(i=>i.id===currentItem.id);
-    await renderDetail();
-    showScreen('screen-detail');
-    // Auto-trigger analysis
-    analyseItem();
-    return;
-  }
-
-  if (replacingItem && currentItem) {
-    currentItem.thumbnail=thumbnail; currentItem.hasPhotos=true;
-    await dbPut(S_PHOTOS, {id:currentItem.id, images});
-    await dbPut(S_ITEMS, currentItem);
-    items = await dbGetAll(S_ITEMS);
-    currentItem = items.find(i=>i.id===currentItem.id);
-    await renderDetail(); showScreen('screen-detail');
-    return;
-  }
-
-  const id = 'item_'+Date.now();
-  const item = { id, status:'photos', thumbnail, hasPhotos:true, title:'', description:'', category:'', brand:'', size:'', condition:'', colours:'', materials:'', parcel:'', price:'', createdAt:Date.now() };
-  await dbPut(S_ITEMS, item);
-  await dbPut(S_PHOTOS, {id, images});
-  items = await dbGetAll(S_ITEMS);
-  goHome();
-}
-
-// ── Detail ─────────────────────────────────────────────────────────────
-async function openItem(id) {
-  currentItem = items.find(i=>i.id===id);
-  if (!currentItem) return;
-  dirty=false;
-  aiSelectedIndices = [0, 1];
-  // Always reset state-photos to original buttons before rendering
-  resetStatePhotos();
-  await renderDetail();
-  showScreen('screen-detail');
-}
-
-function resetStatePhotos() {
-  document.getElementById('state-photos').innerHTML = `
-    <button class="btn btn-primary" onclick="analyseItem()">🔍 &nbsp;Analyse with AI</button>
-    <button class="btn btn-outline" onclick="openReplacePhotos()">Replace Photos</button>
-  `;
-}
-
-async function renderDetail() {
-  const item = currentItem;
-  document.getElementById('detail-heading').textContent = item.title||'Untitled item';
-  document.getElementById('detail-badge-wrap').innerHTML = `<span class="badge ${SB[item.status]}">${SL[item.status]}</span>`;
-
-  const grid = document.getElementById('detail-photos');
-  const hintEl = document.getElementById('detail-photo-hint');
-  if (item.hasPhotos) {
-    const rec = await dbGet(S_PHOTOS, item.id);
-    if (rec && rec.images) {
-      grid.innerHTML = rec.images.map((p,i) => {
-        const sel = aiSelectedIndices.includes(i);
-        return `<div class="detail-photo-slot${sel?' ai-selected':''}" onclick="toggleAiPhoto(${i})">
-          <img src="${p}" />${sel ? '<div class="ai-badge">🔍 AI</div>' : ''}
-        </div>`;
-      }).join('');
-      if (hintEl) hintEl.style.display = 'block';
-    } else {
-      grid.innerHTML = '<p style="font-size:13px;color:var(--text3);grid-column:span 2;">Photos not found.</p>';
-      if (hintEl) hintEl.style.display = 'none';
-    }
-  } else {
-    grid.innerHTML = '<p style="font-size:13px;color:var(--text3);grid-column:span 2;">Photos removed to save space.</p>';
-    if (hintEl) hintEl.style.display = 'none';
-  }
-
-  const analysed = ['analysed','listed','sold','archived'].includes(item.status);
-  document.getElementById('state-photos').style.display    = analysed ? 'none'  : 'block';
-  document.getElementById('state-analysed').style.display  = analysed ? 'block' : 'none';
-  if (analysed) {
-    document.getElementById('f-title').value       = item.title||'';
-    document.getElementById('f-description').value = item.description||'';
-    document.getElementById('f-category').value    = item.category||'';
-    document.getElementById('f-brand').value       = item.brand||'';
-    document.getElementById('f-size').value        = item.size||'';
-    document.getElementById('f-condition').value   = item.condition||'Good';
-    document.getElementById('f-colours').value     = item.colours||'';
-    document.getElementById('f-materials').value   = item.materials||'';
-    document.getElementById('f-parcel').value      = item.parcel||'';
-    document.getElementById('f-price').value       = item.price||'';
-    document.getElementById('save-edits-btn').style.display = 'none';
-  }
-  const sel = document.getElementById('status-select');
-  if (sel) {
-    sel.value = item.status;
-    sel.className = 'status-select st-' + item.status;
-  }
-}
-
-// ── Analysis ───────────────────────────────────────────────────────────
-async function analyseItem() {
-  const key = localStorage.getItem('vinted_api_key')||'';
-  if (!key) { alert('Please add your API key first.'); showScreen('screen-apikey'); return; }
-
-  // Make sure we're showing the spinner in state-photos
-  const statePhotos = document.getElementById('state-photos');
-  statePhotos.style.display = 'block';
-  document.getElementById('state-analysed').style.display = 'none';
-  statePhotos.innerHTML = `
-    <div class="spinner-wrap">
-      <div class="spinner"></div>
-      <p style="font-size:16px;font-weight:600;color:var(--text);">Analysing photos…</p>
-      <p style="font-size:13px;color:var(--text2);margin-top:6px;">Usually takes 10–15 seconds</p>
-    </div>`;
-
-  // Capture which item we're analysing right now (avoid stale closure bug)
-  const itemId = currentItem.id;
-
-  const rec = currentItem.hasPhotos ? await dbGet(S_PHOTOS, currentItem.id) : null;
-  const allImages = rec && rec.images ? rec.images : [];
-  if (!allImages.length) { alert('No photos found.'); resetStatePhotos(); return; }
-  const images = aiSelectedIndices.filter(i=>i<allImages.length).map(i=>allImages[i]);
-  if (!images.length) { alert('No photos selected for analysis.'); resetStatePhotos(); return; }
-
-  const prompt = `Analyse these photos of a second-hand clothing/fashion item for a Vinted listing.
-Return ONLY valid JSON, no markdown, no explanation:
-{
-  "title": "concise listing title max 50 chars, include brand+item+colour",
-  "description": "2-3 sentences for a Vinted buyer. Mention fit, style, any visible scratches, marks or flaws honestly. English only.",
-  "category": "Vinted category e.g. Women's Clothing > Dresses",
-  "brand": "brand name or Unknown",
-  "size": "size from label if visible, else empty string",
-  "condition": "New with tags|Like new|Good|Fair|Poor",
-  "colours": ["primary colour", "secondary colour if present"],
-  "materials": ["primary material", "secondary material if identifiable"],
-  "parcel_size": "XS|S|M|L|XL — best guess based on item type and size"
-}`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
-      body: JSON.stringify({
-        model:'claude-opus-4-5', max_tokens:900,
-        messages:[{ role:'user', content:[
-          ...images.map(p=>({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:p.replace(/^data:image\/\w+;base64,/,'') }})),
-          { type:'text', text:prompt }
-        ]}]
-      })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const raw = data.content[0].text;
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('No JSON found in response');
-    const json = JSON.parse(match[0]);
-
-    // Guard: only apply if user is still on the same item
-    if (!currentItem || currentItem.id !== itemId) return;
-
-    Object.assign(currentItem, {
-      title:       json.title||'',
-      description: json.description||'',
-      category:    json.category||'',
-      brand:       json.brand||'',
-      size:        json.size||'',
-      condition:   json.condition||'Good',
-      colours:     Array.isArray(json.colours) ? json.colours.join(', ') : (json.colours||''),
-      materials:   Array.isArray(json.materials) ? json.materials.join(', ') : (json.materials||''),
-      parcel:      (json.parcel_size||'').replace(/[^XSML]/g,''),
-      status:      'analysed',
-    });
-    await dbPut(S_ITEMS, currentItem);
-    items = await dbGetAll(S_ITEMS);
-    currentItem = items.find(i=>i.id===itemId);
-    await renderDetail();
-  } catch(err) {
-    if (!currentItem || currentItem.id !== itemId) return;
-    document.getElementById('state-photos').innerHTML=`
-      <div style="padding:20px;text-align:center;">
-        <p style="color:var(--red);margin-bottom:16px;font-size:15px;">Analysis failed: ${err.message}</p>
-        <button class="btn btn-primary" onclick="resetStatePhotos();analyseItem()">Try Again</button>
-        <button class="btn btn-outline" style="margin-top:8px;" onclick="resetStatePhotos()">Cancel</button>
-      </div>`;
-  }
-}
-
-// ── Editing ────────────────────────────────────────────────────────────
-function markDirty() { dirty=true; document.getElementById('save-edits-btn').style.display='flex'; }
-
-async function saveEdits() {
-  Object.assign(currentItem, {
-    title:       document.getElementById('f-title').value,
-    description: document.getElementById('f-description').value,
-    category:    document.getElementById('f-category').value,
-    brand:       document.getElementById('f-brand').value,
-    size:        document.getElementById('f-size').value,
-    condition:   document.getElementById('f-condition').value,
-    colours:     document.getElementById('f-colours').value,
-    materials:   document.getElementById('f-materials').value,
-    parcel:      document.getElementById('f-parcel').value,
-    price:       document.getElementById('f-price').value,
-  });
-  await dbPut(S_ITEMS, currentItem);
-  items = await dbGetAll(S_ITEMS);
-  dirty=false;
-  document.getElementById('save-edits-btn').style.display='none';
-  document.getElementById('detail-heading').textContent = currentItem.title||'Untitled item';
-}
-
-// ── Status ─────────────────────────────────────────────────────────────
-function handleSetStatus(s) {
-  if (['sold','archived'].includes(s) && currentItem.hasPhotos) {
-    pendingStatus = s;
-    document.getElementById('drop-title').textContent = `Mark as ${s==='sold'?'Sold':'Archived'}?`;
-    document.getElementById('modal-drop-photos').style.display='flex';
-  } else { setStatus(s); }
-}
-
-async function confirmDropPhotos() {
-  closeModal('modal-drop-photos');
-  await dbDelete(S_PHOTOS, currentItem.id);
-  currentItem.hasPhotos=false; currentItem.thumbnail=null;
-  await setStatus(pendingStatus);
-  pendingStatus=null;
-}
-
-async function setStatus(s) {
-  currentItem.status=s; currentItem.statusChangedAt=Date.now();
-  await dbPut(S_ITEMS, currentItem);
-  items = await dbGetAll(S_ITEMS);
-  currentItem = items.find(i=>i.id===currentItem.id);
-  await renderDetail(); updateStorageBar();
-}
-
-// ── Delete ─────────────────────────────────────────────────────────────
-async function deleteItem() {
-  if (!confirm('Delete this item? This cannot be undone.')) return;
-  await dbDelete(S_ITEMS, currentItem.id);
-  await dbDelete(S_PHOTOS, currentItem.id);
-  items = await dbGetAll(S_ITEMS);
-  goHome();
-}
-
-// ── Download / Save photos modal ───────────────────────────────────────
-async function showDownloadModal() {
-  if (!currentItem.hasPhotos) { alert('No photos stored for this item.'); return; }
-  const rec = await dbGet(S_PHOTOS, currentItem.id);
-  if (!rec || !rec.images || !rec.images.length) { alert('No photos found.'); return; }
-
-  const grid = document.getElementById('download-photo-grid');
-  grid.innerHTML = rec.images.map((photo, i) =>
-    `<div class="photo-save-item">
-      <img src="${photo}" alt="Photo ${i+1}" />
-      <div class="photo-save-label">Hold &amp; save</div>
-    </div>`
-  ).join('');
-
-  document.getElementById('modal-download').style.display = 'flex';
-}
-
-// ── Copy flow ──────────────────────────────────────────────────────────
-function startCopyFlow() {
-  const it=currentItem;
-  copyFields=[
-    {label:'Title',       value:it.title||''},
-    {label:'Description', value:it.description||''},
-    {label:'Category',    value:it.category||''},
-    {label:'Brand',       value:it.brand||''},
-    {label:'Size',        value:it.size||''},
-    {label:'Condition',   value:it.condition||''},
-    {label:'Colour',      value:it.colours||''},
-    {label:'Material',    value:it.materials||''},
-    {label:'Parcel Size', value:it.parcel||''},
-  ];
-  copyIdx=0; renderCopyField(); showScreen('screen-copy');
-}
-
-function renderCopyField() {
-  const f=copyFields[copyIdx];
-  const isLast=copyIdx===copyFields.length-1;
-  document.getElementById('copy-progress').textContent=`Field ${copyIdx+1} of ${copyFields.length}`;
-  document.getElementById('copy-label').textContent=f.label;
-  const v=document.getElementById('copy-value');
-  v.textContent=f.value||'—'; v.className='copy-value'+(f.value.length>60?' long':'');
-  document.getElementById('copy-dots').innerHTML=copyFields.map((_,i)=>`<div class="dot${i<=copyIdx?' active':''}"></div>`).join('');
-  document.getElementById('copy-action-row').style.display='flex';
-  document.getElementById('btn-skip').style.display = isLast ? 'none' : 'flex';
-  document.getElementById('btn-next').style.display='none';
-  document.getElementById('btn-done').style.display='none';
-  document.getElementById('copied-msg').style.opacity='0';
-}
-
-function copyField() {
-  const val=copyFields[copyIdx].value;
-  const isLast=copyIdx===copyFields.length-1;
-  navigator.clipboard.writeText(val).catch(()=>{ const ta=document.createElement('textarea'); ta.value=val; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); });
-  document.getElementById('copied-msg').style.opacity='1';
-  document.getElementById('copy-action-row').style.display='none';
-  document.getElementById(isLast?'btn-done':'btn-next').style.display='flex';
-}
-
-function skipField() {
-  if (copyIdx < copyFields.length-1) { copyIdx++; renderCopyField(); }
-}
-
-function nextField() { copyIdx++; renderCopyField(); }
-
-function toggleAiPhoto(idx) {
-  if (aiSelectedIndices.includes(idx)) {
-    if (aiSelectedIndices.length <= 1) return;
-    aiSelectedIndices = aiSelectedIndices.filter(i=>i!==idx);
-  } else {
-    if (aiSelectedIndices.length >= 10) return;
-    aiSelectedIndices = [...aiSelectedIndices, idx].sort((a,b)=>a-b);
-  }
-  const grid = document.getElementById('detail-photos');
-  grid.querySelectorAll('.detail-photo-slot').forEach((el,i) => {
-    const sel = aiSelectedIndices.includes(i);
-    el.classList.toggle('ai-selected', sel);
-    const badge = el.querySelector('.ai-badge');
-    if (sel && !badge) { const b=document.createElement('div'); b.className='ai-badge'; b.textContent='🔍 AI'; el.appendChild(b); }
-    else if (!sel && badge) badge.remove();
-  });
-}
-
-
-function finishCopyFlow() {
-  document.getElementById('modal-listed').style.display='flex';
-}
-
-async function confirmListed() {
-  await setStatus('listed');
-  closeModal('modal-listed');
-  goHome();
-}
-
-function closeModal(id) {
-  document.getElementById(id).style.display='none';
-  if (id==='modal-listed') showScreen('screen-detail');
-}
-
-// ── Batch Analyse ──────────────────────────────────────────────────────
-function openBatchAnalyse() {
-  const photoItems = items.filter(i => i.status === 'photos');
-  document.getElementById('batch-title').textContent = `Analyse ${photoItems.length} item${photoItems.length>1?'s':''}?`;
-  document.getElementById('batch-desc').textContent = `AI will analyse up to 2 photos per item. This uses ${photoItems.length} API call${photoItems.length>1?'s':''}.`;
-  document.getElementById('batch-progress').style.display = 'none';
-  document.getElementById('batch-confirm-btn').style.display = 'flex';
-  document.getElementById('batch-cancel-btn').style.display = 'flex';
-  document.getElementById('modal-batch-analyse').style.display = 'flex';
-}
-
-async function runBatchAnalyse() {
-  const key = localStorage.getItem('vinted_api_key')||'';
-  if (!key) { closeModal('modal-batch-analyse'); alert('Please add your API key first.'); showScreen('screen-apikey'); return; }
-
-  const photoItems = items.filter(i => i.status === 'photos');
-  document.getElementById('batch-confirm-btn').style.display = 'none';
-  document.getElementById('batch-cancel-btn').style.display = 'none';
-  document.getElementById('batch-progress').style.display = 'block';
-
-  const prompt = `Analyse these photos of a second-hand clothing/fashion item for a Vinted listing.
-Return ONLY valid JSON, no markdown, no explanation:
-{
-  "title": "concise listing title max 50 chars, include brand+item+colour",
-  "description": "2-3 sentences for a Vinted buyer. Mention fit, style, any visible scratches, marks or flaws honestly. English only.",
-  "category": "Vinted category e.g. Women's Clothing > Dresses",
-  "brand": "brand name or Unknown",
-  "size": "size from label if visible, else empty string",
-  "condition": "New with tags|Like new|Good|Fair|Poor",
-  "colours": ["primary colour", "secondary colour if present"],
-  "materials": ["primary material", "secondary material if identifiable"],
-  "parcel_size": "XS|S|M|L|XL — best guess based on item type and size"
-}`;
-
-  let done = 0;
-  for (const item of photoItems) {
-    document.getElementById('batch-progress-text').textContent = `Analysing item ${done+1} of ${photoItems.length}…`;
-    try {
-      const rec = await dbGet(S_PHOTOS, item.id);
-      const images = rec && rec.images ? rec.images.slice(0,2) : [];
-      if (!images.length) { done++; continue; }
-
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
-        body: JSON.stringify({
-          model:'claude-opus-4-5', max_tokens:900,
-          messages:[{ role:'user', content:[
-            ...images.map(p=>({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:p.replace(/^data:image\/\w+;base64,/,'') }})),
-            { type:'text', text:prompt }
-          ]}]
-        })
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message);
-      const raw2 = data.content[0].text;
-      const match2 = raw2.match(/\{[\s\S]*\}/);
-      if (!match2) throw new Error('No JSON found in response');
-      const json = JSON.parse(match2[0]);
-      Object.assign(item, {
-        title:       json.title||'',
-        description: json.description||'',
-        category:    json.category||'',
-        brand:       json.brand||'',
-        size:        json.size||'',
-        condition:   json.condition||'Good',
-        colours:     Array.isArray(json.colours) ? json.colours.join(', ') : (json.colours||''),
-        materials:   Array.isArray(json.materials) ? json.materials.join(', ') : (json.materials||''),
-        parcel:      (json.parcel_size||'').replace(/[^XSML]/g,''),
-        status:      'analysed',
-      });
-      await dbPut(S_ITEMS, item);
-    } catch(e) { /* skip failed items, continue batch */ }
-    done++;
-  }
-
-  items = await dbGetAll(S_ITEMS);
-  closeModal('modal-batch-analyse');
-  renderHome();
-  updateStorageBar();
-}
-
-// ── Suggestions ─────────────────────────────────────────────────────────
-let suggestions = JSON.parse(localStorage.getItem('vinted_suggestions')||'[]');
-
-function saveSuggestions() {
-  localStorage.setItem('vinted_suggestions', JSON.stringify(suggestions));
-}
-
-function renderSuggestions() {
-  const list = document.getElementById('suggest-list');
-  if (!suggestions.length) {
-    list.innerHTML = '<div class="suggest-empty">No suggestions yet. Add one above!</div>';
-    return;
-  }
-  list.innerHTML = suggestions.map((s,i) =>
-    `<div class="suggest-item">
-      <div class="suggest-item-text">${i+1}. ${s}</div>
-      <button class="suggest-item-del" onclick="deleteSuggestion(${i})">✕</button>
-    </div>`
-  ).join('');
-}
-
-function openSuggestions() {
-  renderSuggestions();
-  document.getElementById('suggest-panel').style.display = 'flex';
-  setTimeout(()=>document.getElementById('suggest-input').focus(), 200);
-}
-
-function closeSuggestions() {
-  document.getElementById('suggest-panel').style.display = 'none';
-}
-
-function suggestKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addSuggestion(); }
-}
-
-function addSuggestion() {
-  const inp = document.getElementById('suggest-input');
-  const text = inp.value.trim();
-  if (!text) return;
-  suggestions.push(text);
-  saveSuggestions();
-  inp.value = '';
-  renderSuggestions();
-}
-
-function deleteSuggestion(i) {
-  suggestions.splice(i, 1);
-  saveSuggestions();
-  renderSuggestions();
-}
-
-function copySuggestions() {
-  if (!suggestions.length) { alert('No suggestions to copy yet.'); return; }
-  const text = 'Vinted Lister Suggestions:\n\n' + suggestions.map((s,i)=>`${i+1}. ${s}`).join('\n');
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.querySelector('.suggest-copy-btn');
-    btn.textContent = '✓ Copied!';
-    setTimeout(()=>{ btn.textContent = '📋 Copy All'; }, 2000);
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = text; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    alert('Copied! Paste into WhatsApp or anywhere you like.');
-  });
-}
-
-init();
-</script>
+      <div style="display:flex;gap:10px;flex-direction:column;margin-top:20px;">
+        <a href="https://www.vinted.co.uk" target="_blank" rel="noopener" class="btn btn-blue" style="text-decoration:none;text-align:center;">📲 &nbsp;Launch Vinted</a>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-outline" id="btn-prev-page" onclick="window.prevCopyPage()" style="flex:1; visibility:hidden;">← Back</button>
+          <button class="btn btn-primary" id="btn-next-page" onclick="window.nextCopyPage()" style="flex:1;">Next →</button>
+        </div>
+        <button class="btn btn-subtle" id="btn-finish-no-save" onclick="window.showScreen('screen-home')" style="width:100%;">Finish / Don't mark listed</button>
+        <button class="btn btn-blue" id="btn-done" onclick="window.finishCopyFlow()" style="width:100%; display:none;">✅ &nbsp;Mark as Listed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+    MODALS
+    Pop-up dialogs that appear on top of all screens.
+    All hidden by default (display:none).
+    JS shows them by setting style="display:flex".
+    closeModal('modal-id') in ui.js hides them again.
+    ============================================================ -->
+
+  <!-- Modal: confirm batch-analysing multiple items at once -->
+  <div class="modal-overlay" id="modal-batch-analyse" style="display:none;">
+    <div class="modal">
+      <h3 id="batch-title">Analyse items?</h3>
+      <div id="batch-progress" style="display:none;text-align:center;margin-bottom:16px;">
+        <div class="spinner" style="margin:0 auto 12px;"></div>
+        <p id="batch-progress-text"></p>
+      </div>
+      <button class="btn btn-primary" id="batch-confirm-btn" onclick="window.runBatchAnalyse()">🔍 &nbsp;Start Analysis</button>
+      <button class="btn btn-outline" id="batch-cancel-btn" onclick="window.closeModal('modal-batch-analyse')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Modal: user tried to leave Add Photos with unsaved photos -->
+  <div class="modal-overlay" id="modal-unsaved-photos" style="display:none;">
+    <div class="modal">
+      <h3>Unsaved photos</h3>
+      <p>Save them before leaving?</p>
+      <button class="btn btn-teal" onclick="window.savePhotos(false, true)">Save Photos →</button>
+      <button class="btn btn-danger" onclick="window.discardAndGoHome()">Discard & Leave</button>
+      <button class="btn btn-outline" onclick="window.closeModal('modal-unsaved-photos')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Modal: confirm deleting stored photos when marking an item as Sold or Archived -->
+  <div class="modal-overlay" id="modal-drop-photos" style="display:none;">
+    <div class="modal">
+      <h3 id="drop-title">Delete Photos?</h3>
+      <p>This saves space but keeps the item record.</p>
+      <button class="btn btn-primary" onclick="window.confirmDropPhotos()">Yes, remove photos</button>
+      <button class="btn btn-outline" onclick="window.closeModal('modal-drop-photos')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+    SUGGESTIONS  (💡 floating button + slide-up panel)
+    Always visible on every screen — fixed position, bottom-right.
+    Used to capture ideas, bugs, or notes without leaving the app.
+    Suggestions are saved to localStorage (not the database).
+    JS: openSuggestions() / closeSuggestions() in suggestions.js
+    ============================================================ -->
+  <button class="float-suggest" onclick="window.openSuggestions()">💡</button>
+
+  <div class="suggest-panel" id="suggest-panel" style="display:none;">
+    <div class="suggest-inner">
+      <h3>💡 Suggestions</h3>
+      <p>Capture ideas or bugs.</p>
+      <form class="suggest-input-row" onsubmit="window.handleSuggestFormSubmit(event)">
+        <textarea id="suggest-input" placeholder="Type a suggestion…" required></textarea>
+        <button class="suggest-add-btn" type="submit">Add</button>
+      </form>
+      <div class="suggest-list" id="suggest-list"></div>
+      <div class="suggest-actions">
+        <button class="suggest-copy-btn" onclick="window.copySuggestions()">📋 Copy All</button>
+        <button class="suggest-close-btn" onclick="window.closeSuggestions()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!--
+    ENTRY POINT — loads all JavaScript
+    type="module" enables ES module imports (the import/export system).
+    main.js imports every JS file and puts their functions on window
+    so the onclick="window.fn()" attributes above can call them.
+    ⚠️ Do NOT remove type="module" — it will break all JS imports.
+  -->
+  <script type='module' src='main.js'></script>
 
 </div>
 </body>
