@@ -13,11 +13,8 @@ export async function initApp() {
   await autoClean();
   renderSuggestions();
   
-  // Extract version number for display (e.g., "v1.0.0")
-  const versionParts = APP_VERSION.split('-');
-  const versionNum = versionParts[0].substring(1); 
-  
-  // Update version labels across screens
+  // Update version labels across screens (reads directly from state.js constants)
+  const versionNum = APP_VERSION.replace(/^v/, '');
   document.getElementById('version-display').textContent = versionNum;
   document.getElementById('branch-display').textContent = BRANCH_NAME;
   document.getElementById('version-display-apikey').textContent = versionNum;
@@ -202,7 +199,7 @@ export async function renderHome() {
   list.innerHTML = filtered
     .map((item) => {
       const thumb = item.thumbnail ? `<img src="${item.thumbnail}" alt="" />` : '<span>👕</span>';
-      const meta = [item.brand ? `${item.brand}` : ''].filter(Boolean).join(' ');
+      const meta = [item.brand, item.size].filter(Boolean).join(' · ');
 
       return `
         <div class="item-card" onclick="window.openItem('${item.id}')">
