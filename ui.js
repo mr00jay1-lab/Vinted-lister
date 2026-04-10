@@ -1,4 +1,4 @@
-import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, getApiKey, saveApiKeyValue, APP_VERSION, BRANCH_NAME, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
+import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, getApiKey, saveApiKeyValue, getPersona, savePersona, getRules, saveRules, getSmartCrop, saveSmartCrop, APP_VERSION, BRANCH_NAME, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
 import { dbGet, dbGetAll, dbPut, dbDelete, openDB } from './db.js';
 import { renderSuggestions } from './suggestions.js';
 
@@ -12,20 +12,20 @@ export async function initApp() {
   appState.items = await dbGetAll(S_ITEMS);
   await autoClean();
   renderSuggestions();
-  
+
   // Update version labels across screens (reads directly from state.js constants)
   const versionNum = APP_VERSION.replace(/^v/, '');
   document.getElementById('version-display').textContent = versionNum;
   document.getElementById('branch-display').textContent = BRANCH_NAME;
-  document.getElementById('version-display-apikey').textContent = versionNum;
-  document.getElementById('branch-display-apikey').textContent = BRANCH_NAME;
+  document.getElementById('version-display-settings').textContent = versionNum;
+  document.getElementById('branch-display-settings').textContent = BRANCH_NAME;
 
-  // Check for existing Authropic Key
+  // Check for existing Anthropic Key — show Settings on first launch if missing
   const savedKey = getApiKey();
   if (savedKey && savedKey.startsWith('sk-')) {
-    goHome(); 
+    goHome();
   } else {
-    showScreen('screen-apikey');
+    openSettings();
   }
 }
 
@@ -44,30 +44,31 @@ export async function autoClean() {
 }
 
 /* ==========================================================================
-   SECTION 2: AUTHENTICATION & SETTINGS
+   SECTION 2: SETTINGS
    ========================================================================== */
 
-/** Validates and saves the Anthropic API key to local storage */
-export function saveApiKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!key) {
-    alert('Please enter an API key');
-    return;
-  }
-  if (!key.startsWith('sk-')) {
+/** Pre-populates the Settings screen fields and navigates to it */
+export function openSettings() {
+  document.getElementById('settings-api-key').value = getApiKey();
+  document.getElementById('settings-persona').value = getPersona();
+  document.getElementById('settings-rules').value = getRules();
+  document.getElementById('settings-smart-crop').checked = getSmartCrop();
+  showScreen('screen-settings');
+}
+
+/** Validates and persists all settings, then goes home */
+export function saveSettings() {
+  const key = document.getElementById('settings-api-key').value.trim();
+  if (!key || !key.startsWith('sk-')) {
     alert('Please enter a valid Anthropic API key (starts with sk-)');
     return;
   }
-  
-  document.getElementById('api-key-input').blur(); // Hide mobile keyboard
   saveApiKeyValue(key);
+  savePersona(document.getElementById('settings-persona').value.trim());
+  saveRules(document.getElementById('settings-rules').value.trim());
+  saveSmartCrop(document.getElementById('settings-smart-crop').checked);
+  document.getElementById('settings-api-key').blur();
   goHome();
-}
-
-/** Bridges the HTML form submission to the save logic */
-export function handleApiFormSubmit(event) {
-  if (event) event.preventDefault();
-  saveApiKey();
 }
 
 /** Bridges the suggestions form submission to the global handler */

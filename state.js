@@ -3,7 +3,7 @@ export const DB_VER = 1;
 export const S_ITEMS = 'items';
 export const S_PHOTOS = 'photos';
 
-export const APP_VERSION = 'v1.4';
+export const APP_VERSION = 'v1.5';
 export const BRANCH_NAME = 'dev';
 
 export const MAX_PHOTOS = 10;
@@ -56,6 +56,49 @@ export function saveApiKeyValue(key) {
 export function savePhotoMode(mode) {
   appState.photoMode = mode;
   localStorage.setItem('vinted_photo_mode', mode);
+}
+
+// ── Settings defaults ──────────────────────────────────────────
+// Used as the initial textarea content when the user hasn't customised yet.
+
+const DEFAULT_PERSONA = `You are an experienced family-focused Vinted seller.
+You specialize in high-quality kids' clothing and toys.
+Your tone is honest, practical, and helpful — parent-to-parent.
+You emphasize safety, cleanliness, and the exact condition of items so buyers feel confident.`;
+
+const DEFAULT_RULES = `- Title: Concise, max 50 chars. Format: Brand Item Colour/Type (e.g., "LEGO Duplo Fire Station" or "Next Denim Dungarees Blue").
+- Description:
+  1. Write max 250 chars. For CLOTHES: focus on fit, style, and softness. For TOYS: focus on features, play value, and if all parts are included.
+  2. ALWAYS append on a new line: "Open to offers and bundles. From a smoke and pet-free home."
+- Inspection:
+  - CLOTHES: Look closely at seams/edges for pilling or fading.
+  - TOYS: Look for scratches, missing stickers, or battery compartment wear.
+  - Always mention any marks or flaws honestly.
+- Unknowns: Use "Unknown" or "" if brand/size is not visible.
+- Constraint: STRICTLY no markdown code blocks, no preamble, and no postscript. Just the JSON.`;
+
+export function getPersona() {
+  return localStorage.getItem('vinted_persona') || DEFAULT_PERSONA;
+}
+
+export function savePersona(text) {
+  localStorage.setItem('vinted_persona', text);
+}
+
+export function getRules() {
+  return localStorage.getItem('vinted_rules') || DEFAULT_RULES;
+}
+
+export function saveRules(text) {
+  localStorage.setItem('vinted_rules', text);
+}
+
+export function getSmartCrop() {
+  return localStorage.getItem('vinted_smart_crop') !== 'off'; // default ON
+}
+
+export function saveSmartCrop(enabled) {
+  localStorage.setItem('vinted_smart_crop', enabled ? 'on' : 'off');
 }
 
 export function saveSuggestions() {

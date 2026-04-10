@@ -19,29 +19,50 @@
 <div class="app">
 
   <!-- ============================================================
-    SCREEN: API KEY  (id="screen-apikey")
-    First screen shown if no Anthropic API key has been saved yet.
-    Once the user enters a valid key (starts with "sk-") it is saved
-    to localStorage on this device only and never sent anywhere.
-    After saving, the app goes straight to the Home screen.
-    JS: handleApiFormSubmit() → saveApiKey() in ui.js
+    SCREEN: SETTINGS  (id="screen-settings")
+    Shown on first launch (no API key) and via ⚙️ button on Home.
+
+    - API Key input      → required; stored in localStorage, never shared
+    - AI Persona         → editable text; pre-filled with default persona
+    - Listing Rules      → editable text; pre-filled with default rules
+    - AI Smart-Crop      → toggle; when off, photos use centre-crop instead
+
+    JS: openSettings() populates the fields; saveSettings() persists them.
     ============================================================ -->
-  <div class="screen active" id="screen-apikey">
-    <div class="header" style="justify-content:center;">
-      <div style="text-align:center;">
-        <h1>Vinted Lister</h1>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px;">v<span id="version-display-apikey"></span> · <span id="branch-display-apikey"></span></div>
+  <div class="screen active" id="screen-settings">
+    <div class="header">
+      <button class="header-back" onclick="window.goHome()">←</button>
+      <div style="flex:1">
+        <h1>Settings</h1>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">v<span id="version-display-settings"></span> · <span id="branch-display-settings"></span></div>
       </div>
     </div>
-    <div class="content">
-      <form class="api-wrap" id="api-key-form" onsubmit="window.handleApiFormSubmit(event)">
-        <div class="api-icon">🏷️</div>
-        <div class="api-title">Vinted Lister</div>
-        <div class="api-desc">Enter your Anthropic API key to power AI photo analysis.<br><br>Get yours free at <strong>console.anthropic.com</strong>.</div>
-        <input class="api-input" id="api-key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="current-password" required />
-        <button class="btn btn-primary" id="api-key-btn" type="submit" style="margin-bottom:10px;z-index:50;position:relative;">Get Started →</button>
-        <div class="api-note">Stored only on this device. Never shared.</div>
-      </form>
+    <div class="content" style="padding-bottom:30px;">
+
+      <div class="section-title">API Key</div>
+      <input class="api-input" id="settings-api-key" type="password" placeholder="sk-ant-api03-…" autocomplete="current-password" />
+      <p style="font-size:12px;color:var(--text3);margin-bottom:20px;">Get yours free at <strong>console.anthropic.com</strong>. Stored only on this device, never shared.</p>
+
+      <div class="section-title">AI Persona</div>
+      <div class="field">
+        <textarea id="settings-persona" style="min-height:120px;font-size:13px;line-height:1.5;"></textarea>
+      </div>
+
+      <div class="section-title">Listing Rules</div>
+      <div class="field">
+        <textarea id="settings-rules" style="min-height:180px;font-size:13px;line-height:1.5;"></textarea>
+      </div>
+
+      <div class="section-title">Photo Settings</div>
+      <div class="field" style="display:flex;align-items:center;gap:12px;">
+        <input type="checkbox" id="settings-smart-crop" style="width:20px;height:20px;flex-shrink:0;accent-color:var(--teal);" />
+        <label for="settings-smart-crop" style="cursor:pointer;">
+          <div style="font-size:15px;font-weight:600;">AI Smart-Crop</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;">Centres and crops photos to 3:4 portrait. Disable for full-frame shots.</div>
+        </label>
+      </div>
+
+      <button class="btn btn-primary" onclick="window.saveSettings()" style="width:100%;margin-top:20px;">Save Settings</button>
     </div>
   </div>
 
@@ -61,7 +82,7 @@
   <div class="screen" id="screen-home">
     <div class="header">
       <div style="flex:1"><h1>Vinted Lister</h1><div style="font-size:11px;color:var(--text3);margin-top:2px;">v<span id="version-display"></span> · <span id="branch-display"></span></div></div>
-      <button class="btn-small" onclick="window.showScreen('screen-apikey')">⚙️ API Key</button>
+      <button class="btn-small" onclick="window.openSettings()">⚙️ Settings</button>
     </div>
     
     <div class="filter-scroll">

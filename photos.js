@@ -1,6 +1,6 @@
-import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
+import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem, getSmartCrop } from './state.js';
 import { dbPut, dbGet, dbGetAll } from './db.js';
-import { compressTo } from './utils.js';
+import { compressTo, detectCropCoords } from './utils.js';
 import { analyseItem } from './analysis.js';
 import { renderDetail, renderHome, goHome, showScreen, closeModal } from './ui.js';
 
@@ -218,23 +218,29 @@ export function handlePhoto(event, mode) {
     let processed = 0;
     const maxFiles = Math.min(files.length, MAX_PHOTOS - (appState.pendingSlot !== null ? appState.pendingSlot : 0));
 
-    files.slice(0, maxFiles).forEach((file) => {
-      const currentSlot = slotIndex++;
-      const reader = new FileReader();
-      reader.onload = async (loadEvent) => {
-        const dataUrl = loadEvent.target.result;
-        const thumbnail = await compressTo(dataUrl, 100, 0.7);
-        const medium = await compressTo(dataUrl, 1200, 0.85);
-        appState.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
-        appState.photosDirty = true;
-        processed += 1;
-        if (processed === maxFiles) {
-          hideBanner();
-          renderSlots();
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+files.slice(0, maxFiles).forEach((file) => {
+  const currentSlot = slotIndex++;
+  const reader = new FileReader();
+  reader.onload = async (loadEvent) => {
+    const dataUrl = loadEvent.target.result;
+    try {
+      const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
+      const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
+      const medium = await compressTo(dataUrl, 1200, 0.85, coords);
+      appState.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
+      appState.photosDirty = true;
+    } catch (err) {
+      console.error('Photo processing failed for slot', currentSlot, err);
+      alert(`Photo ${currentSlot + 1} could not be processed. Please try another.`);
+    }
+    processed += 1;
+    if (processed === maxFiles) {
+      hideBanner();
+      renderSlots();
+    }
+  };
+  reader.readAsDataURL(file);
+});
   } else {
     // Handling single file from Camera
     const file = files[0];
@@ -242,11 +248,17 @@ export function handlePhoto(event, mode) {
     const reader = new FileReader();
     reader.onload = async (loadEvent) => {
       const dataUrl = loadEvent.target.result;
-      const thumbnail = await compressTo(dataUrl, 100, 0.7);
-      const medium = await compressTo(dataUrl, 1200, 0.85);
-      appState.pendingPhotos[slot] = { dataUrl: medium, thumbnail };
-      appState.pendingSlot = null;
-      appState.photosDirty = true;
+      try {
+        const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
+        const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
+        const medium = await compressTo(dataUrl, 1200, 0.85, coords);
+        appState.pendingPhotos[slot] = { dataUrl: medium, thumbnail };
+        appState.pendingSlot = null;
+        appState.photosDirty = true;
+      } catch (err) {
+        console.error('Photo processing failed for slot', slot, err);
+        alert('Photo could not be processed. Please try again.');
+      }
       renderSlots();
 
       const filled = appState.pendingPhotos.filter(Boolean).length;
