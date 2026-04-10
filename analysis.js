@@ -193,7 +193,9 @@ export async function runBatchAnalyse() {
     
     try {
       const rec = await dbGet(S_PHOTOS, item.id);
-      const images = rec?.images?.slice(0, 2) || [];
+      const images = (item.aiSelectedIndices || [0, 1])
+        .filter(i => i < (rec?.images?.length || 0))
+        .map(i => rec.images[i]);
       if (images.length) {
         // 🚨 Use the Master Function
         const json = await requestAIAnalysis(images, key);

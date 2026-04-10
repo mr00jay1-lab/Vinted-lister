@@ -1,6 +1,6 @@
 import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
 import { dbPut, dbGet, dbGetAll } from './db.js';
-import { compressTo } from './utils.js';
+import { compressTo, detectCropCoords } from './utils.js';
 import { analyseItem } from './analysis.js';
 import { renderDetail, renderHome, goHome, showScreen, closeModal } from './ui.js';
 
@@ -223,20 +223,20 @@ files.slice(0, maxFiles).forEach((file) => {
   const reader = new FileReader();
   reader.onload = async (loadEvent) => {
     const dataUrl = loadEvent.target.result;
-    
-    // The AI starts here
-    const thumbnail = await compressTo(dataUrl, 100, 0.7);
-    const medium = await compressTo(dataUrl, 1200, 0.85);
-    
-    appState.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
-    appState.photosDirty = true;
+    try {
+      const coords = await detectCropCoords(dataUrl);
+      const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
+      const medium = await compressTo(dataUrl, 1200, 0.85, coords);
+      appState.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
+      appState.photosDirty = true;
+    } catch (err) {
+      console.error('Photo processing failed for slot', currentSlot, err);
+      alert(`Photo ${currentSlot + 1} could not be processed. Please try another.`);
+    }
     processed += 1;
-    
-    // This part is CRITICAL:
-    // It only renders the screen once the AI has finished the last photo
     if (processed === maxFiles) {
       hideBanner();
-      renderSlots(); 
+      renderSlots();
     }
   };
   reader.readAsDataURL(file);
@@ -248,11 +248,17 @@ files.slice(0, maxFiles).forEach((file) => {
     const reader = new FileReader();
     reader.onload = async (loadEvent) => {
       const dataUrl = loadEvent.target.result;
-      const thumbnail = await compressTo(dataUrl, 100, 0.7);
-      const medium = await compressTo(dataUrl, 1200, 0.85);
-      appState.pendingPhotos[slot] = { dataUrl: medium, thumbnail };
-      appState.pendingSlot = null;
-      appState.photosDirty = true;
+      try {
+        const coords = await detectCropCoords(dataUrl);
+        const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
+        const medium = await compressTo(dataUrl, 1200, 0.85, coords);
+        appState.pendingPhotos[slot] = { dataUrl: medium, thumbnail };
+        appState.pendingSlot = null;
+        appState.photosDirty = true;
+      } catch (err) {
+        console.error('Photo processing failed for slot', slot, err);
+        alert('Photo could not be processed. Please try again.');
+      }
       renderSlots();
 
       const filled = appState.pendingPhotos.filter(Boolean).length;

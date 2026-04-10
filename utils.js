@@ -1,97 +1,111 @@
-import 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs';
-import 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd';
+let modelPromise = null;
 
-let model = null;
-
-// New function to call when the app first starts
-export async function initAI() {
-  if (!model) {
-    console.log("AI: Loading model...");
-    model = await cocoSsd.load();
-    console.log("AI: Model Ready");
-  }
+/** Injects a CDN <script> tag and waits for it to load */
+function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = url;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
+    document.head.appendChild(script);
+  });
 }
 
-export async function compressTo(dataUrl, maxW, quality) {
-  // Ensure AI model is loaded to prevent execution 'hangs'
-  if (!model) await initAI();
+/**
+ * Loads TF.js + COCO-SSD once and returns the model.
+ * Safe to call concurrently — all callers share the same loading Promise.
+ * Returns null on any failure so callers can degrade gracefully to centre-crop.
+ */
+export function initAI() {
+  if (!modelPromise) {
+    modelPromise = (async () => {
+      await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0');
+      await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3');
+      console.log('AI: Loading model...');
+      const m = await window.cocoSsd.load();
+      console.log('AI: Model ready');
+      return m;
+    })().catch(err => {
+      console.warn('AI: Model unavailable, smart-crop disabled:', err);
+      modelPromise = null;
+      return null;
+    });
+  }
+  return modelPromise;
+}
 
-  return new Promise((resolve, reject) => {
+/**
+ * Detects the main object and returns 3:4 crop coordinates centred on it.
+ * Returns null on any failure — callers should fall back to centre-crop.
+ */
+export async function detectCropCoords(dataUrl) {
+  const model = await initAI();
+  if (!model) return null;
+
+  return new Promise((resolve) => {
     const img = new Image();
-    img.onerror = () => reject("Image failed to load");
+    img.onerror = () => resolve(null);
     img.onload = async () => {
       try {
-        const targetRatio = 3 / 4; // Vinted Portrait Ratio
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        // 1. Run AI Detection
+        const targetRatio = 3 / 4;
         const predictions = await model.detect(img);
-        
-        // Default to the exact center of the image
         let centerX = img.width / 2;
         let centerY = img.height / 2;
-
         if (predictions.length > 0) {
-          // Get the bounding box of the most confident detection [x, y, width, height]
           const [x, y, w, h] = predictions[0].bbox;
-          
-          // Calculate the center point of the detected object
           centerX = x + w / 2;
           centerY = y + h / 2;
-
-          /**
-           * OPTIONAL: PADDING LOGIC
-           * If you want the AI to "zoom out" slightly so the item isn't touching the 
-           * edges of the 3:4 crop, you can adjust centerX/Y or the crop size here.
-           * For items at the very bottom (like your Airpods case), the boundary 
-           * logic below is actually the most important fix.
-           */
         }
-
-        // 2. CROP SIZE CALCULATION
-        // We find the largest possible 3:4 rectangle that fits inside the source image
         let cropW, cropH;
         if (img.width / img.height > targetRatio) {
-          // Image is wider than 3:4 (Landscape)
           cropH = img.height;
           cropW = img.height * targetRatio;
         } else {
-          // Image is narrower than 3:4 (Tall Portrait)
           cropW = img.width;
           cropH = img.width / targetRatio;
         }
-
-        // 3. BOUNDARY GUARD RAILS
-        // We calculate the top-left corner (srcX, srcY) based on the item center.
-        // Math.min/Max ensures that if the item is at the edge (like the bottom), 
-        // the crop box 'stops' at the image boundary rather than cutting the item.
-        
-        // Calculate X and stay within 0 and (ImageWidth - CropWidth)
-        let srcX = centerX - cropW / 2;
-        srcX = Math.max(0, Math.min(srcX, img.width - cropW));
-
-        // Calculate Y and stay within 0 and (ImageHeight - CropHeight)
-        let srcY = centerY - cropH / 2;
-        srcY = Math.max(0, Math.min(srcY, img.height - cropH));
-
-        // 4. DRAW & RESIZE
-        canvas.width = maxW;
-        canvas.height = Math.round(maxW / targetRatio);
-
-        // Clear canvas and draw the 'Smart Slice'
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(
-          img, 
-          srcX, srcY, cropW, cropH,     // Source: The AI-centered 3:4 slice
-          0, 0, canvas.width, canvas.height // Destination: The resized output
-        );
-
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        const srcX = Math.max(0, Math.min(centerX - cropW / 2, img.width - cropW));
+        const srcY = Math.max(0, Math.min(centerY - cropH / 2, img.height - cropH));
+        resolve({ srcX, srcY, cropW, cropH });
       } catch (err) {
-        console.error("AI Processing Error:", err);
-        reject(err);
+        console.warn('AI detection failed, using centre crop:', err);
+        resolve(null);
       }
+    };
+    img.src = dataUrl;
+  });
+}
+
+/**
+ * Resizes a photo to maxW × (maxW / 0.75) at the given JPEG quality.
+ * cropCoords: {srcX, srcY, cropW, cropH} from detectCropCoords(), or null for centre crop.
+ */
+export function compressTo(dataUrl, maxW, quality, cropCoords = null) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onerror = () => reject(new Error('Image failed to load'));
+    img.onload = () => {
+      const targetRatio = 3 / 4;
+      let srcX, srcY, cropW, cropH;
+      if (cropCoords) {
+        ({ srcX, srcY, cropW, cropH } = cropCoords);
+      } else {
+        if (img.width / img.height > targetRatio) {
+          cropH = img.height;
+          cropW = img.height * targetRatio;
+        } else {
+          cropW = img.width;
+          cropH = img.width / targetRatio;
+        }
+        srcX = (img.width - cropW) / 2;
+        srcY = (img.height - cropH) / 2;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = maxW;
+      canvas.height = Math.round(maxW / targetRatio);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, srcX, srcY, cropW, cropH, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
     };
     img.src = dataUrl;
   });
