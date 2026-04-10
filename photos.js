@@ -218,23 +218,29 @@ export function handlePhoto(event, mode) {
     let processed = 0;
     const maxFiles = Math.min(files.length, MAX_PHOTOS - (appState.pendingSlot !== null ? appState.pendingSlot : 0));
 
-    files.slice(0, maxFiles).forEach((file) => {
-      const currentSlot = slotIndex++;
-      const reader = new FileReader();
-      reader.onload = async (loadEvent) => {
-        const dataUrl = loadEvent.target.result;
-        const thumbnail = await compressTo(dataUrl, 100, 0.7);
-        const medium = await compressTo(dataUrl, 1200, 0.85);
-        appState.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
-        appState.photosDirty = true;
-        processed += 1;
-        if (processed === maxFiles) {
-          hideBanner();
-          renderSlots();
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+files.slice(0, maxFiles).forEach((file) => {
+  const currentSlot = slotIndex++;
+  const reader = new FileReader();
+  reader.onload = async (loadEvent) => {
+    const dataUrl = loadEvent.target.result;
+    
+    // The AI starts here
+    const thumbnail = await compressTo(dataUrl, 100, 0.7);
+    const medium = await compressTo(dataUrl, 1200, 0.85);
+    
+    appState.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
+    appState.photosDirty = true;
+    processed += 1;
+    
+    // This part is CRITICAL:
+    // It only renders the screen once the AI has finished the last photo
+    if (processed === maxFiles) {
+      hideBanner();
+      renderSlots(); 
+    }
+  };
+  reader.readAsDataURL(file);
+});
   } else {
     // Handling single file from Camera
     const file = files[0];
