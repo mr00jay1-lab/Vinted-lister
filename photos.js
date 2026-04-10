@@ -1,4 +1,4 @@
-import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
+import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem, getSmartCrop } from './state.js';
 import { dbPut, dbGet, dbGetAll } from './db.js';
 import { compressTo, detectCropCoords } from './utils.js';
 import { analyseItem } from './analysis.js';
@@ -224,7 +224,7 @@ files.slice(0, maxFiles).forEach((file) => {
   reader.onload = async (loadEvent) => {
     const dataUrl = loadEvent.target.result;
     try {
-      const coords = await detectCropCoords(dataUrl);
+      const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
       const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
       const medium = await compressTo(dataUrl, 1200, 0.85, coords);
       appState.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
@@ -249,7 +249,7 @@ files.slice(0, maxFiles).forEach((file) => {
     reader.onload = async (loadEvent) => {
       const dataUrl = loadEvent.target.result;
       try {
-        const coords = await detectCropCoords(dataUrl);
+        const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
         const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
         const medium = await compressTo(dataUrl, 1200, 0.85, coords);
         appState.pendingPhotos[slot] = { dataUrl: medium, thumbnail };

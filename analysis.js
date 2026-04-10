@@ -1,40 +1,14 @@
-import { appState, S_PHOTOS, S_ITEMS, getApiKey, setItems, setCurrentItem } from './state.js';
+import { appState, S_PHOTOS, S_ITEMS, getApiKey, getPersona, getRules, setItems, setCurrentItem } from './state.js';
 import { dbGet, dbPut, dbGetAll } from './db.js';
 import { parseAnthropicJson } from './utils.js';
-import { renderDetail, renderHome, resetStatePhotos, closeModal, showScreen, updateStorageBar, renderAnalysisSpinner, renderAnalysisError } from './ui.js';
+import { renderDetail, renderHome, resetStatePhotos, closeModal, updateStorageBar, renderAnalysisSpinner, renderAnalysisError } from './ui.js';
 
 /* ==========================================================================
    SECTION 1: AI CONFIGURATION & PROMPTS
    ========================================================================== */
 
-// 1. Define the persona
-const PROMPT_PERSONA = `
-  You are an experienced family-focused Vinted seller. 
-  You specialize in high-quality kids' clothing and toys. 
-  Your tone is honest, practical, and helpful—parent-to-parent. 
-  You emphasize safety, cleanliness, and the exact condition of items so buyers feel confident.
-`;
-
-// 2. Define the rules
-const PROMPT_RULES = `
-- Title: Concise, max 50 chars. Format: Brand Item Colour/Type (e.g., "LEGO Duplo Fire Station" or "Next Denim Dungarees Blue").
-- Description: 
-  1. Write max 250 chars. For CLOTHES: focus on fit, style, and softness. For TOYS: focus on features, play value, and if all parts are included.
-  2. ALWAYS append on a new line: "Open to offers and bundles. From a smoke and pet-free home."
-- Inspection: 
-  - CLOTHES: Look closely at seams/edges for pilling or fading. 
-  - TOYS: Look for scratches, missing stickers, or battery compartment wear. 
-  - Always mention any marks or flaws honestly.
-- Unknowns: Use "Unknown" or "" if brand/size is not visible.
-- Formatting: Return ONLY the JSON object.
-- Constraint: STRICTLY no markdown code blocks ( \` \` \` ), no preamble, and no postscript. Just the JSON.
-`;
-
-// 3. Combine them into the final prompt used by the API
-const ANALYSIS_PROMPT = `
-${PROMPT_PERSONA}
-${PROMPT_RULES}
-
+// JSON output schema — combined with user-editable persona + rules at call time
+const ANALYSIS_JSON_SCHEMA = `
 Return ONLY valid JSON. No markdown, no explanation, no backticks.
 {
   "title": "listing title",
@@ -46,6 +20,11 @@ Return ONLY valid JSON. No markdown, no explanation, no backticks.
   "colours": ["list", "of", "colours"],
   "materials": ["list", "of", "materials"]
 }`;
+
+// Built fresh on every call so persona/rules changes in Settings take effect immediately
+function buildAnalysisPrompt() {
+  return `${getPersona()}\n${getRules()}\n${ANALYSIS_JSON_SCHEMA}`;
+}
 
 /* ==========================================================================
    SECTION 2: THE MASTER AI REQUEST (THE BRAIN)
@@ -77,7 +56,7 @@ async function requestAIAnalysis(images, key) {
               data: image.replace(/^data:image\/\w+;base64,/, '') 
             },
           })),
-          { type: 'text', text: ANALYSIS_PROMPT },
+          { type: 'text', text: buildAnalysisPrompt() },
         ],
       }],
     }),
@@ -113,7 +92,7 @@ function formatAnalysisResult(item, json) {
 export async function analyseItem() {
   const key = getApiKey();
   if (!key) {
-    showScreen('screen-apikey');
+    alert('Add your Anthropic API key in Settings — tap ⚙️ on the home screen.');
     return;
   }
 
@@ -178,7 +157,7 @@ export async function runBatchAnalyse() {
   const key = getApiKey();
   if (!key) {
     closeModal('modal-batch-analyse');
-    showScreen('screen-apikey');
+    alert('Add your Anthropic API key in Settings — tap ⚙️ on the home screen.');
     return;
   }
 
