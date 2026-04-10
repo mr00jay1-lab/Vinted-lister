@@ -1,4 +1,7 @@
-let net = null; // We'll cache the model here
+import 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs';
+import 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd';
+
+let model = null; // Caches the AI so it doesn't reload every time
 
 export async function compressTo(dataUrl, maxW, quality) {
   // Load model once and reuse it for all photos
