@@ -10,21 +10,31 @@ All notable changes to Vinted Lister are documented here.
 |---|-------------|--------|
 | 16 | **Arch:** Replace 3 photo-mode flags (`replacingItem`, `addingMorePhotos`, `isEditing`) with a single `photoContext` enum (`'new'\|'replace'\|'addMore'\|'edit'`) — currently set/cleared in 13 places across 2 files | Raised |
 | 17 | **Arch:** Move detail screen form fields from JS template strings (`ui.js:256`) to static HTML in `index.html` — currently impossible to find by searching HTML; changing fields requires editing JS | Raised |
-| 24 | **Feature:** Replace API key screen with full Settings screen — editable AI Persona and Listing Rules text boxes alongside API key input; `⚙️` button opens settings; removes all mid-flow redirects to API key screen | In dev |
-| 25 | **Feature:** AI Smart-Crop — TensorFlow.js COCO-SSD detects the item in each photo and auto-crops to a 3:4 portrait centered on it; boundary clamping prevents edge items being cut; model pre-loaded in background on app start | In dev |
-| 26 | **Bug:** `compressTo` in `utils.js` runs full COCO-SSD detection twice per photo — once for the 100px thumbnail, once for the 1200px medium; detection should run once and the crop coordinates reused for both sizes | In dev |
-| 27 | **Bug:** `compressTo` model-loading is not mutex-safe — `if (!model)` guard is not async-safe; two concurrent calls before model is ready will both enter the block and call `cocoSsd.load()` twice; needs a shared loading promise | In dev |
-| 28 | **Bug:** No error fallback in `handlePhoto` — `reader.onload` callbacks `await compressTo()` without try/catch; if AI detection or model load fails the photo is silently dropped and the pipeline stalls | In dev |
-| 29 | **Bug:** Forced 3:4 crop is destructive with no opt-out — all photos are cropped to portrait regardless of composition; users lose framing control with no override or disable option | In dev |
-| 30 | **Arch:** CDN imports for TF.js and COCO-SSD are not version-pinned (`@tensorflow/tfjs` with no version) — any breaking release will silently break photo processing on next app load | In dev |
-| 31 | **Arch:** `cocoSsd` assumed as a global variable inside an ES module — side-effect `import 'url'` does not guarantee `window.cocoSsd` is set; may throw `ReferenceError` in strict module contexts; should use a `<script>` tag or dynamic import with explicit namespace | In dev |
 | 32 | **Arch:** API key called directly from the browser — key is visible in the network tab to anyone who opens devtools; move analysis calls to a Vercel serverless function (`/api/analyse`) to keep the key server-side | Raised |
-| 33 | **Enhancement:** Batch analysis hardcodes `slice(0, 2)` — should use `item.aiSelectedIndices` per item (falling back to `[0, 1]`) so batch results match the quality of single-item analysis where users have selected their best photos | In dev |
 | 34 | **Arch:** Global scope pollution via `Object.assign(window, exposed)` in `main.js` — all module functions dumped onto `window` to support inline `onclick` attributes; directly caused the `backFromAddPhotos` double-definition bug; fix is to remove inline `onclick` and bind events in JS via `addEventListener` | Raised |
 | 35 | **Arch:** Cross-layer coupling — `actions.js` and `photos.js` call UI functions (`renderDetail`, `showScreen`, `goHome`) directly; a change to any UI function can cascade into data logic; decouple via a simple event bus or strict unidirectional flow (data layer updates state → UI layer reads and renders) | Raised |
 | 36 | **Arch:** `appState` is a flat object mixing DB data (`items`, `currentItem`), navigation state (`filter`, `copyPage`, `isEditing`), and temporary form data (`pendingPhotos`, `replacingItem`); splitting into `appState.data` / `appState.ui` / `appState.form` sub-objects would make selective resets and debugging significantly easier | Raised |
 | 37 | **Arch:** DB boundary has no data normalization — `thumbnail` is `null` when photos are loaded from IndexedDB, forcing `savePhotos()` to carry a manual fallback (`currentItem.thumbnail \|\| compressTo()`); normalization should happen at the `dbGet` boundary so callers receive clean objects | Raised |
 | 38 | **Arch:** Setter pattern from #20 only covers `setItems` and `setCurrentItem` — high-frequency fields like `filter`, `pendingPhotos`, `isEditing`, `dirty` are still mutated directly from any file; extending setters (or a lightweight Proxy) to all key fields would complete the single-mutation-point goal | Raised |
+
+---
+
+## v1.5 — 2026-04-10
+
+### Added
+- **#24 Settings screen** — API key screen replaced with a full Settings screen; editable AI Persona and Listing Rules textareas let users see and customise the prompt used for analysis; `⚙️` button on home opens settings; no more mid-flow redirects to settings when key is missing (alert shown instead)
+- **#25 AI Smart-Crop** — TensorFlow.js COCO-SSD detects the main item in each photo and auto-crops to a 3:4 portrait centred on it; boundary clamping prevents edge items being cut; model pre-loaded in background on app start
+- **#29 Smart-Crop opt-out** — AI Smart-Crop toggle in Settings (default ON); when disabled, photos use a simple centre-crop instead, preserving the original framing
+
+### Fixed
+- **#26** COCO-SSD detection now runs once per photo — `detectCropCoords()` extracted from `compressTo()`; both the 100px thumbnail and 1200px medium reuse the same crop coordinates
+- **#27** Model loading is now mutex-safe — shared `modelPromise` replaces the non-async-safe `if (!model)` guard; concurrent callers at startup all await the same Promise
+- **#28** Error fallback added to `handlePhoto` — both library and camera paths wrapped in try/catch; a failed photo shows an alert and leaves the slot empty rather than silently stalling
+- **#33** Batch analysis now respects user photo selection — `runBatchAnalyse` uses `item.aiSelectedIndices` (falling back to `[0, 1]`) instead of hard-coded `slice(0, 2)`
+
+### Architecture
+- **#30** TF.js and COCO-SSD CDN imports pinned to `@4.22.0` / `@2.2.3`; loaded dynamically inside `initAI()` so a breaking upstream release cannot silently break the app
+- **#31** Removed side-effect `import 'url'` for TF.js / COCO-SSD — replaced with dynamic `loadScript()` inside `initAI()`; `window.cocoSsd` is guaranteed to exist before `cocoSsd.load()` is called
 
 ---
 
