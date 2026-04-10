@@ -1,31 +1,32 @@
 let net = null; // We'll cache the model here
 
 export async function compressTo(dataUrl, maxW, quality) {
-  // Load the model once
-  if (!net) net = await cocoSsd.load();
+  // Load model once and reuse it for all photos
+  if (!model) {
+    model = await cocoSsd.load();
+  }
 
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = async () => {
-      const targetRatio = 3 / 4;
+      const targetRatio = 3 / 4; // Vinted Portrait
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
-      // 1. AI detection: Find the "item"
-      const predictions = await net.detect(img);
-      
-      // Default to image center
+      // --- STEP 1: DETECTION ---
+      const predictions = await model.detect(img);
       let centerX = img.width / 2;
       let centerY = img.height / 2;
 
-      // If AI found something, use the center of the detection box
       if (predictions.length > 0) {
+        // Find the "Subject" (usually the first result)
         const [x, y, w, h] = predictions[0].bbox;
-        centerX = x + (w / 2);
-        centerY = y + (h / 2);
+        centerX = x + w / 2;
+        centerY = y + h / 2;
       }
 
-      // 2. Calculate the crop box dimensions (3:4)
+      // --- STEP 3: THE CROP MATH ---
+      // Determine the largest 3:4 box that fits inside the image
       let cropW, cropH;
       if (img.width / img.height > targetRatio) {
         cropH = img.height;
@@ -35,20 +36,18 @@ export async function compressTo(dataUrl, maxW, quality) {
         cropH = img.width / targetRatio;
       }
 
-      // 3. Ensure the crop box stays inside the image pixels
+      // Ensure the box doesn't go off the edges of the photo
+      // Math.max(0, ...) ensures it doesn't go off the left/top
+      // Math.min(limit, ...) ensures it doesn't go off the right/bottom
       let srcX = Math.max(0, Math.min(img.width - cropW, centerX - cropW / 2));
       let srcY = Math.max(0, Math.min(img.height - cropH, centerY - cropH / 2));
 
-      // 4. Set final canvas size and draw
+      // Set final dimensions
       canvas.width = maxW;
       canvas.height = Math.round(maxW / targetRatio);
 
-      ctx.drawImage(
-        img,
-        srcX, srcY, cropW, cropH,          // The "Smart" slice
-        0, 0, canvas.width, canvas.height // The output
-      );
-
+      // Draw the smart slice
+      ctx.drawImage(img, srcX, srcY, cropW, cropH, 0, 0, canvas.width, canvas.height);
       resolve(canvas.toDataURL('image/jpeg', quality));
     };
     img.src = dataUrl;
