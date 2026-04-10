@@ -6,6 +6,10 @@ All notable changes to Vinted Lister are documented here.
 
 ## [Unreleased] — dev
 
+### Fixed
+- **Bug:** Add Photos back button now shows "save before leaving?" prompt when user has taken photos but not saved them — affected new item flow only
+
+### Architecture (Items)
 | # | Description | Status |
 |---|-------------|--------|
 | 15 | **Arch:** Delete dead `backFromAddPhotos` in `photos.js` — `actions.js` version silently overwrites it via `main.js` spread; `photos.js` version is unreachable dead code | In dev |
