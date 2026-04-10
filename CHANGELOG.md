@@ -8,8 +8,18 @@ All notable changes to Vinted Lister are documented here.
 
 | # | Description | Status |
 |---|-------------|--------|
-| 16 | **Arch:** Replace 3 photo-mode flags (`replacingItem`, `addingMorePhotos`, `isEditing`) with a single `photoContext` enum (`'new'|'replace'|'addMore'|'edit'`) — currently set/cleared in 13 places across 2 files | Raised |
+| 16 | **Arch:** Replace 3 photo-mode flags (`replacingItem`, `addingMorePhotos`, `isEditing`) with a single `photoContext` enum (`'new'\|'replace'\|'addMore'\|'edit'`) — currently set/cleared in 13 places across 2 files | Raised |
 | 17 | **Arch:** Move detail screen form fields from JS template strings (`ui.js:256`) to static HTML in `index.html` — currently impossible to find by searching HTML; changing fields requires editing JS | Raised |
+| 24 | **Feature:** Replace API key screen with full Settings screen — editable AI Persona and Listing Rules text boxes alongside API key input; `⚙️` button opens settings; removes all mid-flow redirects to API key screen | Raised |
+| 25 | **Feature:** AI Smart-Crop — TensorFlow.js COCO-SSD detects the item in each photo and auto-crops to a 3:4 portrait centered on it; boundary clamping prevents edge items being cut; model pre-loaded in background on app start | In dev |
+| 26 | **Bug:** `compressTo` in `utils.js` runs full COCO-SSD detection twice per photo — once for the 100px thumbnail, once for the 1200px medium; detection should run once and the crop coordinates reused for both sizes | Raised |
+| 27 | **Bug:** `compressTo` model-loading is not mutex-safe — `if (!model)` guard is not async-safe; two concurrent calls before model is ready will both enter the block and call `cocoSsd.load()` twice; needs a shared loading promise | Raised |
+| 28 | **Bug:** No error fallback in `handlePhoto` — `reader.onload` callbacks `await compressTo()` without try/catch; if AI detection or model load fails the photo is silently dropped and the pipeline stalls | Raised |
+| 29 | **Bug:** Forced 3:4 crop is destructive with no opt-out — all photos are cropped to portrait regardless of composition; users lose framing control with no override or disable option | Raised |
+| 30 | **Arch:** CDN imports for TF.js and COCO-SSD are not version-pinned (`@tensorflow/tfjs` with no version) — any breaking release will silently break photo processing on next app load | Raised |
+| 31 | **Arch:** `cocoSsd` assumed as a global variable inside an ES module — side-effect `import 'url'` does not guarantee `window.cocoSsd` is set; may throw `ReferenceError` in strict module contexts; should use a `<script>` tag or dynamic import with explicit namespace | Raised |
+| 32 | **Arch:** API key called directly from the browser — key is visible in the network tab to anyone who opens devtools; move analysis calls to a Vercel serverless function (`/api/analyse`) to keep the key server-side | Raised |
+| 33 | **Enhancement:** Batch analysis hardcodes `slice(0, 2)` — should use `item.aiSelectedIndices` per item (falling back to `[0, 1]`) so batch results match the quality of single-item analysis where users have selected their best photos | Raised |
 
 ---
 
