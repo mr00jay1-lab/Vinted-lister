@@ -100,13 +100,19 @@ export async function setStatus(status) {
 
 /** Toggles which photos will be sent to AI for analysis */
 export function toggleAiPhoto(index) {
-  if (appState.aiSelectedIndices.includes(index)) {
+  const isSelected = appState.aiSelectedIndices.includes(index);
+  
+  if (isSelected) {
+    // Don't allow deselecting the last photo (Analysis needs at least one)
     if (appState.aiSelectedIndices.length <= 1) return;
     appState.aiSelectedIndices = appState.aiSelectedIndices.filter((i) => i !== index);
   } else {
+    // Limit to 10 photos for the AI analysis
     if (appState.aiSelectedIndices.length >= 10) return;
-    appState.aiSelectedIndices = [...appState.aiSelectedIndices, index].sort((a, b) => a - b);
+    appState.aiSelectedIndices.push(index);
+    appState.aiSelectedIndices.sort((a, b) => a - b);
   }
+  
   renderDetail(); 
 }
 
