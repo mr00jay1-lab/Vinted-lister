@@ -148,13 +148,24 @@ export async function openEditPhotos() {
 
 /** Handles the back button on Add Photos screen */
 export function backFromAddPhotos() {
+  const hasPhotos = appState.pendingPhotos.filter(Boolean).length > 0;
+
   if (appState.isEditing) {
-    appState.isEditing = false;
-    const nextItemBtn = document.getElementById('next-item-btn');
-    if (nextItemBtn) nextItemBtn.style.display = 'flex';
-    renderDetail();
-    showScreen('screen-detail');
+    // Editing mode: ask before leaving if photos changed
+    if (hasPhotos) {
+      document.getElementById('modal-unsaved-photos').style.display = 'flex';
+    } else {
+      appState.isEditing = false;
+      const nextItemBtn = document.getElementById('next-item-btn');
+      if (nextItemBtn) nextItemBtn.style.display = 'flex';
+      renderDetail();
+      showScreen('screen-detail');
+    }
+  } else if (hasPhotos) {
+    // New item mode with pending photos: ask before discarding
+    document.getElementById('modal-unsaved-photos').style.display = 'flex';
   } else {
+    // New item mode with no photos: just go home
     goHome();
   }
 }
