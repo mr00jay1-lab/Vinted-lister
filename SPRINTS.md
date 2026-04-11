@@ -6,17 +6,18 @@ Check `CHANGELOG.md [Unreleased]` table for full item descriptions.
 ---
 
 ## Sprint D — State Architecture
-**Items:** #36, #38, #37, #16
-**Files touched:** `state.js`, all consumers
+**Items:** #36, #38, #37, #39, #16
+**Files touched:** `state.js`, `db.js`, `actions.js`, all consumers
 
 | # | What |
 |---|------|
 | 36 | Split flat `appState` into `appState.data` / `.ui` / `.form` sub-objects |
 | 38 | Extend setter pattern to remaining high-frequency fields (`filter`, `pendingPhotos`, `isEditing`, `dirty`) |
 | 37 | Normalise data at `dbGet` boundary — `thumbnail` should never be `null` when callers receive an item |
+| 39 | **Bug:** Delete orphaned `photos` store entry when an item is deleted or archived — `deleteItem` and `handleSetStatus('archived')` must call `dbDelete('photos', id)` |
 | 16 | Replace 3 photo-mode flags (`replacingItem`, `addingMorePhotos`, `isEditing`) with a single `photoContext` enum |
 
-**Note:** #36 and #38 are coupled — do together. #37 is independent but benefits from #36 being done first. #16 is the biggest refactor; do last.
+**Note:** #36 and #38 are coupled — do together. #37 is independent but benefits from #36 being done first. #39 is a standalone bug fix, safe to do at any point. #16 is the biggest refactor; do last.
 
 ---
 
@@ -57,10 +58,22 @@ Check `CHANGELOG.md [Unreleased]` table for full item descriptions.
 
 ---
 
+## Sprint G — Simplification
+**Items:** #40
+**Files touched:** `state.js`, `ui.js`, `actions.js`, `index.html`, `styles.css`
+
+| # | What |
+|---|------|
+| 40 | Remove Archived status — delete filter tab, status dropdown option, auto-clean logic, and archived-specific CSS; valid statuses become `photos \| analysed \| listed \| sold` only |
+
+**Note:** Do after Sprint D (#39 removes the `photos` store cleanup tied to archive; #16 cleans up photo-mode flags). Low logic risk but touches many files — read each before editing.
+
+---
+
 ## Completed Sprints (for reference)
 
 | Sprint | Items | Released |
-|--------|-------|---------|
+|--------|-------|----------|
 | A — AI Smart-Crop stabilisation | #25, #26, #27, #28, #30, #31 | v1.5 |
 | B — Settings screen + smart-crop toggle | #24, #29 | v1.5 |
 | C — Batch analysis photo selection | #33 | v1.5 |

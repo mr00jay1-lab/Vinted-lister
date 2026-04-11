@@ -16,6 +16,8 @@ All notable changes to Vinted Lister are documented here.
 | 36 | **Arch:** `appState` is a flat object mixing DB data (`items`, `currentItem`), navigation state (`filter`, `copyPage`, `isEditing`), and temporary form data (`pendingPhotos`, `replacingItem`); splitting into `appState.data` / `appState.ui` / `appState.form` sub-objects would make selective resets and debugging significantly easier | Raised |
 | 37 | **Arch:** DB boundary has no data normalization — `thumbnail` is `null` when photos are loaded from IndexedDB, forcing `savePhotos()` to carry a manual fallback (`currentItem.thumbnail \|\| compressTo()`); normalization should happen at the `dbGet` boundary so callers receive clean objects | Raised |
 | 38 | **Arch:** Setter pattern from #20 only covers `setItems` and `setCurrentItem` — high-frequency fields like `filter`, `pendingPhotos`, `isEditing`, `dirty` are still mutated directly from any file; extending setters (or a lightweight Proxy) to all key fields would complete the single-mutation-point goal | Raised |
+| 39 | **Bug:** IndexedDB `photos` store entry is not deleted when an item is deleted or archived — `deleteItem` and `handleSetStatus('archived')` in `actions.js` remove the item record but leave the photos blob orphaned in the `photos` store, leaking storage | Raised |
+| 40 | **Simplification:** Remove the Archived status entirely — the concept adds UI surface (filter tab, status option, auto-clean logic) with little practical value; items should go Photos → Analysed → Listed → Sold only; affects `state.js` (status enum), `ui.js` (filter), `actions.js` (dropdown), `index.html`, `styles.css` | Raised |
 
 ---
 
