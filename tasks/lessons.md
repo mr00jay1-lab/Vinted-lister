@@ -20,5 +20,6 @@ Updated after every user correction. Reviewed at session start.
 ---
 
 **Problem:** After running `/graphify`, `graphify claude install` was not run, so Claude had no automatic instruction to use the graph and no PreToolUse hook was registered.
+**Root cause:** The skill SKILL.md lists `graphify claude install` in a separate section ("For native CLAUDE.md integration") outside the numbered pipeline steps (1–9). I followed only the numbered steps and did not read the full skill documentation beyond them.
 **Fix:** Ran `graphify claude install` manually after the fact.
-**Rule:** Always run `graphify claude install` immediately after the first `/graphify .` pipeline completes on a project. It wires up CLAUDE.md and the PreToolUse hook automatically.
+**Rule:** When executing a skill, read the *entire* SKILL.md — not just the numbered steps — before starting. Sections outside the pipeline steps may contain mandatory setup commands. Always run `graphify claude install` immediately after the first `/graphify .` on any project.
