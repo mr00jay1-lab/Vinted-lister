@@ -56,7 +56,8 @@ export async function openReplacePhotos() {
   if (appState.currentItem && appState.currentItem.hasPhotos) {
     const rec = await dbGet(S_PHOTOS, appState.currentItem.id);
     if (rec && rec.images) {
-      appState.pendingPhotos = rec.images.map((image) => ({ dataUrl: image, thumbnail: null }));
+      const storedThumb = appState.currentItem?.thumbnail ?? null;
+      appState.pendingPhotos = rec.images.map((image, i) => ({ dataUrl: image, thumbnail: i === 0 ? storedThumb : null }));
     }
   }
   document.getElementById('addphotos-title').textContent = 'Replace Photos';
@@ -75,7 +76,8 @@ export async function openAddMorePhotos() {
   if (appState.currentItem && appState.currentItem.hasPhotos) {
     const rec = await dbGet(S_PHOTOS, appState.currentItem.id);
     if (rec && rec.images) {
-      appState.pendingPhotos = rec.images.map((image) => ({ dataUrl: image, thumbnail: null }));
+      const storedThumb = appState.currentItem?.thumbnail ?? null;
+      appState.pendingPhotos = rec.images.map((image, i) => ({ dataUrl: image, thumbnail: i === 0 ? storedThumb : null }));
     }
   }
   document.getElementById('addphotos-title').textContent = 'Add / Replace Photos';
@@ -291,10 +293,7 @@ export async function savePhotos(startNewAfter = false, backToOrigin = false) {
   const photos = appState.pendingPhotos.filter(Boolean);
   if (!photos.length) return;
 
-  let thumbnail = photos[0].thumbnail;
-  if (!thumbnail) {
-    thumbnail = appState.currentItem?.thumbnail || await compressTo(photos[0].dataUrl, 100, 0.7);
-  }
+  const thumbnail = photos[0].thumbnail || await compressTo(photos[0].dataUrl, 100, 0.7);
   const images = photos.map((photo) => photo.dataUrl);
 
   // LOGIC A & B: Existing item (edit / replace / addMore)

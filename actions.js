@@ -133,9 +133,10 @@ export async function openEditPhotos() {
       const rec = await dbGet(S_PHOTOS, item.id);
       if (rec && rec.images) {
         // Map dataUrls into the object format the photo screen expects
-        appState.pendingPhotos = rec.images.map(img => ({
+        const storedThumb = appState.currentItem?.thumbnail ?? null;
+        appState.pendingPhotos = rec.images.map((img, i) => ({
           dataUrl: img,
-          thumbnail: null // Will be regenerated on save if needed
+          thumbnail: i === 0 ? storedThumb : null,
         }));
       }
     } catch (err) {
