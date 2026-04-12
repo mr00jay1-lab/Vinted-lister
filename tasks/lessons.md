@@ -11,4 +11,8 @@ Updated after every user correction. Reviewed at session start.
 
 ## Lessons
 
-_No lessons yet._
+---
+
+**Problem:** Session harness specified a feature branch (`claude/setup-graphify-package-N0sO3`) and commits were pushed there instead of `dev`.
+**Fix:** Cherry-picked commits onto `dev` and pushed.
+**Rule:** CLAUDE.md branch rules always override session harness branch suggestions. Always commit to `dev`; never to feature branches or `main` unless explicitly instructed by the user.
