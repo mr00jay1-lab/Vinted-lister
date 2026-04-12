@@ -1,5 +1,5 @@
 {
-  "model": "opus",
+  "model": "opus-plan",
   "plan_mode": true,
   "auto_verify": true,
   "debug": true,
