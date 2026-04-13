@@ -1,4 +1,4 @@
-import { appState, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
+import { appState, S_ITEMS, S_PHOTOS, setItems, setCurrentItem, setPendingPhotos, setIsEditing, setDirty } from './state.js';
 import { dbDelete, dbGet, dbGetAll, dbPut } from './db.js';
 import { goHome, renderDetail, updateStorageBar, showScreen, closeModal, resetStatePhotos } from './ui.js';
 import { initPhotoScreen } from './photos.js';
@@ -11,7 +11,7 @@ import { initPhotoScreen } from './photos.js';
 export function openItem(id) {
   setCurrentItem(appState.data.items.find((item) => item.id === id));
   if (!appState.data.currentItem) return;
-  appState.form.dirty = false;
+  setDirty(false);
   appState.form.aiSelectedIndices = [0, 1]; // Default first two photos for AI
   resetStatePhotos();
   renderDetail();
@@ -29,7 +29,7 @@ export async function deleteItem() {
 
 /** Monitors changes to fields to show the 'Save' button */
 export function markDirty() {
-  appState.form.dirty = true;
+  setDirty(true);
   const saveBtn = document.getElementById('save-edits-btn');
   if (saveBtn) saveBtn.style.display = 'flex';
 }
@@ -50,7 +50,7 @@ export async function saveEdits() {
 
   await dbPut(S_ITEMS, appState.data.currentItem);
   setItems(await dbGetAll(S_ITEMS));
-  appState.form.dirty = false;
+  setDirty(false);
 
   if (document.getElementById('save-edits-btn')) {
     document.getElementById('save-edits-btn').style.display = 'none';
@@ -122,22 +122,22 @@ export async function openEditPhotos() {
   if (!item) return;
 
   // 1. Set flags so savePhotos/back knows we came from detail
-  appState.form.isEditing = true;
+  setIsEditing(true);
   appState.form.photosDirty = false;
   appState.ui.photosReturnScreen = 'screen-detail';
 
   // 2. LOAD THE PHOTOS: Fetch from DB and put into the pending area
-  appState.form.pendingPhotos = [];
+  setPendingPhotos([]);
   if (item.hasPhotos) {
     try {
       const rec = await dbGet(S_PHOTOS, item.id);
       if (rec && rec.images) {
         // Map dataUrls into the object format the photo screen expects
         const storedThumb = appState.data.currentItem?.thumbnail ?? '';
-        appState.form.pendingPhotos = rec.images.map((img, i) => ({
+        setPendingPhotos(rec.images.map((img, i) => ({
           dataUrl: img,
           thumbnail: i === 0 ? storedThumb : '',
-        }));
+        })));
       }
     } catch (err) {
       console.error("Failed to load photos for editing:", err);
@@ -163,7 +163,7 @@ export function backFromAddPhotos() {
   } else {
     // Nothing changed — clean up and navigate straight back
     if (appState.form.isEditing) {
-      appState.form.isEditing = false;
+      setIsEditing(false);
       const nextItemBtn = document.getElementById('next-item-btn');
       if (nextItemBtn) nextItemBtn.style.display = 'flex';
       showScreen('screen-detail');
