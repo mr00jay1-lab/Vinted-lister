@@ -2,11 +2,11 @@ import { appState, saveSuggestions } from './state.js';
 
 export function renderSuggestions() {
   const list = document.getElementById('suggest-list');
-  if (!appState.suggestions.length) {
+  if (!appState.data.suggestions.length) {
     list.innerHTML = '<div class="suggest-empty">No suggestions yet. Add one above!</div>';
     return;
   }
-  list.innerHTML = appState.suggestions
+  list.innerHTML = appState.data.suggestions
     .map((suggestion, index) => `
       <div class="suggest-item">
         <div class="suggest-item-text">${index + 1}. ${suggestion}</div>
@@ -29,25 +29,25 @@ export function addSuggestion() {
   const input = document.getElementById('suggest-input');
   const text = input.value.trim();
   if (!text) return;
-  appState.suggestions.push(text);
+  appState.data.suggestions.push(text);
   saveSuggestions();
   input.value = '';
   renderSuggestions();
 }
 
 export function deleteSuggestion(index) {
-  appState.suggestions.splice(index, 1);
+  appState.data.suggestions.splice(index, 1);
   saveSuggestions();
   renderSuggestions();
 }
 
 export function copySuggestions() {
-  if (!appState.suggestions.length) {
+  if (!appState.data.suggestions.length) {
     alert('No suggestions to copy yet.');
     return;
   }
   
-  const text = 'Vinted Lister Suggestions:\n\n' + appState.suggestions.map((suggestion, index) => `${index + 1}. ${suggestion}`).join('\n');
+  const text = 'Vinted Lister Suggestions:\n\n' + appState.data.suggestions.map((suggestion, index) => `${index + 1}. ${suggestion}`).join('\n');
   const button = document.querySelector('.suggest-copy-btn');
   
   // Use modern clipboard API
