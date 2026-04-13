@@ -1,4 +1,4 @@
-import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem, getSmartCrop } from './state.js';
+import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem, getSmartCrop, setPendingPhotos, setIsEditing } from './state.js';
 import { dbPut, dbGet, dbGetAll } from './db.js';
 import { compressTo, detectCropCoords } from './utils.js';
 import { analyseItem } from './analysis.js';
@@ -27,11 +27,11 @@ function hideBanner() {
 export function startNewItem() {
   appState.form.replacingItem = false;
   appState.form.addingMorePhotos = false;
-  appState.form.isEditing = false;
+  setIsEditing(false);
   appState.form.photosDirty = false;
   appState.ui.photosReturnScreen = 'screen-home';
   setCurrentItem(null);
-  appState.form.pendingPhotos = [];
+  setPendingPhotos([]);
   appState.form.pendingSlot = null;
 
   // Restore the "New Item" button just in case it was hidden by openEditPhotos
@@ -52,12 +52,12 @@ export async function openReplacePhotos() {
   appState.form.addingMorePhotos = false;
   appState.form.photosDirty = false;
   appState.ui.photosReturnScreen = 'screen-detail';
-  appState.form.pendingPhotos = [];
+  setPendingPhotos([]);
   if (appState.data.currentItem && appState.data.currentItem.hasPhotos) {
     const rec = await dbGet(S_PHOTOS, appState.data.currentItem.id);
     if (rec && rec.images) {
       const storedThumb = appState.data.currentItem?.thumbnail ?? '';
-      appState.form.pendingPhotos = rec.images.map((image, i) => ({ dataUrl: image, thumbnail: i === 0 ? storedThumb : '' }));
+      setPendingPhotos(rec.images.map((image, i) => ({ dataUrl: image, thumbnail: i === 0 ? storedThumb : '' })));
     }
   }
   document.getElementById('addphotos-title').textContent = 'Replace Photos';
@@ -72,12 +72,12 @@ export async function openAddMorePhotos() {
   appState.form.replacingItem = false;
   appState.form.photosDirty = false;
   appState.ui.photosReturnScreen = 'screen-detail';
-  appState.form.pendingPhotos = [];
+  setPendingPhotos([]);
   if (appState.data.currentItem && appState.data.currentItem.hasPhotos) {
     const rec = await dbGet(S_PHOTOS, appState.data.currentItem.id);
     if (rec && rec.images) {
       const storedThumb = appState.data.currentItem?.thumbnail ?? '';
-      appState.form.pendingPhotos = rec.images.map((image, i) => ({ dataUrl: image, thumbnail: i === 0 ? storedThumb : '' }));
+      setPendingPhotos(rec.images.map((image, i) => ({ dataUrl: image, thumbnail: i === 0 ? storedThumb : '' })));
     }
   }
   document.getElementById('addphotos-title').textContent = 'Add / Replace Photos';
@@ -101,12 +101,12 @@ export function initPhotoScreen() {
 /** Discards the current session and returns to the screen that launched photos */
 export function discardAndGoHome() {
   closeModal('modal-unsaved-photos');
-  appState.form.pendingPhotos = [];
+  setPendingPhotos([]);
   appState.form.photosDirty = false;
 
   // Clean up mode flags
   if (appState.form.isEditing) {
-    appState.form.isEditing = false;
+    setIsEditing(false);
     const nextItemBtn = document.getElementById('next-item-btn');
     if (nextItemBtn) nextItemBtn.style.display = 'flex';
   }
@@ -308,7 +308,7 @@ export async function savePhotos(startNewAfter = false, backToOrigin = false) {
     setCurrentItem(appState.data.items.find((item) => item.id === appState.data.currentItem.id));
 
     const wasAddingMore = appState.form.addingMorePhotos;
-    appState.form.isEditing = false;
+    setIsEditing(false);
     appState.form.addingMorePhotos = false;
     appState.form.replacingItem = false;
     const nextItemBtn = document.getElementById('next-item-btn');
