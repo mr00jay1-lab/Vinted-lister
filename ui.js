@@ -9,7 +9,7 @@ import { renderSuggestions } from './suggestions.js';
 /** Bootstraps the app: Opens DB, cleans storage, and handles routing based on API key */
 export async function initApp() {
   await openDB();
-  appState.items = await dbGetAll(S_ITEMS);
+  setItems(await dbGetAll(S_ITEMS));
   await autoClean();
   renderSuggestions();
 
@@ -32,11 +32,11 @@ export async function initApp() {
 /** Automatically removes high-res photos for items sold/archived over 30 days ago */
 export async function autoClean() {
   const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  for (const item of appState.items) {
+  for (const item of appState.data.items) {
     if (['sold', 'archived'].includes(item.status) && item.hasPhotos && (item.statusChangedAt || 0) < cutoff) {
       await dbDelete(S_PHOTOS, item.id);
       item.hasPhotos = false;
-      item.thumbnail = null;
+      item.thumbnail = '';
       await dbPut(S_ITEMS, item);
     }
   }
@@ -172,7 +172,7 @@ export function renderAnalysisError(message) {
 
 /** Updates the active filter (All, Photos, Analysed, etc.) and re-renders the list */
 export function setFilter(filter, button) {
-  appState.filter = filter;
+  appState.ui.filter = filter;
   document.querySelectorAll('.tab').forEach((tab) => tab.classList.remove('active'));
   button.classList.add('active');
   renderHome();
@@ -181,19 +181,19 @@ export function setFilter(filter, button) {
 /** Draws the list of items on the home screen based on active filters */
 export async function renderHome() {
   const list = document.getElementById('item-list');
-  const photoItems = appState.items.filter((item) => item.status === 'photos');
-  
+  const photoItems = appState.data.items.filter((item) => item.status === 'photos');
+
   // Show/Hide Batch Analyse button if there are items in 'photos' status
   const batchBtn = document.getElementById('btn-batch-analyse');
   if (batchBtn) batchBtn.style.display = photoItems.length ? 'flex' : 'none';
 
-  const filtered = [...appState.items].reverse().filter((item) => {
-    if (appState.filter === 'all') return item.status !== 'archived';
-    return item.status === appState.filter;
+  const filtered = [...appState.data.items].reverse().filter((item) => {
+    if (appState.ui.filter === 'all') return item.status !== 'archived';
+    return item.status === appState.ui.filter;
   });
 
   if (!filtered.length) {
-    list.innerHTML = `<div class="empty"><div class="icon">👗</div><h2>${appState.filter === 'all' ? 'No items yet' : 'Nothing here'}</h2><p>${appState.filter === 'all' ? 'Tap the button below to photograph your first item.' : 'No items with this status yet.'}</p></div>`;
+    list.innerHTML = `<div class="empty"><div class="icon">👗</div><h2>${appState.ui.filter === 'all' ? 'No items yet' : 'Nothing here'}</h2><p>${appState.ui.filter === 'all' ? 'Tap the button below to photograph your first item.' : 'No items with this status yet.'}</p></div>`;
     return;
   }
 
@@ -227,7 +227,7 @@ export function resetStatePhotos() {
   const stateAnalysed = document.getElementById('state-analysed');
   if (!statePhotos || !stateAnalysed) return;
 
-  if (appState.currentItem && appState.currentItem.status !== 'photos') {
+  if (appState.data.currentItem && appState.data.currentItem.status !== 'photos') {
     statePhotos.style.display = 'none';
     stateAnalysed.style.display = 'block';
   } else {
@@ -239,7 +239,7 @@ export function resetStatePhotos() {
 
 /** Renders the full detail page including photos, AI details, and listing forms */
 export async function renderDetail() {
-  const item = appState.currentItem;
+  const item = appState.data.currentItem;
   document.getElementById('detail-heading').textContent = item.title || 'Untitled item';
   document.getElementById('detail-badge-wrap').innerHTML = `<span class="badge ${STATUS_BADGE_CLASSES[item.status]}">${STATUS_LABELS[item.status]}</span>`;
 
@@ -252,7 +252,7 @@ export async function renderDetail() {
     if (rec && rec.images) {
       grid.innerHTML = rec.images
         .map((photo, index) => {
-          const selected = appState.aiSelectedIndices.includes(index);
+          const selected = appState.form.aiSelectedIndices.includes(index);
           return `
             <div class="detail-photo-slot${selected ? ' ai-selected' : ''}" onclick="window.toggleAiPhoto(${index})">
               <img src="${photo}" />${selected ? '<div class="ai-badge">🔍 AI</div>' : ''}
@@ -335,4 +335,3 @@ export async function renderDetail() {
     statusSelect.className = 'status-select st-' + item.status;
   }
 }
-
