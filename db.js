@@ -5,7 +5,7 @@ let db = null;
 function normaliseItem(item) {
   if (!item) return item;
   return {
-    thumbnail: null,
+    thumbnail: '',
     hasPhotos: false,
     title: '', description: '', category: '', brand: '',
     size: '', condition: '', colours: '', materials: '',
