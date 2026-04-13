@@ -105,11 +105,11 @@ export async function analyseItem() {
 
   renderAnalysisSpinner();
 
-  const itemId = appState.currentItem?.id;
-  const rec = appState.currentItem?.hasPhotos ? await dbGet(S_PHOTOS, itemId) : null;
+  const itemId = appState.data.currentItem?.id;
+  const rec = appState.data.currentItem?.hasPhotos ? await dbGet(S_PHOTOS, itemId) : null;
   const allImages = rec?.images || [];
-  
-  const images = appState.aiSelectedIndices
+
+  const images = appState.form.aiSelectedIndices
     .filter((index) => index < allImages.length)
     .map((index) => allImages[index]);
 
@@ -123,19 +123,19 @@ export async function analyseItem() {
     const json = await requestAIAnalysis(images, key);
 
     // Guard against user navigating away during the 10s wait
-    if (!appState.currentItem || appState.currentItem.id !== itemId) return;
+    if (!appState.data.currentItem || appState.data.currentItem.id !== itemId) return;
 
-    setCurrentItem(formatAnalysisResult(appState.currentItem, json));
-    await dbPut(S_ITEMS, appState.currentItem);
+    setCurrentItem(formatAnalysisResult(appState.data.currentItem, json));
+    await dbPut(S_ITEMS, appState.data.currentItem);
 
     setItems(await dbGetAll(S_ITEMS));
-    setCurrentItem(appState.items.find((item) => item.id === itemId));
-    
+    setCurrentItem(appState.data.items.find((item) => item.id === itemId));
+
     // This will draw the AI fields AND restore the buttons via renderDetail
     await renderDetail();
-    
+
   } catch (error) {
-    if (!appState.currentItem || appState.currentItem.id !== itemId) return;
+    if (!appState.data.currentItem || appState.data.currentItem.id !== itemId) return;
     
     renderAnalysisError(error.message);
   }
@@ -146,7 +146,7 @@ export async function analyseItem() {
    ========================================================================== */
 
 export function openBatchAnalyse() {
-  const photoItems = appState.items.filter((item) => item.status === 'photos');
+  const photoItems = appState.data.items.filter((item) => item.status === 'photos');
   document.getElementById('batch-title').textContent = `Analyse ${photoItems.length} items?`;
   document.getElementById('batch-progress').style.display = 'none';
   document.getElementById('batch-confirm-btn').style.display = 'flex';
@@ -161,7 +161,7 @@ export async function runBatchAnalyse() {
     return;
   }
 
-  const photoItems = appState.items.filter((item) => item.status === 'photos');
+  const photoItems = appState.data.items.filter((item) => item.status === 'photos');
   document.getElementById('batch-confirm-btn').style.display = 'none';
   document.getElementById('batch-cancel-btn').style.display = 'none';
   document.getElementById('batch-progress').style.display = 'block';
@@ -176,7 +176,6 @@ export async function runBatchAnalyse() {
         .filter(i => i < (rec?.images?.length || 0))
         .map(i => rec.images[i]);
       if (images.length) {
-        // 🚨 Use the Master Function
         const json = await requestAIAnalysis(images, key);
         const updated = formatAnalysisResult(item, json);
         await dbPut(S_ITEMS, updated);
