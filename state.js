@@ -123,3 +123,19 @@ export function setItems(items) {
 export function setCurrentItem(item) {
   appState.data.currentItem = item;
 }
+
+export function setUiFilter(filter) {
+  appState.ui.filter = filter;
+}
+
+export function setPendingPhotos(photos) {
+  appState.form.pendingPhotos = photos;
+}
+
+export function setIsEditing(value) {
+  appState.form.isEditing = value;
+}
+
+export function setDirty(value) {
+  appState.form.dirty = value;
+}
