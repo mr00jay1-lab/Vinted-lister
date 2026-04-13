@@ -1,4 +1,4 @@
-import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, getApiKey, saveApiKeyValue, getPersona, savePersona, getRules, saveRules, getSmartCrop, saveSmartCrop, APP_VERSION, BRANCH_NAME, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
+import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, getApiKey, saveApiKeyValue, getPersona, savePersona, getRules, saveRules, getSmartCrop, saveSmartCrop, APP_VERSION, BRANCH_NAME, S_ITEMS, S_PHOTOS, setItems, setCurrentItem, setUiFilter } from './state.js';
 import { dbGet, dbGetAll, dbPut, dbDelete, openDB } from './db.js';
 import { renderSuggestions } from './suggestions.js';
 
@@ -172,7 +172,7 @@ export function renderAnalysisError(message) {
 
 /** Updates the active filter (All, Photos, Analysed, etc.) and re-renders the list */
 export function setFilter(filter, button) {
-  appState.ui.filter = filter;
+  setUiFilter(filter);
   document.querySelectorAll('.tab').forEach((tab) => tab.classList.remove('active'));
   button.classList.add('active');
   renderHome();
