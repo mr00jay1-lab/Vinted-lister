@@ -208,34 +208,35 @@ export function handlePhoto(event, mode) {
   }
 
   if (mode === 'library') {
-    // Handling multiple files from Gallery
-    let slotIndex = appState.form.pendingSlot !== null ? appState.form.pendingSlot : appState.form.pendingPhotos.filter(Boolean).length;
-    let processed = 0;
-    const maxFiles = Math.min(files.length, MAX_PHOTOS - (appState.form.pendingSlot !== null ? appState.form.pendingSlot : 0));
+    const startSlot = appState.form.pendingSlot !== null
+      ? appState.form.pendingSlot
+      : appState.form.pendingPhotos.filter(Boolean).length;
+    const maxFiles = Math.min(files.length, MAX_PHOTOS - startSlot);
 
-files.slice(0, maxFiles).forEach((file) => {
-  const currentSlot = slotIndex++;
-  const reader = new FileReader();
-  reader.onload = async (loadEvent) => {
-    const dataUrl = loadEvent.target.result;
-    try {
-      const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
-      const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
-      const medium = await compressTo(dataUrl, 1200, 0.85, coords);
-      appState.form.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
-      appState.form.photosDirty = true;
-    } catch (err) {
-      console.error('Photo processing failed for slot', currentSlot, err);
-      alert(`Photo ${currentSlot + 1} could not be processed. Please try another.`);
-    }
-    processed += 1;
-    if (processed === maxFiles) {
-      hideBanner();
-      renderSlots();
-    }
-  };
-  reader.readAsDataURL(file);
-});
+    (async () => {
+      for (let i = 0; i < maxFiles; i++) {
+        const currentSlot = startSlot + i;
+        await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = async (loadEvent) => {
+            const dataUrl = loadEvent.target.result;
+            try {
+              const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
+              const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
+              const medium = await compressTo(dataUrl, 1200, 0.85, coords);
+              appState.form.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
+              appState.form.photosDirty = true;
+            } catch (err) {
+              console.error('Photo processing failed for slot', currentSlot, err);
+            }
+            resolve();
+          };
+          reader.readAsDataURL(files[i]);
+        });
+        hideBanner();
+        renderSlots();
+      }
+    })().catch(err => console.error('Library processing error:', err));
   } else {
     // Handling single file from Camera
     const file = files[0];

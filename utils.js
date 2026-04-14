@@ -105,7 +105,9 @@ export function compressTo(dataUrl, maxW, quality, cropCoords = null) {
       canvas.height = Math.round(maxW / targetRatio);
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, srcX, srcY, cropW, cropH, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
+      const result = canvas.toDataURL('image/jpeg', quality);
+      canvas.width = 0; // release GPU/bitmap memory
+      resolve(result);
     };
     img.src = dataUrl;
   });
