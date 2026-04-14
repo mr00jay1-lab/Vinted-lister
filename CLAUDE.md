@@ -54,6 +54,9 @@ Optimize compute and token usage by selecting the right model/subagent for the t
   - Lifecycle: `New` ->`Raised` -> `Analysed` -> `In dev` -> `In prod`.
   - **NEVER move an item to the next status without the user explicitly asking.**
 - **Merge/Release Protocol:** ONLY merge to `main` when explicitly instructed to "push/release".
-  - *Pre-merge checklist:* 1. Bump `APP_VERSION` in `state.js` (v{major}.{minor}).
+  - *Pre-merge checklist:* 1. Bump `APP_VERSION` in `state.js` (format: `v{major}.{minor}.{patch}`).
+    - Increment **patch** (`x.y.Z`) for each bug-fix or small feature commit on `dev`.
+    - Increment **minor** (`x.Y.0`) for significant feature releases; reset patch to `0`.
+    - Increment **major** (`X.0.0`) for breaking changes only.
     2. Finalize `CHANGELOG.md` (convert `In dev` rows to `### Added / Fixed / Architecture` bullet points under the new version heading; leave `Raised` items in Unreleased).
     3. Tag release: `git tag v{version} && git push origin v{version}`.
