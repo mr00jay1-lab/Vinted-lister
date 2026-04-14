@@ -41,3 +41,34 @@ None
 
 ## Next Up
 Sprint D: #16 (photoContext enum — replace 3 photo-mode flags with single enum)
+
+---
+
+### #16 — photoContext enum
+
+**Enum values:**
+| Value | Meaning | Previously |
+|---|---|---|
+| `'new'` | Fresh item, no existing photos | all 3 flags = false |
+| `'replace'` | Overwriting existing photos | `replacingItem = true` |
+| `'addMore'` | Adding to existing photos | `addingMorePhotos = true` |
+| `'edit'` | Editing photo order/set from detail view | `isEditing = true` |
+
+#### state.js
+- [ ] Remove `replacingItem`, `addingMorePhotos`, `isEditing` from `appState.form`
+- [ ] Add `photoContext: 'new'` to `appState.form`
+
+#### photos.js
+- [ ] `startNewItem()` — 3 flag resets → `appState.form.photoContext = 'new'`
+- [ ] `openReplacePhotos()` — 2 flag sets → `appState.form.photoContext = 'replace'`
+- [ ] `openAddMorePhotos()` — 2 flag sets → `appState.form.photoContext = 'addMore'`
+- [ ] `discardAndGoHome()` — isEditing check + 3 clears → photoContext check + single reset to `'new'`
+- [ ] `savePhotos()` — tri-flag OR condition + `wasAddingMore` read + 3 clears → `photoContext !== 'new'` + `photoContext === 'addMore'` + single reset
+
+#### actions.js
+- [ ] `openEditPhotos()` — `isEditing = true` → `photoContext = 'edit'`
+- [ ] `backFromAddPhotos()` — isEditing check + clear → `photoContext === 'edit'` check + reset to `'new'`
+
+#### Verify & ship
+- [ ] Grep confirm: zero remaining `replacingItem|addingMorePhotos|isEditing` references
+- [ ] Push to dev + update CHANGELOG #16 → In dev
