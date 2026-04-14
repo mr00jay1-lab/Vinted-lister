@@ -203,7 +203,7 @@ export function handlePhoto(event, mode) {
   const files = Array.from(event.target.files || []);
   event.target.value = '';
   if (!files.length) {
-    if (!appState.form.pendingPhotos.filter(Boolean).length) goHome();
+    if (mode === 'camera' && !appState.form.pendingPhotos.filter(Boolean).length) goHome();
     return;
   }
 
