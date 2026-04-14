@@ -132,7 +132,7 @@ export function renderSlots() {
     if (photo) {
       html += `
        <div class="photo-slot" onclick="window.slotTapped(${i})">
-          <img src="${photo.dataUrl}" />
+          <img src="${photo.thumbnail || photo.dataUrl}" />
           <button class="remove-btn" onclick="event.stopPropagation();window.removeSlot(${i})">✕</button>
         </div>
       `;
