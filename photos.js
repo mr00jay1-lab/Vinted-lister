@@ -3,6 +3,7 @@ import { dbPut, dbGet, dbGetAll } from './db.js';
 import { compressTo, detectCropCoords } from './utils.js';
 import { analyseItem } from './analysis.js';
 import { renderDetail, renderHome, goHome, showScreen, closeModal } from './ui.js';
+import { dbg } from './logger.js';
 
 let _libraryProcessing = false;
 
@@ -203,6 +204,7 @@ export function triggerNextCamera() {
 /** Processes files selected by user, compresses them, and saves to state */
 export function handlePhoto(event, mode) {
   const files = Array.from(event.target.files || []);
+  dbg(`handlePhoto: mode=${mode}, files=${files.length}`);
   event.target.value = '';
   if (!files.length) {
     if (mode === 'camera' && !appState.form.pendingPhotos.filter(Boolean).length) goHome();
@@ -214,6 +216,7 @@ export function handlePhoto(event, mode) {
       ? appState.form.pendingSlot
       : appState.form.pendingPhotos.filter(Boolean).length;
     const maxFiles = Math.min(files.length, MAX_PHOTOS - startSlot);
+    dbg(`library: startSlot=${startSlot}, maxFiles=${maxFiles}, _processing=${_libraryProcessing}`);
     if (maxFiles <= 0) return;
     if (_libraryProcessing) return;
     _libraryProcessing = true;
@@ -223,13 +226,15 @@ export function handlePhoto(event, mode) {
         const currentSlot = startSlot + i;
         await new Promise((resolve) => {
           const timer = setTimeout(() => {
+            dbg(`slot ${currentSlot}: FileReader TIMEOUT`);
             console.error('FileReader timeout for slot', currentSlot);
             resolve();
           }, 15000);
           const reader = new FileReader();
-          reader.onerror = () => { clearTimeout(timer); console.error('FileReader error for slot', currentSlot); resolve(); };
+          reader.onerror = () => { clearTimeout(timer); dbg(`slot ${currentSlot}: FileReader ERROR`); console.error('FileReader error for slot', currentSlot); resolve(); };
           reader.onload = async (loadEvent) => {
             clearTimeout(timer);
+            dbg(`slot ${currentSlot}: loaded, compressing...`);
             const dataUrl = loadEvent.target.result;
             try {
               const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
@@ -237,29 +242,34 @@ export function handlePhoto(event, mode) {
               const medium = await compressTo(dataUrl, 1200, 0.85, coords);
               appState.form.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
               appState.form.photosDirty = true;
+              dbg(`slot ${currentSlot}: done`);
             } catch (err) {
+              dbg(`slot ${currentSlot}: compress ERROR — ${err.message}`);
               console.error('Photo processing failed for slot', currentSlot, err);
             }
             resolve();
           };
+          dbg(`slot ${currentSlot}: FileReader start`);
           reader.readAsDataURL(files[i]);
         });
         hideBanner();
         renderSlots();
       }
-    })().catch(err => console.error('Library processing error:', err))
-      .finally(() => { _libraryProcessing = false; });
+    })().catch(err => { dbg(`library IIFE catch: ${err}`); console.error('Library processing error:', err); })
+      .finally(() => { dbg('library processing complete'); _libraryProcessing = false; });
   } else {
     // Handling single file from Camera
     const file = files[0];
     const slot = appState.form.pendingSlot !== null ? appState.form.pendingSlot : appState.form.pendingPhotos.filter(Boolean).length;
     const reader = new FileReader();
     reader.onerror = () => {
+      dbg(`camera slot ${slot}: FileReader ERROR`);
       console.error('FileReader error for camera slot', slot);
       alert('Photo could not be read. Please try again.');
       renderSlots();
     };
     reader.onload = async (loadEvent) => {
+      dbg(`camera slot ${slot}: loaded, compressing...`);
       const dataUrl = loadEvent.target.result;
       try {
         const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
@@ -268,7 +278,9 @@ export function handlePhoto(event, mode) {
         appState.form.pendingPhotos[slot] = { dataUrl: medium, thumbnail };
         appState.form.pendingSlot = null;
         appState.form.photosDirty = true;
+        dbg(`camera slot ${slot}: done`);
       } catch (err) {
+        dbg(`camera slot ${slot}: compress ERROR — ${err.message}`);
         console.error('Photo processing failed for slot', slot, err);
         alert('Photo could not be processed. Please try again.');
       }
@@ -287,6 +299,7 @@ export function handlePhoto(event, mode) {
         hideBanner();
       }
     };
+    dbg(`camera slot ${slot}: FileReader start`);
     reader.readAsDataURL(file);
   }
 }
@@ -304,6 +317,7 @@ export async function savePhotos(startNewAfter = false, backToOrigin = false) {
   document.getElementById('modal-unsaved-photos').style.display = 'none';
   appState.form.photosDirty = false;
   const photos = appState.form.pendingPhotos.filter(Boolean);
+  dbg(`savePhotos: context=${appState.form.photoContext}, photos=${photos.length}`);
   if (!photos.length) return;
 
   const thumbnail = photos[0].thumbnail || await compressTo(photos[0].dataUrl, 100, 0.7);

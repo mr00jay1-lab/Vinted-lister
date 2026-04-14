@@ -28,6 +28,7 @@ All notable changes to Vinted Lister are documented here.
 | 48 | **Fix:** Runtime `BRANCH_NAME` detection — resolved via `window.location.hostname`; production shows `main`, all other environments show `dev`; `APP_VERSION` format extended to `major.minor.patch` starting at `v1.5.1` | In dev |
 | 49 | **Fix:** Unhandled promise rejection on `renderDetail()` — missing `await` in `savePhotos()` (`photos.js:340`) and missing `.catch()` in `openItem()` / `toggleAiPhoto()` (`actions.js:17`, `116`) caused iOS/Safari white-screen crash when adding images | In dev |
 | 50 | **Fix:** Bulletproof iOS gallery processing — `reader.onerror` + 15s timeout on FileReader, 10s timeout + cleanup on `compressTo`/`detectCropCoords`, try/catch + `ctx` null-check in canvas ops, re-entrancy guard on library processing loop, camera banner null-guards | In dev |
+| 51 | **Feature:** In-app debug log panel — Settings → Debug Log; `dbg()` logger traces the full photo pipeline (FileReader, compressTo, detectCropCoords, savePhotos) with relative timestamps; Refresh/Copy/Clear controls | In dev |
 
 ---
 

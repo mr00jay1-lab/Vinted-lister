@@ -63,6 +63,14 @@
       </div>
 
       <button class="btn btn-primary" onclick="window.saveSettings()" style="width:100%;margin-top:20px;">Save Settings</button>
+
+      <div class="section-title" style="margin-top:28px;">Debug Log</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <button class="btn-small" onclick="window.refreshDebugLog()">Refresh</button>
+        <button class="btn-small" onclick="window.copyDebugLog()">Copy</button>
+        <button class="btn-small" onclick="window.clearDebugLog()">Clear</button>
+      </div>
+      <pre id="debug-log-output" style="font-size:11px;line-height:1.5;background:var(--bg2);padding:10px;border-radius:8px;max-height:280px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;color:var(--text2);margin:0;">(tap Refresh to load)</pre>
     </div>
   </div>
 

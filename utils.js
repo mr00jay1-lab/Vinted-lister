@@ -1,3 +1,5 @@
+import { dbg } from './logger.js';
+
 let modelPromise = null;
 
 /** Injects a CDN <script> tag and waits for it to load */
@@ -39,12 +41,14 @@ export function initAI() {
  * Returns null on any failure — callers should fall back to centre-crop.
  */
 export async function detectCropCoords(dataUrl) {
+  dbg('detectCropCoords: start');
   const model = await initAI();
+  dbg(`detectCropCoords: model=${model ? 'ready' : 'null'}`);
   if (!model) return null;
 
   return new Promise((resolve) => {
     const img = new Image();
-    const timer = setTimeout(() => { cleanup(); resolve(null); }, 10000);
+    const timer = setTimeout(() => { dbg('detectCropCoords: TIMEOUT'); cleanup(); resolve(null); }, 10000);
 
     function cleanup() {
       clearTimeout(timer);
@@ -53,11 +57,13 @@ export async function detectCropCoords(dataUrl) {
       img.src = '';
     }
 
-    img.onerror = () => { cleanup(); resolve(null); };
+    img.onerror = () => { dbg('detectCropCoords: img onerror'); cleanup(); resolve(null); };
     img.onload = async () => {
       try {
         const targetRatio = 3 / 4;
+        dbg('detectCropCoords: running model.detect...');
         const predictions = await model.detect(img);
+        dbg(`detectCropCoords: ${predictions.length} predictions, done`);
         let centerX = img.width / 2;
         let centerY = img.height / 2;
         if (predictions.length > 0) {
@@ -78,6 +84,7 @@ export async function detectCropCoords(dataUrl) {
         cleanup();
         resolve({ srcX, srcY, cropW, cropH });
       } catch (err) {
+        dbg(`detectCropCoords error: ${err.message}`);
         console.warn('AI detection failed, using centre crop:', err);
         cleanup();
         resolve(null);
@@ -92,9 +99,10 @@ export async function detectCropCoords(dataUrl) {
  * cropCoords: {srcX, srcY, cropW, cropH} from detectCropCoords(), or null for centre crop.
  */
 export function compressTo(dataUrl, maxW, quality, cropCoords = null) {
+  dbg(`compressTo: maxW=${maxW}`);
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const timer = setTimeout(() => { cleanup(); reject(new Error('compressTo timeout')); }, 10000);
+    const timer = setTimeout(() => { dbg(`compressTo TIMEOUT: maxW=${maxW}`); cleanup(); reject(new Error('compressTo timeout')); }, 10000);
 
     function cleanup() {
       clearTimeout(timer);
@@ -103,7 +111,7 @@ export function compressTo(dataUrl, maxW, quality, cropCoords = null) {
       img.src = '';
     }
 
-    img.onerror = () => { cleanup(); reject(new Error('Image failed to load')); };
+    img.onerror = () => { dbg(`compressTo img onerror: maxW=${maxW}`); cleanup(); reject(new Error('Image failed to load')); };
     img.onload = () => {
       try {
         const targetRatio = 3 / 4;
@@ -125,13 +133,15 @@ export function compressTo(dataUrl, maxW, quality, cropCoords = null) {
         canvas.width = maxW;
         canvas.height = Math.round(maxW / targetRatio);
         const ctx = canvas.getContext('2d');
-        if (!ctx) { cleanup(); reject(new Error('Canvas context unavailable')); return; }
+        if (!ctx) { dbg('compressTo: canvas ctx is null'); cleanup(); reject(new Error('Canvas context unavailable')); return; }
         ctx.drawImage(img, srcX, srcY, cropW, cropH, 0, 0, canvas.width, canvas.height);
         const result = canvas.toDataURL('image/jpeg', quality);
         canvas.width = 0;
+        dbg(`compressTo done: maxW=${maxW}`);
         cleanup();
         resolve(result);
       } catch (err) {
+        dbg(`compressTo error: ${err.message}`);
         cleanup();
         reject(err);
       }
