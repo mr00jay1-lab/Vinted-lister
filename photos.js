@@ -25,9 +25,7 @@ function hideBanner() {
 
 /** Resets all states for a completely fresh item */
 export function startNewItem() {
-  appState.form.replacingItem = false;
-  appState.form.addingMorePhotos = false;
-  appState.form.isEditing = false;
+  appState.form.photoContext = 'new';
   appState.form.photosDirty = false;
   appState.ui.photosReturnScreen = 'screen-home';
   setCurrentItem(null);
@@ -48,8 +46,7 @@ export function startNewItem() {
 
 /** Prepares UI to overwrite existing photos */
 export async function openReplacePhotos() {
-  appState.form.replacingItem = true;
-  appState.form.addingMorePhotos = false;
+  appState.form.photoContext = 'replace';
   appState.form.photosDirty = false;
   appState.ui.photosReturnScreen = 'screen-detail';
   appState.form.pendingPhotos = [];
@@ -68,8 +65,7 @@ export async function openReplacePhotos() {
 
 /** Prepares UI to add to existing photos */
 export async function openAddMorePhotos() {
-  appState.form.addingMorePhotos = true;
-  appState.form.replacingItem = false;
+  appState.form.photoContext = 'addMore';
   appState.form.photosDirty = false;
   appState.ui.photosReturnScreen = 'screen-detail';
   appState.form.pendingPhotos = [];
@@ -104,14 +100,11 @@ export function discardAndGoHome() {
   appState.form.pendingPhotos = [];
   appState.form.photosDirty = false;
 
-  // Clean up mode flags
-  if (appState.form.isEditing) {
-    appState.form.isEditing = false;
+  if (appState.form.photoContext === 'edit') {
     const nextItemBtn = document.getElementById('next-item-btn');
     if (nextItemBtn) nextItemBtn.style.display = 'flex';
   }
-  appState.form.replacingItem = false;
-  appState.form.addingMorePhotos = false;
+  appState.form.photoContext = 'new';
 
   if (appState.ui.photosReturnScreen === 'screen-home') {
     goHome();
@@ -297,7 +290,7 @@ export async function savePhotos(startNewAfter = false, backToOrigin = false) {
   const images = photos.map((photo) => photo.dataUrl);
 
   // LOGIC A & B: Existing item (edit / replace / addMore)
-  if ((appState.form.addingMorePhotos || appState.form.replacingItem || appState.form.isEditing) && appState.data.currentItem) {
+  if (appState.form.photoContext !== 'new' && appState.data.currentItem) {
     appState.data.currentItem.thumbnail = thumbnail;
     appState.data.currentItem.hasPhotos = true;
     if (!appState.data.currentItem.status) appState.data.currentItem.status = 'photos';
@@ -307,10 +300,8 @@ export async function savePhotos(startNewAfter = false, backToOrigin = false) {
     setItems(await dbGetAll(S_ITEMS));
     setCurrentItem(appState.data.items.find((item) => item.id === appState.data.currentItem.id));
 
-    const wasAddingMore = appState.form.addingMorePhotos;
-    appState.form.isEditing = false;
-    appState.form.addingMorePhotos = false;
-    appState.form.replacingItem = false;
+    const wasAddingMore = appState.form.photoContext === 'addMore';
+    appState.form.photoContext = 'new';
     const nextItemBtn = document.getElementById('next-item-btn');
     if (nextItemBtn) nextItemBtn.style.display = 'flex';
 
