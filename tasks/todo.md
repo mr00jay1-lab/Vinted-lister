@@ -1,7 +1,7 @@
 # Session Notes
 
 ## Current Focus
-Sprint D items #36 + #37 — complete, pushed to dev
+Sprint D items #36, #37, #38 — complete, pushed to dev
 
 ## Plan
 
@@ -28,8 +28,16 @@ Sub-object mapping:
 - [x] Grep verify: zero remaining flat `appState\.items|appState\.filter|appState\.currentItem` etc.
 - [x] Push to dev + update CHANGELOG
 
+### #38 — Extend setter pattern
+- [x] `state.js` — add setUiFilter, setPendingPhotos, setIsEditing, setDirty
+- [x] `ui.js` — import setUiFilter, replace direct filter mutation
+- [x] `actions.js` — use setDirty, setIsEditing, setPendingPhotos (16 sites)
+- [x] `photos.js` — use setIsEditing, setPendingPhotos
+- [x] Grep verify: zero remaining direct mutations of 4 target fields outside setters
+- [x] Push to dev + update CHANGELOG
+
 ## Blockers
 None
 
 ## Next Up
-Sprint D: #38 (extend setter pattern) + #16 (photoContext enum)
+Sprint D: #16 (photoContext enum — replace 3 photo-mode flags with single enum)
