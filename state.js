@@ -40,9 +40,7 @@ export const appState = {
   form: {
     pendingPhotos: [],
     photosDirty: false,
-    replacingItem: false,
-    addingMorePhotos: false,
-    isEditing: false,
+    photoContext: 'new', // 'new' | 'replace' | 'addMore' | 'edit'
     copyFields: [],
     copyIdx: 0,
     dirty: false,
