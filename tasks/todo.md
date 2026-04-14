@@ -1,7 +1,7 @@
 # Session Notes
 
 ## Current Focus
-Sprint D items #36, #37, #38 — complete, pushed to dev
+Sprint D — ALL ITEMS COMPLETE (#36, #37, #38, #16)
 
 ## Plan
 
@@ -55,20 +55,20 @@ Sprint D: #16 (photoContext enum — replace 3 photo-mode flags with single enum
 | `'edit'` | Editing photo order/set from detail view | `isEditing = true` |
 
 #### state.js
-- [ ] Remove `replacingItem`, `addingMorePhotos`, `isEditing` from `appState.form`
-- [ ] Add `photoContext: 'new'` to `appState.form`
+- [x] Remove `replacingItem`, `addingMorePhotos`, `isEditing` from `appState.form`
+- [x] Add `photoContext: 'new'` to `appState.form`
 
 #### photos.js
-- [ ] `startNewItem()` — 3 flag resets → `appState.form.photoContext = 'new'`
-- [ ] `openReplacePhotos()` — 2 flag sets → `appState.form.photoContext = 'replace'`
-- [ ] `openAddMorePhotos()` — 2 flag sets → `appState.form.photoContext = 'addMore'`
-- [ ] `discardAndGoHome()` — isEditing check + 3 clears → photoContext check + single reset to `'new'`
-- [ ] `savePhotos()` — tri-flag OR condition + `wasAddingMore` read + 3 clears → `photoContext !== 'new'` + `photoContext === 'addMore'` + single reset
+- [x] `startNewItem()` — 3 flag resets → `appState.form.photoContext = 'new'`
+- [x] `openReplacePhotos()` — 2 flag sets → `appState.form.photoContext = 'replace'`
+- [x] `openAddMorePhotos()` — 2 flag sets → `appState.form.photoContext = 'addMore'`
+- [x] `discardAndGoHome()` — isEditing check + 3 clears → photoContext check + single reset to `'new'`
+- [x] `savePhotos()` — tri-flag OR condition + `wasAddingMore` read + 3 clears → `photoContext !== 'new'` + `photoContext === 'addMore'` + single reset
 
 #### actions.js
-- [ ] `openEditPhotos()` — `isEditing = true` → `photoContext = 'edit'`
-- [ ] `backFromAddPhotos()` — isEditing check + clear → `photoContext === 'edit'` check + reset to `'new'`
+- [x] `openEditPhotos()` — `isEditing = true` → `photoContext = 'edit'`
+- [x] `backFromAddPhotos()` — isEditing check + clear → `photoContext === 'edit'` check + reset to `'new'`
 
 #### Verify & ship
-- [ ] Grep confirm: zero remaining `replacingItem|addingMorePhotos|isEditing` references
-- [ ] Push to dev + update CHANGELOG #16 → In dev
+- [x] Grep confirm: zero remaining `replacingItem|addingMorePhotos|isEditing` references
+- [x] Push to dev + update CHANGELOG #16 → In dev
