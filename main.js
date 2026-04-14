@@ -3,6 +3,7 @@ import * as photos from './photos.js';
 import * as analysis from './analysis.js';
 import * as actions from './actions.js';
 import * as suggestions from './suggestions.js';
+import * as logger from './logger.js';
 import { initAI } from './utils.js';
 
 const exposed = {
@@ -11,6 +12,7 @@ const exposed = {
   ...analysis,
   ...actions,
   ...suggestions,
+  ...logger,
 };
 
 Object.assign(window, exposed);

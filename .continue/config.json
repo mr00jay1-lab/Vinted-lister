@@ -1,0 +1,21 @@
+{
+  "systemMessage": "Always refer to CLAUDE.md for operating rules and docs/architecture.md for the file map and state schema before answering. You are an expert vanilla JS developer. Fix root causes, not symptoms.",
+  "contextProviders": [
+    { "name": "code", "params": {} },
+    { "name": "docs", "params": {} },
+    { "name": "terminal", "params": {} },
+    { "name": "diff", "params": {} }
+  ],
+  "slashCommands": [
+    {
+      "name": "review",
+      "description": "Review current file against CLAUDE.md standards",
+      "prompt": "Review this file against the coding standards in CLAUDE.md. List issues with simplicity, safety, or correctness."
+    },
+    {
+      "name": "sprint",
+      "description": "Summarise current sprint status",
+      "prompt": "Read SPRINTS.md and CHANGELOG.md. Tell me what sprint is active, what is in dev, and what is next."
+    }
+  ]
+}

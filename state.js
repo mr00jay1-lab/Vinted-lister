@@ -3,8 +3,12 @@ export const DB_VER = 1;
 export const S_ITEMS = 'items';
 export const S_PHOTOS = 'photos';
 
-export const APP_VERSION = 'v1.5';
-export const BRANCH_NAME = 'dev';
+export const APP_VERSION = 'v1.5.6';
+export const BRANCH_NAME = (() => {
+  const h = window.location.hostname;
+  if (h === 'vinted-lister-eight.vercel.app') return 'main';
+  return 'dev';
+})();
 
 export const MAX_PHOTOS = 10;
 export const DEFAULT_PHOTOS = 4;
@@ -26,23 +30,28 @@ export const STATUS_BADGE_CLASSES = {
 };
 
 export const appState = {
-  items: [],
-  currentItem: null,
-  filter: 'all',
-  pendingPhotos: [],
-  photosDirty: false,        // true only when user adds/removes a photo (not on DB load)
-  photosReturnScreen: 'screen-home', // where back/discard should navigate to
-  replacingItem: false,
-  addingMorePhotos: false,
-  copyFields: [],
-  copyIdx: 0,
-  copyPage: 1,
-  dirty: false,
-  pendingStatus: null,
-  aiSelectedIndices: [0, 1],
-  photoMode: localStorage.getItem('vinted_photo_mode') || 'camera',
-  pendingSlot: null,
-  suggestions: JSON.parse(localStorage.getItem('vinted_suggestions') || '[]'),
+  data: {
+    items: [],
+    currentItem: null,
+    suggestions: JSON.parse(localStorage.getItem('vinted_suggestions') || '[]'),
+  },
+  ui: {
+    filter: 'all',
+    photosReturnScreen: 'screen-home',
+    copyPage: 1,
+    photoMode: localStorage.getItem('vinted_photo_mode') || 'camera',
+  },
+  form: {
+    pendingPhotos: [],
+    photosDirty: false,
+    photoContext: 'new', // 'new' | 'replace' | 'addMore' | 'edit'
+    copyFields: [],
+    copyIdx: 0,
+    dirty: false,
+    pendingStatus: null,
+    aiSelectedIndices: [0, 1],
+    pendingSlot: null,
+  },
 };
 
 export function getApiKey() {
@@ -54,7 +63,7 @@ export function saveApiKeyValue(key) {
 }
 
 export function savePhotoMode(mode) {
-  appState.photoMode = mode;
+  appState.ui.photoMode = mode;
   localStorage.setItem('vinted_photo_mode', mode);
 }
 
@@ -102,7 +111,7 @@ export function saveSmartCrop(enabled) {
 }
 
 export function saveSuggestions() {
-  localStorage.setItem('vinted_suggestions', JSON.stringify(appState.suggestions));
+  localStorage.setItem('vinted_suggestions', JSON.stringify(appState.data.suggestions));
 }
 
 // ── State setters ──────────────────────────────────────────────
@@ -110,9 +119,9 @@ export function saveSuggestions() {
 // hook to add logging, validation, or server-sync in phase 2.
 
 export function setItems(items) {
-  appState.items = items;
+  appState.data.items = items;
 }
 
 export function setCurrentItem(item) {
-  appState.currentItem = item;
+  appState.data.currentItem = item;
 }

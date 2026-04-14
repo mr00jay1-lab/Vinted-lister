@@ -1,0 +1,30 @@
+# Environment
+.env
+.env.local
+
+# Dependencies (if package.json is ever added for tooling)
+node_modules/
+
+# Vercel
+.vercel/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Graphify (generated — rebuild with /graphify .)
+graph.json
+GRAPH_REPORT.md
+.graphify/
+
+# AI tool caches
+.continue/index/
+.continue/cache/
+.gemini/
+
+# Keep Continue config tracked
+!.continue/config.json
+!.continue/agents/

@@ -1,3 +1,5 @@
+import { dbg } from './logger.js';
+
 let modelPromise = null;
 
 /** Injects a CDN <script> tag and waits for it to load */
@@ -39,16 +41,29 @@ export function initAI() {
  * Returns null on any failure — callers should fall back to centre-crop.
  */
 export async function detectCropCoords(dataUrl) {
+  dbg('detectCropCoords: start');
   const model = await initAI();
+  dbg(`detectCropCoords: model=${model ? 'ready' : 'null'}`);
   if (!model) return null;
 
   return new Promise((resolve) => {
     const img = new Image();
-    img.onerror = () => resolve(null);
+    const timer = setTimeout(() => { dbg('detectCropCoords: TIMEOUT'); cleanup(); resolve(null); }, 10000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      img.onload = null;
+      img.onerror = null;
+      img.src = '';
+    }
+
+    img.onerror = () => { dbg('detectCropCoords: img onerror'); cleanup(); resolve(null); };
     img.onload = async () => {
       try {
         const targetRatio = 3 / 4;
+        dbg('detectCropCoords: running model.detect...');
         const predictions = await model.detect(img);
+        dbg(`detectCropCoords: ${predictions.length} predictions, done`);
         let centerX = img.width / 2;
         let centerY = img.height / 2;
         if (predictions.length > 0) {
@@ -66,9 +81,12 @@ export async function detectCropCoords(dataUrl) {
         }
         const srcX = Math.max(0, Math.min(centerX - cropW / 2, img.width - cropW));
         const srcY = Math.max(0, Math.min(centerY - cropH / 2, img.height - cropH));
+        cleanup();
         resolve({ srcX, srcY, cropW, cropH });
       } catch (err) {
+        dbg(`detectCropCoords error: ${err.message}`);
         console.warn('AI detection failed, using centre crop:', err);
+        cleanup();
         resolve(null);
       }
     };
@@ -81,31 +99,52 @@ export async function detectCropCoords(dataUrl) {
  * cropCoords: {srcX, srcY, cropW, cropH} from detectCropCoords(), or null for centre crop.
  */
 export function compressTo(dataUrl, maxW, quality, cropCoords = null) {
+  dbg(`compressTo: maxW=${maxW}`);
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onerror = () => reject(new Error('Image failed to load'));
+    const timer = setTimeout(() => { dbg(`compressTo TIMEOUT: maxW=${maxW}`); cleanup(); reject(new Error('compressTo timeout')); }, 10000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      img.onload = null;
+      img.onerror = null;
+      img.src = '';
+    }
+
+    img.onerror = () => { dbg(`compressTo img onerror: maxW=${maxW}`); cleanup(); reject(new Error('Image failed to load')); };
     img.onload = () => {
-      const targetRatio = 3 / 4;
-      let srcX, srcY, cropW, cropH;
-      if (cropCoords) {
-        ({ srcX, srcY, cropW, cropH } = cropCoords);
-      } else {
-        if (img.width / img.height > targetRatio) {
-          cropH = img.height;
-          cropW = img.height * targetRatio;
+      try {
+        const targetRatio = 3 / 4;
+        let srcX, srcY, cropW, cropH;
+        if (cropCoords) {
+          ({ srcX, srcY, cropW, cropH } = cropCoords);
         } else {
-          cropW = img.width;
-          cropH = img.width / targetRatio;
+          if (img.width / img.height > targetRatio) {
+            cropH = img.height;
+            cropW = img.height * targetRatio;
+          } else {
+            cropW = img.width;
+            cropH = img.width / targetRatio;
+          }
+          srcX = (img.width - cropW) / 2;
+          srcY = (img.height - cropH) / 2;
         }
-        srcX = (img.width - cropW) / 2;
-        srcY = (img.height - cropH) / 2;
+        const canvas = document.createElement('canvas');
+        canvas.width = maxW;
+        canvas.height = Math.round(maxW / targetRatio);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { dbg('compressTo: canvas ctx is null'); cleanup(); reject(new Error('Canvas context unavailable')); return; }
+        ctx.drawImage(img, srcX, srcY, cropW, cropH, 0, 0, canvas.width, canvas.height);
+        const result = canvas.toDataURL('image/jpeg', quality);
+        canvas.width = 0;
+        dbg(`compressTo done: maxW=${maxW}`);
+        cleanup();
+        resolve(result);
+      } catch (err) {
+        dbg(`compressTo error: ${err.message}`);
+        cleanup();
+        reject(err);
       }
-      const canvas = document.createElement('canvas');
-      canvas.width = maxW;
-      canvas.height = Math.round(maxW / targetRatio);
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, srcX, srcY, cropW, cropH, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
     };
     img.src = dataUrl;
   });

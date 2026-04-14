@@ -2,6 +2,17 @@ import { DB_NAME, DB_VER, S_ITEMS, S_PHOTOS } from './state.js';
 
 let db = null;
 
+function normaliseItem(item) {
+  if (!item) return item;
+  return {
+    thumbnail: '',
+    hasPhotos: false,
+    title: '', description: '', category: '', brand: '',
+    size: '', condition: '', colours: '', materials: '',
+    ...item,
+  };
+}
+
 export function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VER);
@@ -19,13 +30,13 @@ const tx = (store, mode = 'readonly') => db.transaction(store, mode).objectStore
 
 export const dbGet = (store, key) => new Promise((resolve, reject) => {
   const request = tx(store).get(key);
-  request.onsuccess = () => resolve(request.result);
+  request.onsuccess = () => resolve(store === S_ITEMS ? normaliseItem(request.result) : request.result);
   request.onerror = () => reject(request.error);
 });
 
 export const dbGetAll = (store) => new Promise((resolve, reject) => {
   const request = tx(store).getAll();
-  request.onsuccess = () => resolve(request.result);
+  request.onsuccess = () => resolve(store === S_ITEMS ? request.result.map(normaliseItem) : request.result);
   request.onerror = () => reject(request.error);
 });
 
