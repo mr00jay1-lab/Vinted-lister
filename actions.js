@@ -121,8 +121,8 @@ export async function openEditPhotos() {
   const item = appState.data.currentItem;
   if (!item) return;
 
-  // 1. Set flags so savePhotos/back knows we came from detail
-  appState.form.isEditing = true;
+  // 1. Set context so savePhotos/back knows we came from detail
+  appState.form.photoContext = 'edit';
   appState.form.photosDirty = false;
   appState.ui.photosReturnScreen = 'screen-detail';
 
@@ -162,8 +162,8 @@ export function backFromAddPhotos() {
     document.getElementById('modal-unsaved-photos').style.display = 'flex';
   } else {
     // Nothing changed — clean up and navigate straight back
-    if (appState.form.isEditing) {
-      appState.form.isEditing = false;
+    if (appState.form.photoContext === 'edit') {
+      appState.form.photoContext = 'new';
       const nextItemBtn = document.getElementById('next-item-btn');
       if (nextItemBtn) nextItemBtn.style.display = 'flex';
       showScreen('screen-detail');
