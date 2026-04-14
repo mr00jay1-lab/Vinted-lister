@@ -27,6 +27,7 @@ All notable changes to Vinted Lister are documented here.
 | 47 | **Bug:** Gallery multi-select kicks user to home mid-processing — mobile browsers (iOS Safari, Chrome Android) fire a phantom empty-files `change` event on `<input multiple>` when `event.target.value` is cleared inside the handler; this arrived while FileReaders were still async, making `pendingPhotos` appear empty and triggering `goHome()`; fix: scope the `goHome()` guard to `mode === 'camera'` only (`photos.js:206`) | In dev |
 | 48 | **Fix:** Runtime `BRANCH_NAME` detection — resolved via `window.location.hostname`; production shows `main`, all other environments show `dev`; `APP_VERSION` format extended to `major.minor.patch` starting at `v1.5.1` | In dev |
 | 49 | **Fix:** Unhandled promise rejection on `renderDetail()` — missing `await` in `savePhotos()` (`photos.js:340`) and missing `.catch()` in `openItem()` / `toggleAiPhoto()` (`actions.js:17`, `116`) caused iOS/Safari white-screen crash when adding images | In dev |
+| 50 | **Fix:** Bulletproof iOS gallery processing — `reader.onerror` + 15s timeout on FileReader, 10s timeout + cleanup on `compressTo`/`detectCropCoords`, try/catch + `ctx` null-check in canvas ops, re-entrancy guard on library processing loop, camera banner null-guards | In dev |
 
 ---
 

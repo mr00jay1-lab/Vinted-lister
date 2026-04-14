@@ -4,6 +4,8 @@ import { compressTo, detectCropCoords } from './utils.js';
 import { analyseItem } from './analysis.js';
 import { renderDetail, renderHome, goHome, showScreen, closeModal } from './ui.js';
 
+let _libraryProcessing = false;
+
 /* ==========================================================================
    SECTION 1: SCREEN INITIALIZATION & MODES
    ========================================================================== */
@@ -212,13 +214,22 @@ export function handlePhoto(event, mode) {
       ? appState.form.pendingSlot
       : appState.form.pendingPhotos.filter(Boolean).length;
     const maxFiles = Math.min(files.length, MAX_PHOTOS - startSlot);
+    if (maxFiles <= 0) return;
+    if (_libraryProcessing) return;
+    _libraryProcessing = true;
 
     (async () => {
       for (let i = 0; i < maxFiles; i++) {
         const currentSlot = startSlot + i;
         await new Promise((resolve) => {
+          const timer = setTimeout(() => {
+            console.error('FileReader timeout for slot', currentSlot);
+            resolve();
+          }, 15000);
           const reader = new FileReader();
+          reader.onerror = () => { clearTimeout(timer); console.error('FileReader error for slot', currentSlot); resolve(); };
           reader.onload = async (loadEvent) => {
+            clearTimeout(timer);
             const dataUrl = loadEvent.target.result;
             try {
               const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
@@ -236,12 +247,18 @@ export function handlePhoto(event, mode) {
         hideBanner();
         renderSlots();
       }
-    })().catch(err => console.error('Library processing error:', err));
+    })().catch(err => console.error('Library processing error:', err))
+      .finally(() => { _libraryProcessing = false; });
   } else {
     // Handling single file from Camera
     const file = files[0];
     const slot = appState.form.pendingSlot !== null ? appState.form.pendingSlot : appState.form.pendingPhotos.filter(Boolean).length;
     const reader = new FileReader();
+    reader.onerror = () => {
+      console.error('FileReader error for camera slot', slot);
+      alert('Photo could not be read. Please try again.');
+      renderSlots();
+    };
     reader.onload = async (loadEvent) => {
       const dataUrl = loadEvent.target.result;
       try {
@@ -261,8 +278,10 @@ export function handlePhoto(event, mode) {
       if (filled < MAX_PHOTOS) {
         const nextEmpty = appState.form.pendingPhotos.findIndex((photo, index) => !photo && index < MAX_PHOTOS);
         const nextSlot = nextEmpty === -1 ? filled : nextEmpty;
-        document.getElementById('next-photo-text').textContent = `📷 Photo ${filled} saved — take another?`;
-        document.getElementById('next-photo-banner').style.display = 'flex';
+        const textEl = document.getElementById('next-photo-text');
+        const bannerEl = document.getElementById('next-photo-banner');
+        if (textEl) textEl.textContent = `📷 Photo ${filled} saved — take another?`;
+        if (bannerEl) bannerEl.style.display = 'flex';
         appState.form.pendingSlot = nextSlot;
       } else {
         hideBanner();
