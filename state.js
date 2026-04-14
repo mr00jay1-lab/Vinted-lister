@@ -3,8 +3,12 @@ export const DB_VER = 1;
 export const S_ITEMS = 'items';
 export const S_PHOTOS = 'photos';
 
-export const APP_VERSION = 'v1.5';
-export const BRANCH_NAME = 'dev';
+export const APP_VERSION = 'v1.5.1';
+export const BRANCH_NAME = (() => {
+  const h = window.location.hostname;
+  if (h === 'vinted-lister-eight.vercel.app') return 'main';
+  return 'dev';
+})();
 
 export const MAX_PHOTOS = 10;
 export const DEFAULT_PHOTOS = 4;
