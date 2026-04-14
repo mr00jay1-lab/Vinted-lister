@@ -1,6 +1,17 @@
 const MAX_ENTRIES = 200;
-const _log = [];
+const STORAGE_KEY = 'vinted_debug_log';
 const _t0 = Date.now();
+
+// Load any entries that survived the previous session
+let _log = [];
+try {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) _log = JSON.parse(stored);
+} catch (e) {}
+
+// Mark session boundary so pre-crash vs post-crash entries are distinct
+_log.push(`\n--- SESSION START ${new Date().toLocaleTimeString()} ---`);
+_persist();
 
 export function dbg(msg) {
   const s = ((Date.now() - _t0) / 1000).toFixed(2);
@@ -8,6 +19,13 @@ export function dbg(msg) {
   console.log(entry);
   _log.push(entry);
   if (_log.length > MAX_ENTRIES) _log.shift();
+  _persist();
+}
+
+function _persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(_log));
+  } catch (e) {}
 }
 
 export function refreshDebugLog() {
@@ -39,5 +57,6 @@ function _fallbackCopy(text) {
 
 export function clearDebugLog() {
   _log.length = 0;
+  _persist();
   refreshDebugLog();
 }
