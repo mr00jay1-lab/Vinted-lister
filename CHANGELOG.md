@@ -24,6 +24,7 @@ All notable changes to Vinted Lister are documented here.
 | 44 | **Feature:** Sequential photo slot reveal — prevent adding a new image slot until the previous slot has an image; only one empty (+) slot is shown at the end of the current photos at any time; once image N is filled, slot N+1 becomes visible | New |
 | 45 | **Bug:** Local storage not cleaned when an image is removed — deleting a photo leaves stale blob data in local storage; local storage must be checked and cleaned on every image removal | New |
 | 46 | **Arch:** Remove `archived` item state — `deleted` is sufficient; all references to `archived` status must be removed from state, storage, and UI | New |
+| 47 | **Bug:** Gallery multi-select kicks user to home mid-processing — mobile browsers (iOS Safari, Chrome Android) fire a phantom empty-files `change` event on `<input multiple>` when `event.target.value` is cleared inside the handler; this arrived while FileReaders were still async, making `pendingPhotos` appear empty and triggering `goHome()`; fix: scope the `goHome()` guard to `mode === 'camera'` only (`photos.js:206`) | In dev |
 
 ---
 
@@ -38,26 +39,3 @@ All notable changes to Vinted Lister are documented here.
 - **#26** COCO-SSD detection now runs once per photo — `detectCropCoords()` extracted from `compressTo()`; both the 100px thumbnail and 1200px medium reuse the same crop coordinates
 - **#27** Smart-crop now handles multi-detection — bounding box unions all detected objects so framing includes all items in frame
 - **#28** Crop boundary clamping — crops that would extend outside the canvas are clamped; prevents black-bar artefacts on edge detections
-- **#30** COCO-SSD model pre-loaded on app start — first analysis no longer pays the 2-3 s model-load penalty
-- **#31** Smart-crop applied to both thumbnail (100 px) and medium (1200 px) — previously only applied to thumbnail
-- **#33** Batch analysis photo selection — users can choose which photos (up to 10) are sent to AI; default selects first two; toggle per photo in detail view
-
-### Architecture
-- **#20** Setter pattern — `setItems()` / `setCurrentItem()` added to `state.js`; direct `appState` mutations replaced across all files
-- **#21** `autoClean()` — stale items (no title, no photos, >24 h old) are silently removed on app load
-- **#22** `updateStorageBar()` moved to `ui.js`; no longer leaks into `actions.js`
-- **#23** `resetStatePhotos()` extracted to `ui.js` — photo-form state reset is now a named, single-call operation
-
----
-
-## v1.4 — 2026-03-28
-
-### Added
-- **#15** Replace Photos flow — users can swap all photos for an existing item from the detail screen
-- **#18** Add More Photos flow — users can append photos to an existing item; triggers re-analysis automatically
-- **#19** Edit Photos flow — users can reorder or remove individual photos without replacing the whole set
-
-### Fixed
-- **#21** Auto-clean on load — orphaned draft items (no title, no photos) removed silently on startup
-- **#22** Storage bar — now updates correctly after photo deletion
-- **#23** State reset — photo-screen flags cleared reliably when navigating away
