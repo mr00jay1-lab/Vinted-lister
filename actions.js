@@ -14,7 +14,7 @@ export function openItem(id) {
   appState.form.dirty = false;
   appState.form.aiSelectedIndices = [0, 1]; // Default first two photos for AI
   resetStatePhotos();
-  renderDetail();
+  renderDetail().catch(err => console.error('renderDetail failed:', err));
   showScreen('screen-detail');
 }
 
@@ -113,7 +113,7 @@ export function toggleAiPhoto(index) {
     appState.form.aiSelectedIndices.sort((a, b) => a - b);
   }
   
-  renderDetail(); 
+  renderDetail().catch(err => console.error('renderDetail failed:', err));
 }
 
 /** Redirects to Add Photos screen in "Edit Mode" and loads current photos from DB */

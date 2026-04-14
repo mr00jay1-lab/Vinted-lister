@@ -337,7 +337,7 @@ export async function savePhotos(startNewAfter = false, backToOrigin = false) {
   } else {
     setCurrentItem(item);
     showScreen('screen-detail');
-    renderDetail();
+    await renderDetail();
   }
 }
 
