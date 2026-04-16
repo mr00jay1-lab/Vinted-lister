@@ -24,11 +24,49 @@ All notable changes to Vinted Lister are documented here.
 | 44 | **Feature:** Sequential photo slot reveal — prevent adding a new image slot until the previous slot has an image; only one empty (+) slot is shown at the end of the current photos at any time; once image N is filled, slot N+1 becomes visible | New |
 | 45 | **Bug:** Local storage not cleaned when an image is removed — deleting a photo leaves stale blob data in local storage; local storage must be checked and cleaned on every image removal | New |
 | 46 | **Arch:** Remove `archived` item state — `deleted` is sufficient; all references to `archived` status must be removed from state, storage, and UI | New |
-| 47 | **Bug:** Gallery multi-select kicks user to home mid-processing — mobile browsers (iOS Safari, Chrome Android) fire a phantom empty-files `change` event on `<input multiple>` when `event.target.value` is cleared inside the handler; this arrived while FileReaders were still async, making `pendingPhotos` appear empty and triggering `goHome()`; fix: scope the `goHome()` guard to `mode === 'camera'` only (`photos.js:206`) | In dev |
-| 48 | **Fix:** Runtime `BRANCH_NAME` detection — resolved via `window.location.hostname`; production shows `main`, all other environments show `dev`; `APP_VERSION` format extended to `major.minor.patch` starting at `v1.5.1` | In dev |
-| 49 | **Fix:** Unhandled promise rejection on `renderDetail()` — missing `await` in `savePhotos()` (`photos.js:340`) and missing `.catch()` in `openItem()` / `toggleAiPhoto()` (`actions.js:17`, `116`) caused iOS/Safari white-screen crash when adding images | In dev |
-| 50 | **Fix:** Bulletproof iOS gallery processing — `reader.onerror` + 15s timeout on FileReader, 10s timeout + cleanup on `compressTo`/`detectCropCoords`, try/catch + `ctx` null-check in canvas ops, re-entrancy guard on library processing loop, camera banner null-guards | In dev |
-| 51 | **Feature:** In-app debug log panel — Settings → Debug Log; `dbg()` logger traces the full photo pipeline (FileReader, compressTo, detectCropCoords, savePhotos) with relative timestamps; Refresh/Copy/Clear controls | In dev |
+
+---
+
+## v1.5.6 — 2026-04-14
+
+### Fixed
+- **#root-cause** Use thumbnail in `renderSlots()` — eliminated the root cause of iOS out-of-memory crash; home screen grid now renders the compressed thumbnail blob instead of the full-size medium image
+
+---
+
+## v1.5.5 — 2026-04-14
+
+### Fixed
+- **#log** Persist debug log to `localStorage` so it survives page kills — log entries written on each `dbg()` call; panel reads from storage on open so crash traces are recoverable after iOS app restart
+
+---
+
+## v1.5.4 — 2026-04-14
+
+### Added
+- **#51 In-app debug log panel** — Settings → Debug Log; `dbg()` logger traces the full photo pipeline (FileReader, compressTo, detectCropCoords, savePhotos) with relative timestamps; Refresh/Copy/Clear controls
+
+---
+
+## v1.5.3 — 2026-04-14
+
+### Fixed
+- **#50 Bulletproof iOS gallery processing** — `reader.onerror` + 15 s timeout on FileReader; 10 s timeout + cleanup on `compressTo`/`detectCropCoords`; try/catch + `ctx` null-check in canvas ops; re-entrancy guard on library processing loop; camera banner null-guards
+
+---
+
+## v1.5.2 — 2026-04-14
+
+### Fixed
+- **#49 Unhandled promise rejection on `renderDetail()`** — missing `await` in `savePhotos()` (`photos.js:340`) and missing `.catch()` in `openItem()` / `toggleAiPhoto()` (`actions.js:17`, `116`) caused iOS/Safari white-screen crash when adding images
+
+---
+
+## v1.5.1 — 2026-04-14
+
+### Fixed
+- **#48 Runtime `BRANCH_NAME` detection** — resolved via `window.location.hostname`; production shows `main`, all other environments show `dev`; `APP_VERSION` format extended to `major.minor.patch` starting at `v1.5.1`
+- **#47 Gallery multi-select kicks user to home mid-processing** — mobile browsers (iOS Safari, Chrome Android) fire a phantom empty-files `change` event on `<input multiple>` when `event.target.value` is cleared inside the handler; fix: scope the `goHome()` guard to `mode === 'camera'` only (`photos.js:206`)
 
 ---
 
