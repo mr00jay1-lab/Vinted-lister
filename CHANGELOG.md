@@ -16,13 +16,13 @@ All notable changes to Vinted Lister are documented here.
 | 36 | **Arch:** `appState` is a flat object mixing DB data (`items`, `currentItem`), navigation state (`filter`, `copyPage`, `isEditing`), and temporary form data (`pendingPhotos`, `replacingItem`); splitting into `appState.data` / `appState.ui` / `appState.form` sub-objects would make selective resets and debugging significantly easier | In dev |
 | 37 | **Arch:** DB boundary has no data normalization — `thumbnail` is `null` when photos are loaded from IndexedDB, forcing `savePhotos()` to carry a manual fallback (`currentItem.thumbnail \|\| compressTo()`); normalization should happen at the `dbGet` boundary so callers receive clean objects | In dev |
 | 38 | **Arch:** Setter pattern from #20 only covers `setItems` and `setCurrentItem` — high-frequency fields like `filter`, `pendingPhotos`, `isEditing`, `dirty` are still mutated directly from any file; extending setters (or a lightweight Proxy) to all key fields would complete the single-mutation-point goal | In dev |
-| 39 | **Bug:** Suggestions button is missing from the detail screen — button does not appear / is not rendered | New |
-| 40 | **Bug:** AI Smart-Crop toggle in Settings is unresponsive — toggling the switch has no effect; the setting cannot be turned on or off | New |
+| 39 | **Bug:** Suggestions button is missing from the detail screen — button does not appear / is not rendered | In dev |
+| 40 | **Bug:** AI Smart-Crop toggle in Settings is unresponsive — toggling the switch has no effect; the setting cannot be turned on or off | In dev |
 | 41 | **Feature:** Settings prompt editor — split the AI prompt into individual single-line prompts (one concept per line), displayed as separate text inputs; backend merges them into a single prompt before sending to the API; each input shows inline keyword hints to guide the user (e.g. `inspection`, `unknowns`, `constraint`) | New |
 | 42 | **Feature:** Group AI prompt inputs in Settings into labelled sections — Persona, Title, Description, Image Inspection — each section contains its own prompt lines and displays its own set of configurable constraints | New |
 | 43 | **Feature:** Photo reorder in photos screen — user can drag photos into a different order; image 1 becomes the item thumbnail shown on the home screen; order auto-saves on drop; thumbnail is regenerated after reorder | New |
 | 44 | **Feature:** Sequential photo slot reveal — prevent adding a new image slot until the previous slot has an image; only one empty (+) slot is shown at the end of the current photos at any time; once image N is filled, slot N+1 becomes visible | New |
-| 45 | **Bug:** Local storage not cleaned when an image is removed — deleting a photo leaves stale blob data in local storage; local storage must be checked and cleaned on every image removal | New |
+| 45 | **Bug:** Local storage not cleaned when an image is removed — deleting a photo leaves stale blob data in local storage; local storage must be checked and cleaned on every image removal | In dev |
 | 46 | **Arch:** Remove `archived` item state — `deleted` is sufficient; all references to `archived` status must be removed from state, storage, and UI | New |
 
 ---

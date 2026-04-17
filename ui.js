@@ -41,6 +41,13 @@ export async function autoClean() {
     }
   }
   setItems(await dbGetAll(S_ITEMS));
+
+  // Remove any stale vinted_* localStorage keys from old app versions (e.g. photo blobs stored directly)
+  const validKeys = new Set(['vinted_api_key', 'vinted_photo_mode', 'vinted_persona', 'vinted_rules', 'vinted_smart_crop', 'vinted_suggestions', 'vinted_debug_log']);
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('vinted_') && !validKeys.has(key)) localStorage.removeItem(key);
+  }
 }
 
 /* ==========================================================================
