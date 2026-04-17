@@ -48,48 +48,69 @@ export async function detectCropCoords(dataUrl) {
 
   return new Promise((resolve) => {
     const img = new Image();
-    const timer = setTimeout(() => { dbg('detectCropCoords: TIMEOUT'); cleanup(); resolve(null); }, 10000);
+    const timer = setTimeout(() => {
+      dbg('detectCropCoords: TIMEOUT');
+      img.onload = null; img.onerror = null; img.src = '';
+      resolve(null);
+    }, 10000);
 
-    function cleanup() {
-      clearTimeout(timer);
-      img.onload = null;
-      img.onerror = null;
-      img.src = '';
-    }
+    img.onerror = () => {
+      dbg('detectCropCoords: img onerror');
+      clearTimeout(timer); img.onload = null; img.src = '';
+      resolve(null);
+    };
 
-    img.onerror = () => { dbg('detectCropCoords: img onerror'); cleanup(); resolve(null); };
     img.onload = async () => {
+      clearTimeout(timer);
+      img.onload = null; img.onerror = null;
+
+      const fullW = img.width;
+      const fullH = img.height;
+
+      // Downscale to 512 px for detection — reduces TF.js tensor ~20x vs full-res
+      const DETECT_SIZE = 512;
+      const scale = Math.min(1, DETECT_SIZE / Math.max(fullW, fullH));
+      const dCanvas = document.createElement('canvas');
+      dCanvas.width  = Math.round(fullW * scale);
+      dCanvas.height = Math.round(fullH * scale);
+      const dCtx = dCanvas.getContext('2d');
+      dCtx.drawImage(img, 0, 0, dCanvas.width, dCanvas.height);
+
+      // Free the full-res decoded bitmap before the heavyweight detection call
+      img.src = '';
+
       try {
-        const targetRatio = 3 / 4;
         dbg('detectCropCoords: running model.detect...');
-        const predictions = await model.detect(img);
+        const predictions = await model.detect(dCanvas);
+        dCanvas.width = 0; // release canvas GPU memory
         dbg(`detectCropCoords: ${predictions.length} predictions, done`);
-        let centerX = img.width / 2;
-        let centerY = img.height / 2;
+
+        const targetRatio = 3 / 4;
+        let centerX = fullW / 2;
+        let centerY = fullH / 2;
         if (predictions.length > 0) {
           const [x, y, w, h] = predictions[0].bbox;
-          centerX = x + w / 2;
-          centerY = y + h / 2;
+          // Scale bbox back from detection space to original image space
+          centerX = (x + w / 2) / scale;
+          centerY = (y + h / 2) / scale;
         }
         let cropW, cropH;
-        if (img.width / img.height > targetRatio) {
-          cropH = img.height;
-          cropW = img.height * targetRatio;
+        if (fullW / fullH > targetRatio) {
+          cropH = fullH; cropW = fullH * targetRatio;
         } else {
-          cropW = img.width;
-          cropH = img.width / targetRatio;
+          cropW = fullW; cropH = fullW / targetRatio;
         }
-        const srcX = Math.max(0, Math.min(centerX - cropW / 2, img.width - cropW));
-        const srcY = Math.max(0, Math.min(centerY - cropH / 2, img.height - cropH));
-        cleanup();
+        const srcX = Math.max(0, Math.min(centerX - cropW / 2, fullW - cropW));
+        const srcY = Math.max(0, Math.min(centerY - cropH / 2, fullH - cropH));
         resolve({ srcX, srcY, cropW, cropH });
       } catch (err) {
+        dCanvas.width = 0;
         dbg(`detectCropCoords error: ${err.message}`);
         console.warn('AI detection failed, using centre crop:', err);
-        cleanup();
         resolve(null);
       }
     };
+
     img.src = dataUrl;
   });
 }

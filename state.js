@@ -3,7 +3,7 @@ export const DB_VER = 1;
 export const S_ITEMS = 'items';
 export const S_PHOTOS = 'photos';
 
-export const APP_VERSION = 'v1.5.9';
+export const APP_VERSION = 'v1.5.10';
 export const BRANCH_NAME = (() => {
   const h = window.location.hostname;
   if (h === 'vinted-lister-eight.vercel.app') return 'main';
