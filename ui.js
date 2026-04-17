@@ -1,4 +1,4 @@
-import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, getApiKey, saveApiKeyValue, getPersona, savePersona, getRules, saveRules, getSmartCrop, saveSmartCrop, APP_VERSION, BRANCH_NAME, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
+import { appState, STATUS_LABELS, STATUS_BADGE_CLASSES, getApiKey, saveApiKeyValue, getPersona, savePersona, getRules, saveRules, getSmartCrop, saveSmartCrop, APP_VERSION, BRANCH_NAME, S_ITEMS, S_PHOTOS, MAX_PHOTOS, setItems, setCurrentItem } from './state.js';
 import { dbGet, dbGetAll, dbPut, dbDelete, openDB } from './db.js';
 import { renderSuggestions } from './suggestions.js';
 
@@ -60,6 +60,9 @@ export async function autoClean() {
     const key = localStorage.key(i);
     if (key && key.startsWith('vinted_') && !validKeys.has(key)) localStorage.removeItem(key);
   }
+
+  // Remove any orphaned draft_X IDB records left by a previous crash during photo processing
+  for (let i = 0; i < MAX_PHOTOS; i++) await dbDelete(S_PHOTOS, `draft_${i}`);
 }
 
 /* ==========================================================================

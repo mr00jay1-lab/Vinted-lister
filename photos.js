@@ -1,5 +1,5 @@
 import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem, getSmartCrop, setPhotoContext, setPhotosDirty, setPendingPhotos, setPhotosReturnScreen, setPendingSlot } from './state.js';
-import { dbPut, dbGet, dbGetAll } from './db.js';
+import { dbPut, dbGet, dbGetAll, dbDelete } from './db.js';
 import { compressTo, detectCropCoords } from './utils.js';
 import { analyseItem } from './analysis.js';
 import { renderDetail, renderHome, goHome, showScreen, closeModal } from './ui.js';
@@ -100,6 +100,7 @@ export function initPhotoScreen() {
 /** Discards the current session and returns to the screen that launched photos */
 export function discardAndGoHome() {
   closeModal('modal-unsaved-photos');
+  appState.form.pendingPhotos.filter(Boolean).forEach(p => { if (p.slotKey) dbDelete(S_PHOTOS, p.slotKey); });
   setPendingPhotos([]);
   setPhotosDirty(false);
 
@@ -158,7 +159,9 @@ export function renderSlots() {
 }
 
 /** Removes a specific photo and re-compacts the list */
-export function removeSlot(index) {
+export async function removeSlot(index) {
+  const removed = appState.form.pendingPhotos[index];
+  if (removed?.slotKey) await dbDelete(S_PHOTOS, removed.slotKey);
   appState.form.pendingPhotos[index] = null;
   setPhotosDirty(true);
   while (appState.form.pendingPhotos.length && !appState.form.pendingPhotos[appState.form.pendingPhotos.length - 1]) {
@@ -240,7 +243,9 @@ export function handlePhoto(event, mode) {
               const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
               const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
               const medium = await compressTo(dataUrl, 1200, 0.85, coords);
-              appState.form.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
+              const slotKey = `draft_${currentSlot}`;
+              await dbPut(S_PHOTOS, { id: slotKey, images: [medium] });
+              appState.form.pendingPhotos[currentSlot] = { slotKey, thumbnail };
               setPhotosDirty(true);
               dbg(`slot ${currentSlot}: done`);
             } catch (err) {
@@ -275,7 +280,9 @@ export function handlePhoto(event, mode) {
         const coords = getSmartCrop() ? await detectCropCoords(dataUrl) : null;
         const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
         const medium = await compressTo(dataUrl, 1200, 0.85, coords);
-        appState.form.pendingPhotos[slot] = { dataUrl: medium, thumbnail };
+        const slotKey = `draft_${slot}`;
+        await dbPut(S_PHOTOS, { id: slotKey, images: [medium] });
+        appState.form.pendingPhotos[slot] = { slotKey, thumbnail };
         setPendingSlot(null);
         setPhotosDirty(true);
         dbg(`camera slot ${slot}: done`);
@@ -321,7 +328,16 @@ export async function savePhotos(startNewAfter = false, backToOrigin = false) {
   if (!photos.length) return;
 
   const thumbnail = photos[0].thumbnail || await compressTo(photos[0].dataUrl, 100, 0.7);
-  const images = photos.map((photo) => photo.dataUrl);
+  const images = [];
+  for (const photo of photos) {
+    if (photo.slotKey) {
+      const rec = await dbGet(S_PHOTOS, photo.slotKey);
+      if (rec?.images?.[0]) images.push(rec.images[0]);
+      await dbDelete(S_PHOTOS, photo.slotKey);
+    } else if (photo.dataUrl) {
+      images.push(photo.dataUrl);
+    }
+  }
 
   // LOGIC A & B: Existing item (edit / replace / addMore)
   if (appState.form.photoContext !== 'new' && appState.data.currentItem) {
