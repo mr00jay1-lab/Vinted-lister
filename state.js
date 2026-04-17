@@ -18,7 +18,6 @@ export const STATUS_LABELS = {
   analysed: '🔍 Analysed',
   listed: '📋 Listed',
   sold: '✅ Sold',
-  archived: '🗄️ Archived',
 };
 
 export const STATUS_BADGE_CLASSES = {
@@ -26,7 +25,6 @@ export const STATUS_BADGE_CLASSES = {
   analysed: 'badge-analysed',
   listed: 'badge-listed',
   sold: 'badge-sold',
-  archived: 'badge-archived',
 };
 
 export const appState = {
@@ -125,3 +123,12 @@ export function setItems(items) {
 export function setCurrentItem(item) {
   appState.data.currentItem = item;
 }
+
+export function setPhotoContext(ctx) { appState.form.photoContext = ctx; }
+export function setPhotosDirty(val) { appState.form.photosDirty = val; }
+export function setPendingPhotos(photos) { appState.form.pendingPhotos = photos; }
+export function setPhotosReturnScreen(screen) { appState.ui.photosReturnScreen = screen; }
+export function setDirty(val) { appState.form.dirty = val; }
+export function setPendingSlot(slot) { appState.form.pendingSlot = slot; }
+export function setPendingStatus(status) { appState.form.pendingStatus = status; }
+export function setAiSelectedIndices(indices) { appState.form.aiSelectedIndices = indices; }

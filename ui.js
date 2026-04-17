@@ -29,11 +29,23 @@ export async function initApp() {
   }
 }
 
-/** Automatically removes high-res photos for items sold/archived over 30 days ago */
+/** Automatically removes high-res photos for items sold over 30 days ago, and migrates any legacy archived items to sold */
 export async function autoClean() {
+  // Migrate legacy archived items to sold (archived status removed in Sprint E)
+  let migrated = false;
+  for (const item of appState.data.items) {
+    if (item.status === 'archived') {
+      item.status = 'sold';
+      item.statusChangedAt = item.statusChangedAt || Date.now();
+      await dbPut(S_ITEMS, item);
+      migrated = true;
+    }
+  }
+  if (migrated) setItems(await dbGetAll(S_ITEMS));
+
   const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
   for (const item of appState.data.items) {
-    if (['sold', 'archived'].includes(item.status) && item.hasPhotos && (item.statusChangedAt || 0) < cutoff) {
+    if (item.status === 'sold' && item.hasPhotos && (item.statusChangedAt || 0) < cutoff) {
       await dbDelete(S_PHOTOS, item.id);
       item.hasPhotos = false;
       item.thumbnail = '';
@@ -195,7 +207,7 @@ export async function renderHome() {
   if (batchBtn) batchBtn.style.display = photoItems.length ? 'flex' : 'none';
 
   const filtered = [...appState.data.items].reverse().filter((item) => {
-    if (appState.ui.filter === 'all') return item.status !== 'archived';
+    if (appState.ui.filter === 'all') return true;
     return item.status === appState.ui.filter;
   });
 
@@ -278,7 +290,7 @@ export async function renderDetail() {
   }
 
   // --- Analysis/Form Section ---
-  const analysed = ['analysed', 'listed', 'sold', 'archived'].includes(item.status);
+  const analysed = ['analysed', 'listed', 'sold'].includes(item.status);
   
   // Update the initial state-photos area (pre-analysis)
   document.getElementById('state-photos').style.display = analysed ? 'none' : 'block';

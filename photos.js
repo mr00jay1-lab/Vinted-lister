@@ -1,4 +1,4 @@
-import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem, getSmartCrop } from './state.js';
+import { appState, MAX_PHOTOS, DEFAULT_PHOTOS, savePhotoMode, S_ITEMS, S_PHOTOS, setItems, setCurrentItem, getSmartCrop, setPhotoContext, setPhotosDirty, setPendingPhotos, setPhotosReturnScreen, setPendingSlot } from './state.js';
 import { dbPut, dbGet, dbGetAll } from './db.js';
 import { compressTo, detectCropCoords } from './utils.js';
 import { analyseItem } from './analysis.js';
@@ -28,12 +28,12 @@ function hideBanner() {
 
 /** Resets all states for a completely fresh item */
 export function startNewItem() {
-  appState.form.photoContext = 'new';
-  appState.form.photosDirty = false;
-  appState.ui.photosReturnScreen = 'screen-home';
+  setPhotoContext('new');
+  setPhotosDirty(false);
+  setPhotosReturnScreen('screen-home');
   setCurrentItem(null);
-  appState.form.pendingPhotos = [];
-  appState.form.pendingSlot = null;
+  setPendingPhotos([]);
+  setPendingSlot(null);
 
   // Restore the "New Item" button just in case it was hidden by openEditPhotos
   const nextItemBtn = document.getElementById('next-item-btn');
@@ -49,15 +49,15 @@ export function startNewItem() {
 
 /** Prepares UI to overwrite existing photos */
 export async function openReplacePhotos() {
-  appState.form.photoContext = 'replace';
-  appState.form.photosDirty = false;
-  appState.ui.photosReturnScreen = 'screen-detail';
-  appState.form.pendingPhotos = [];
+  setPhotoContext('replace');
+  setPhotosDirty(false);
+  setPhotosReturnScreen('screen-detail');
+  setPendingPhotos([]);
   if (appState.data.currentItem && appState.data.currentItem.hasPhotos) {
     const rec = await dbGet(S_PHOTOS, appState.data.currentItem.id);
     if (rec && rec.images) {
       const storedThumb = appState.data.currentItem?.thumbnail ?? '';
-      appState.form.pendingPhotos = rec.images.map((image, i) => ({ dataUrl: image, thumbnail: i === 0 ? storedThumb : '' }));
+      setPendingPhotos(rec.images.map((image, i) => ({ dataUrl: image, thumbnail: i === 0 ? storedThumb : '' })));
     }
   }
   document.getElementById('addphotos-title').textContent = 'Replace Photos';
@@ -68,15 +68,15 @@ export async function openReplacePhotos() {
 
 /** Prepares UI to add to existing photos */
 export async function openAddMorePhotos() {
-  appState.form.photoContext = 'addMore';
-  appState.form.photosDirty = false;
-  appState.ui.photosReturnScreen = 'screen-detail';
-  appState.form.pendingPhotos = [];
+  setPhotoContext('addMore');
+  setPhotosDirty(false);
+  setPhotosReturnScreen('screen-detail');
+  setPendingPhotos([]);
   if (appState.data.currentItem && appState.data.currentItem.hasPhotos) {
     const rec = await dbGet(S_PHOTOS, appState.data.currentItem.id);
     if (rec && rec.images) {
       const storedThumb = appState.data.currentItem?.thumbnail ?? '';
-      appState.form.pendingPhotos = rec.images.map((image, i) => ({ dataUrl: image, thumbnail: i === 0 ? storedThumb : '' }));
+      setPendingPhotos(rec.images.map((image, i) => ({ dataUrl: image, thumbnail: i === 0 ? storedThumb : '' })));
     }
   }
   document.getElementById('addphotos-title').textContent = 'Add / Replace Photos';
@@ -100,14 +100,14 @@ export function initPhotoScreen() {
 /** Discards the current session and returns to the screen that launched photos */
 export function discardAndGoHome() {
   closeModal('modal-unsaved-photos');
-  appState.form.pendingPhotos = [];
-  appState.form.photosDirty = false;
+  setPendingPhotos([]);
+  setPhotosDirty(false);
 
   if (appState.form.photoContext === 'edit') {
     const nextItemBtn = document.getElementById('next-item-btn');
     if (nextItemBtn) nextItemBtn.style.display = 'flex';
   }
-  appState.form.photoContext = 'new';
+  setPhotoContext('new');
 
   if (appState.ui.photosReturnScreen === 'screen-home') {
     goHome();
@@ -160,7 +160,7 @@ export function renderSlots() {
 /** Removes a specific photo and re-compacts the list */
 export function removeSlot(index) {
   appState.form.pendingPhotos[index] = null;
-  appState.form.photosDirty = true;
+  setPhotosDirty(true);
   while (appState.form.pendingPhotos.length && !appState.form.pendingPhotos[appState.form.pendingPhotos.length - 1]) {
     appState.form.pendingPhotos.pop();
   }
@@ -170,7 +170,7 @@ export function removeSlot(index) {
 
 /** Triggers the native OS file/camera picker */
 export function slotTapped(index) {
-  appState.form.pendingSlot = index;
+  setPendingSlot(index);
   const inputId = appState.ui.photoMode === 'camera' ? 'photo-input-camera' : 'photo-input-library';
   const input = document.getElementById(inputId);
   input.value = '';
@@ -191,7 +191,7 @@ export function triggerNextCamera() {
     renderSlots();
     return;
   }
-  appState.form.pendingSlot = next;
+  setPendingSlot(next);
   const input = document.getElementById('photo-input-camera');
   input.value = '';
   input.click();
@@ -241,7 +241,7 @@ export function handlePhoto(event, mode) {
               const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
               const medium = await compressTo(dataUrl, 1200, 0.85, coords);
               appState.form.pendingPhotos[currentSlot] = { dataUrl: medium, thumbnail };
-              appState.form.photosDirty = true;
+              setPhotosDirty(true);
               dbg(`slot ${currentSlot}: done`);
             } catch (err) {
               dbg(`slot ${currentSlot}: compress ERROR — ${err.message}`);
@@ -276,8 +276,8 @@ export function handlePhoto(event, mode) {
         const thumbnail = await compressTo(dataUrl, 100, 0.7, coords);
         const medium = await compressTo(dataUrl, 1200, 0.85, coords);
         appState.form.pendingPhotos[slot] = { dataUrl: medium, thumbnail };
-        appState.form.pendingSlot = null;
-        appState.form.photosDirty = true;
+        setPendingSlot(null);
+        setPhotosDirty(true);
         dbg(`camera slot ${slot}: done`);
       } catch (err) {
         dbg(`camera slot ${slot}: compress ERROR — ${err.message}`);
@@ -294,7 +294,7 @@ export function handlePhoto(event, mode) {
         const bannerEl = document.getElementById('next-photo-banner');
         if (textEl) textEl.textContent = `📷 Photo ${filled} saved — take another?`;
         if (bannerEl) bannerEl.style.display = 'flex';
-        appState.form.pendingSlot = nextSlot;
+        setPendingSlot(nextSlot);
       } else {
         hideBanner();
       }
@@ -315,7 +315,7 @@ export function handlePhoto(event, mode) {
  */
 export async function savePhotos(startNewAfter = false, backToOrigin = false) {
   document.getElementById('modal-unsaved-photos').style.display = 'none';
-  appState.form.photosDirty = false;
+  setPhotosDirty(false);
   const photos = appState.form.pendingPhotos.filter(Boolean);
   dbg(`savePhotos: context=${appState.form.photoContext}, photos=${photos.length}`);
   if (!photos.length) return;
@@ -335,7 +335,7 @@ export async function savePhotos(startNewAfter = false, backToOrigin = false) {
     setCurrentItem(appState.data.items.find((item) => item.id === appState.data.currentItem.id));
 
     const wasAddingMore = appState.form.photoContext === 'addMore';
-    appState.form.photoContext = 'new';
+    setPhotoContext('new');
     const nextItemBtn = document.getElementById('next-item-btn');
     if (nextItemBtn) nextItemBtn.style.display = 'flex';
 

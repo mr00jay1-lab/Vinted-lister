@@ -1,4 +1,4 @@
-import { appState, S_ITEMS, S_PHOTOS, setItems, setCurrentItem } from './state.js';
+import { appState, S_ITEMS, S_PHOTOS, setItems, setCurrentItem, setPhotoContext, setPhotosDirty, setPendingPhotos, setPhotosReturnScreen, setDirty, setPendingStatus, setAiSelectedIndices } from './state.js';
 import { dbDelete, dbGet, dbGetAll, dbPut } from './db.js';
 import { goHome, renderDetail, updateStorageBar, showScreen, closeModal, resetStatePhotos } from './ui.js';
 import { initPhotoScreen } from './photos.js';
@@ -11,8 +11,8 @@ import { initPhotoScreen } from './photos.js';
 export function openItem(id) {
   setCurrentItem(appState.data.items.find((item) => item.id === id));
   if (!appState.data.currentItem) return;
-  appState.form.dirty = false;
-  appState.form.aiSelectedIndices = [0, 1]; // Default first two photos for AI
+  setDirty(false);
+  setAiSelectedIndices([0, 1]); // Default first two photos for AI
   resetStatePhotos();
   renderDetail().catch(err => console.error('renderDetail failed:', err));
   showScreen('screen-detail');
@@ -29,7 +29,7 @@ export async function deleteItem() {
 
 /** Monitors changes to fields to show the 'Save' button */
 export function markDirty() {
-  appState.form.dirty = true;
+  setDirty(true);
   const saveBtn = document.getElementById('save-edits-btn');
   if (saveBtn) saveBtn.style.display = 'flex';
 }
@@ -50,7 +50,7 @@ export async function saveEdits() {
 
   await dbPut(S_ITEMS, appState.data.currentItem);
   setItems(await dbGetAll(S_ITEMS));
-  appState.form.dirty = false;
+  setDirty(false);
 
   if (document.getElementById('save-edits-btn')) {
     document.getElementById('save-edits-btn').style.display = 'none';
@@ -62,11 +62,11 @@ export async function saveEdits() {
    SECTION 2: STATUS & PHOTO OPTIMIZATION
    ========================================================================== */
 
-/** Handles status changes, prompting to delete photos if marking sold/archived */
+/** Handles status changes, prompting to delete photos if marking sold */
 export function handleSetStatus(status) {
-  if (['sold', 'archived'].includes(status) && appState.data.currentItem.hasPhotos) {
-    appState.form.pendingStatus = status;
-    document.getElementById('drop-title').textContent = `Mark as ${status === 'sold' ? 'Sold' : 'Archived'}?`;
+  if (status === 'sold' && appState.data.currentItem.hasPhotos) {
+    setPendingStatus(status);
+    document.getElementById('drop-title').textContent = 'Mark as Sold?';
     document.getElementById('modal-drop-photos').style.display = 'flex';
   } else {
     setStatus(status);
@@ -80,7 +80,7 @@ export async function confirmDropPhotos() {
   appState.data.currentItem.hasPhotos = false;
   appState.data.currentItem.thumbnail = '';
   await setStatus(appState.form.pendingStatus);
-  appState.form.pendingStatus = null;
+  setPendingStatus(null);
 }
 
 /** Updates item status in DB and refreshes UI */
@@ -103,14 +103,12 @@ export function toggleAiPhoto(index) {
   const isSelected = appState.form.aiSelectedIndices.includes(index);
 
   if (isSelected) {
-    // Don't allow deselecting the last photo (Analysis needs at least one)
     if (appState.form.aiSelectedIndices.length <= 1) return;
-    appState.form.aiSelectedIndices = appState.form.aiSelectedIndices.filter((i) => i !== index);
+    setAiSelectedIndices(appState.form.aiSelectedIndices.filter((i) => i !== index));
   } else {
-    // Limit to 10 photos for the AI analysis
     if (appState.form.aiSelectedIndices.length >= 10) return;
-    appState.form.aiSelectedIndices.push(index);
-    appState.form.aiSelectedIndices.sort((a, b) => a - b);
+    const next = [...appState.form.aiSelectedIndices, index].sort((a, b) => a - b);
+    setAiSelectedIndices(next);
   }
   
   renderDetail().catch(err => console.error('renderDetail failed:', err));
@@ -122,22 +120,21 @@ export async function openEditPhotos() {
   if (!item) return;
 
   // 1. Set context so savePhotos/back knows we came from detail
-  appState.form.photoContext = 'edit';
-  appState.form.photosDirty = false;
-  appState.ui.photosReturnScreen = 'screen-detail';
+  setPhotoContext('edit');
+  setPhotosDirty(false);
+  setPhotosReturnScreen('screen-detail');
 
   // 2. LOAD THE PHOTOS: Fetch from DB and put into the pending area
-  appState.form.pendingPhotos = [];
+  setPendingPhotos([]);
   if (item.hasPhotos) {
     try {
       const rec = await dbGet(S_PHOTOS, item.id);
       if (rec && rec.images) {
-        // Map dataUrls into the object format the photo screen expects
         const storedThumb = appState.data.currentItem?.thumbnail ?? '';
-        appState.form.pendingPhotos = rec.images.map((img, i) => ({
+        setPendingPhotos(rec.images.map((img, i) => ({
           dataUrl: img,
           thumbnail: i === 0 ? storedThumb : '',
-        }));
+        })));
       }
     } catch (err) {
       console.error("Failed to load photos for editing:", err);
@@ -163,7 +160,7 @@ export function backFromAddPhotos() {
   } else {
     // Nothing changed — clean up and navigate straight back
     if (appState.form.photoContext === 'edit') {
-      appState.form.photoContext = 'new';
+      setPhotoContext('new');
       const nextItemBtn = document.getElementById('next-item-btn');
       if (nextItemBtn) nextItemBtn.style.display = 'flex';
       showScreen('screen-detail');

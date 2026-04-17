@@ -88,7 +88,6 @@ body {
 .badge-analysed { background: #dcfce7; color: #166534; }
 .badge-listed   { background: #d1fae5; color: #065f46; }
 .badge-sold     { background: #fef3c7; color: #92400e; }
-.badge-archived { background: #f3f4f6; color: #374151; }
 
 .filter-scroll { overflow-x: auto; display: flex; gap: 8px; padding: 10px 16px 2px; scrollbar-width: none; }
 .filter-scroll::-webkit-scrollbar { display: none; }
@@ -228,7 +227,6 @@ body {
 .status-select.st-analysed { border-color: #166634;      color: #166634; }
 .status-select.st-listed   { border-color: var(--teal);  color: var(--teal); }
 .status-select.st-sold     { border-color: var(--amber); color: var(--amber); }
-.status-select.st-archived { border-color: var(--gray);  color: var(--gray); }
 
 
 /* ==========================================================================
