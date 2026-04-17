@@ -30,3 +30,15 @@ Updated after every user correction. Reviewed at session start.
 **Rule:** Each `mcp__github__push_files` fallback call must contain exactly one file. After all files are pushed, run `git fetch origin dev && git reset --hard origin/dev` to sync local HEAD.
 
 ---
+
+**Problem:** `APP_VERSION` patch was not incremented across 3 consecutive commits (Sprint D, Sprint E, fix #52), requiring a catch-up bump commit.
+**Fix:** Bump `APP_VERSION` in `state.js` in the same commit as every code change on `dev`.
+**Rule:** Every commit that touches code must also increment the patch version. It is part of the commit, not a release-only step. Never push a code change without a version bump in the same batch.
+
+---
+
+**Problem:** `tasks/todo.md` from a prior session marked #38 as complete, but the actual `state.js` had never received the setter functions. Trusting the todo file caused the work to be nearly skipped.
+**Fix:** At the start of a sprint, grep the actual source files to verify "done" claims before treating any item as complete.
+**Rule:** Prior session notes and todo files are unreliable — always verify against the real code. A grep or file read takes seconds; a missed implementation ships broken assumptions.
+
+---
