@@ -63,6 +63,17 @@ export async function autoClean() {
 
   // Remove any orphaned draft_X IDB records left by a previous crash during photo processing
   for (let i = 0; i < MAX_PHOTOS; i++) await dbDelete(S_PHOTOS, `draft_${i}`);
+
+  // Cross-reference S_PHOTOS against S_ITEMS — delete any photo record whose item no
+  // longer exists or whose item has hasPhotos:false (de-synced state from past crashes)
+  const validPhotoIds = new Set(
+    appState.data.items.filter(item => item.hasPhotos).map(item => item.id)
+  );
+  const allPhotoRecs = await dbGetAll(S_PHOTOS);
+  for (const rec of allPhotoRecs) {
+    if (typeof rec.id === 'string' && rec.id.startsWith('draft_')) continue;
+    if (!validPhotoIds.has(rec.id)) await dbDelete(S_PHOTOS, rec.id);
+  }
 }
 
 /* ==========================================================================
