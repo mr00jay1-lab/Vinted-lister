@@ -6,6 +6,7 @@ import { renderDetail, renderHome, goHome, showScreen, closeModal } from './ui.j
 import { dbg } from './logger.js';
 
 let _libraryProcessing = false;
+let _cancelProcessing = false;
 
 /* ==========================================================================
    SECTION 1: SCREEN INITIALIZATION & MODES
@@ -28,6 +29,8 @@ function hideBanner() {
 
 /** Resets all states for a completely fresh item */
 export function startNewItem() {
+  _cancelProcessing = true;
+  for (let i = 0; i < MAX_PHOTOS; i++) dbDelete(S_PHOTOS, `draft_${i}`);
   setPhotoContext('new');
   setPhotosDirty(false);
   setPhotosReturnScreen('screen-home');
@@ -100,7 +103,8 @@ export function initPhotoScreen() {
 /** Discards the current session and returns to the screen that launched photos */
 export function discardAndGoHome() {
   closeModal('modal-unsaved-photos');
-  appState.form.pendingPhotos.filter(Boolean).forEach(p => { if (p.slotKey) dbDelete(S_PHOTOS, p.slotKey); });
+  _cancelProcessing = true;
+  for (let i = 0; i < MAX_PHOTOS; i++) dbDelete(S_PHOTOS, `draft_${i}`);
   setPendingPhotos([]);
   setPhotosDirty(false);
 
@@ -222,10 +226,12 @@ export function handlePhoto(event, mode) {
     dbg(`library: startSlot=${startSlot}, maxFiles=${maxFiles}, _processing=${_libraryProcessing}`);
     if (maxFiles <= 0) return;
     if (_libraryProcessing) return;
+    _cancelProcessing = false;
     _libraryProcessing = true;
 
     (async () => {
       for (let i = 0; i < maxFiles; i++) {
+        if (_cancelProcessing) break;
         const currentSlot = startSlot + i;
         await new Promise((resolve) => {
           const timer = setTimeout(() => {
@@ -245,8 +251,12 @@ export function handlePhoto(event, mode) {
               const medium = await compressTo(dataUrl, 1200, 0.85, coords);
               const slotKey = `draft_${currentSlot}`;
               await dbPut(S_PHOTOS, { id: slotKey, images: [medium] });
-              appState.form.pendingPhotos[currentSlot] = { slotKey, thumbnail };
-              setPhotosDirty(true);
+              if (_cancelProcessing) {
+                await dbDelete(S_PHOTOS, slotKey);
+              } else {
+                appState.form.pendingPhotos[currentSlot] = { slotKey, thumbnail };
+                setPhotosDirty(true);
+              }
               dbg(`slot ${currentSlot}: done`);
             } catch (err) {
               dbg(`slot ${currentSlot}: compress ERROR — ${err.message}`);
@@ -257,6 +267,7 @@ export function handlePhoto(event, mode) {
           dbg(`slot ${currentSlot}: FileReader start`);
           reader.readAsDataURL(files[i]);
         });
+        if (_cancelProcessing) break;
         hideBanner();
         renderSlots();
       }

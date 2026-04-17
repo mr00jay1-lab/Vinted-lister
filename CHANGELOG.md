@@ -23,7 +23,7 @@ All notable changes to Vinted Lister are documented here.
 | 42 | **Feature:** Group AI prompt inputs in Settings into labelled sections — Persona, Title, Description, Image Inspection — each section contains its own prompt lines and displays its own set of configurable constraints | New |
 | 43 | **Feature:** Photo reorder in photos screen — user can drag photos into a different order; image 1 becomes the item thumbnail shown on the home screen; order auto-saves on drop; thumbnail is regenerated after reorder | New |
 | 44 | **Feature:** Sequential photo slot reveal — prevent adding a new image slot until the previous slot has an image; only one empty (+) slot is shown at the end of the current photos at any time; once image N is filled, slot N+1 becomes visible | New |
-| 45 | **Bug:** Local storage not cleaned when an image is removed — deleting a photo leaves stale blob data in local storage; local storage must be checked and cleaned on every image removal | In dev |
+| 45 | **Bug:** Local storage not cleaned when an image is removed — deleting a photo leaves stale blob data in local storage; local storage must be checked and cleaned on every image removal | Done |
 | 46 | **Arch:** Remove `archived` item state — `deleted` is sufficient; all references to `archived` status must be removed from state, storage, and UI | Done |
 
 ---
