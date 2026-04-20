@@ -152,7 +152,7 @@ export async function openEditPhotos() {
   initPhotoScreen();
 }
 
-/** Handles the back button on Add Photos screen */
+/** Handles the back button on Add Photos screen with unsaved changes check */
 export function backFromAddPhotos() {
   if (appState.form.photosDirty) {
     // User has added or removed a photo — ask before leaving
