@@ -22,9 +22,9 @@ deliberate departure from the web app's BYOK model.
 | DI | `AppDeps` bundle from day one — abstract repo interfaces, no direct `FirebaseX.instance` calls from widgets |
 | Backend | Firebase — single project `vinted-lister-prod`, separate from Kindred's. No staging project — everything on prod. |
 | Backend purpose | Cross-device sync/backup + server-proxied AI calls + usage/entitlement enforcement |
-| AI calls | Server-proxied via Cloud Function (callable). Anthropic key lives in Firebase Secret Manager, never on-device. No BYOK. |
+| AI calls | Server-proxied via Cloud Function (callable). Anthropic key lives in Firebase Secret Manager, never on-device. No BYOK. Model: **Sonnet 5** (confirmed — not Opus 4.5, the web app's model). |
 | Free tier | 1 AI analysis/day, capped at **10 lifetime** (not monthly — once used, gone), enforced server-side |
-| Paywall | RevenueCat (`purchases_flutter`), same as Kindred. Two paid tiers, copying Vinting's structure: **Pro** (£4.99/mo, 50 analyses/month) and **Max** (£9.99/mo, 250 analyses/month). Each tier sold monthly + annual, **14-day free trial on annual only** (no trial on monthly, either tier). |
+| Paywall | RevenueCat (`purchases_flutter`), same as Kindred. Two paid tiers, copying Vinting's structure: **Pro** (£4.99/mo or £39.99/yr, 50 analyses/month) and **Max** (£9.99/mo or £79.99/yr, 250 analyses/month). 14-day free trial on both annual products only. |
 | Existing data | None migrated — App 2 starts with an empty item list (web app has no accounts, no user-identity link to carry over) |
 | Auth | Sign in with Apple only (v1) |
 | Bundle ID | `com.kindredhome.vintedlister` (single, no staging variant) |
@@ -112,10 +112,8 @@ colours[], materials[], createdAt, statusChangedAt, updatedAt   // optimistic-lo
   + 1/day pacing, or 50/month Pro, or 250/month Max) → reject with a "limit
   reached" error if over quota → call Anthropic with the Secret-Manager-held
   key → return parsed result.
-- **Model: recommend Sonnet 5** instead of Opus 4.5 (the web app's current
-  model) — ~40% cheaper per call at comparable quality for this task, per
-  the cost analysis below. Flagging as a recommendation, not yet a locked
-  decision — confirm before building the Cloud Function around it.
+- **Model: Sonnet 5** (confirmed), not Opus 4.5 (the web app's current
+  model) — ~40% cheaper per call at comparable quality for this task.
 - Cloud Function reading the Anthropic key must declare it in `secrets:[...]`
   in the function's options (Kindred convention — a real key silently not
   injected is a production outage, not a build error).
@@ -131,15 +129,16 @@ trial rather than Vinting's flat lifetime grant:
 | Tier | Price | Analyses | Trial |
 |---|---|---|---|
 | Free | — | 1/day, capped at 10 lifetime total (never resets) | — |
-| Pro | £4.99/mo or annual equivalent | 50/month | 14 days, annual only |
-| Max | £9.99/mo or annual equivalent | 250/month | 14 days, annual only |
+| Pro | £4.99/mo or £39.99/yr (~33% off) | 50/month | 14 days, annual only |
+| Max | £9.99/mo or £79.99/yr (~33% off) | 250/month | 14 days, annual only |
 
 - `purchases_flutter` (RevenueCat), same as Kindred. **4 products**: Pro
   monthly, Pro annual, Max monthly, Max annual. 14-day free trial on the two
   annual products only — neither monthly product has a trial.
-- Annual price TBD (propose ~30% off monthly-equivalent, matching market
-  norms) — this is an App Store Connect pricing field, not app code, so it's
-  changeable without a release.
+- Annual prices confirmed: Pro £39.99/yr, Max £79.99/yr (~33% off
+  monthly-equivalent, clean price points — Pro's matches AI Listing
+  Assistant's exact annual price as a market anchor). These are App Store
+  Connect pricing fields, not app code, so still changeable without a release.
 - Entitlement source of truth is the Firestore `entitlement` doc (webhook-
   updated), not the RevenueCat SDK's local cache and not a Firebase Auth
   custom claim — matches Kindred's pattern exactly.
@@ -211,19 +210,18 @@ trial rather than Vinting's flat lifetime grant:
    has) and adding it in a fast-follow. Recommend: ship v1 with centre-crop
    only, add ML Kit smart-crop as a fast-follow — avoids blocking the whole
    port on an unproven dependency.
-~~2. Subscriber monthly limit~~ — resolved: Pro 50/month, Max 250/month
+2. **Firebase region**: proposing `europe-west2` (same as Kindred) for
+   consistency — flag if you want a different region. (Project name is
+   resolved: `vinted-lister-prod`.)
+
+~~Subscriber monthly limit~~ — resolved: Pro 50/month, Max 250/month
 (copied from Vinting's structure).
 
-3. **Model confirmation**: Sonnet 5 recommended over Opus 4.5 for cost —
-   confirm before the AI-proxy Cloud Function is built around it.
-4. **Annual price points**: proposing ~30% off monthly-equivalent for both
-   Pro and Max annual products — confirm or adjust.
+~~Model~~ — resolved: Sonnet 5, not Opus 4.5.
 
-~~3. Firebase project name/region~~ — resolved: single project
-`vinted-lister-prod`. Region: proposing `europe-west2` (same as Kindred) for
-consistency — flag if you want a different region.
+~~Annual price points~~ — resolved: Pro £39.99/yr, Max £79.99/yr.
 
-~~4. Kindred org identifier~~ — resolved: `kindredhome` (confirmed via
+~~Kindred org identifier~~ — resolved: `kindredhome` (confirmed via
 `kindredhome.app`). Bundle ID: `com.kindredhome.vintedlister`.
 
 ## Next steps (once this plan is confirmed)
