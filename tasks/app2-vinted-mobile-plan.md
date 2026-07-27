@@ -204,15 +204,13 @@ trial rather than Vinting's flat lifetime grant:
 
 ## Open questions (need answers before or during build, not blocking the plan doc itself)
 
-1. **Smart-crop on Flutter**: no direct TF.js/COCO-SSD equivalent. Candidates:
-   `google_mlkit_object_detection` (on-device, Google ML Kit) or shipping v1
-   without smart-crop (centre-crop only, same fallback the web app already
-   has) and adding it in a fast-follow. Recommend: ship v1 with centre-crop
-   only, add ML Kit smart-crop as a fast-follow — avoids blocking the whole
-   port on an unproven dependency.
-2. **Firebase region**: proposing `europe-west2` (same as Kindred) for
-   consistency — flag if you want a different region. (Project name is
-   resolved: `vinted-lister-prod`.)
+1. **Smart-crop fast-follow timing**: day 1 ships centre-crop only (~half a
+   day of effort — one utility mirroring `compressTo()`'s centre-crop branch
+   using the pure-Dart `image` package, no native plugin, no async detection
+   race). ML Kit-based smart-crop (`google_mlkit_object_detection`) is a
+   multi-day fast-follow, not a day-1 item — model integration, async
+   detection latency in the capture flow, bounding-box math, and testing
+   across enough photos to trust the no-detection fallback.
 
 ~~Subscriber monthly limit~~ — resolved: Pro 50/month, Max 250/month
 (copied from Vinting's structure).
@@ -220,6 +218,8 @@ trial rather than Vinting's flat lifetime grant:
 ~~Model~~ — resolved: Sonnet 5, not Opus 4.5.
 
 ~~Annual price points~~ — resolved: Pro £39.99/yr, Max £79.99/yr.
+
+~~Firebase region~~ — resolved: `europe-west2` (same as Kindred).
 
 ~~Kindred org identifier~~ — resolved: `kindredhome` (confirmed via
 `kindredhome.app`). Bundle ID: `com.kindredhome.vintedlister`.
