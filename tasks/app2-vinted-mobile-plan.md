@@ -1,6 +1,8 @@
 # App 2 — Vinted Lister (Flutter/iOS) — Plan
 
-Status: DRAFT — awaiting confirmation before repo creation / any code.
+Status: In progress. Repo created and scaffolded:
+https://github.com/mr00jay1-lab/vinted-lister-app (canonical copy of this
+doc now lives there at `docs/plan.md` — update that copy going forward).
 
 ## Summary
 
