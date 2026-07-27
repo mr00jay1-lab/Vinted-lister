@@ -23,8 +23,8 @@ deliberate departure from the web app's BYOK model.
 | Backend | Firebase — single project `vinted-lister-prod`, separate from Kindred's. No staging project — everything on prod. |
 | Backend purpose | Cross-device sync/backup + server-proxied AI calls + usage/entitlement enforcement |
 | AI calls | Server-proxied via Cloud Function (callable). Anthropic key lives in Firebase Secret Manager, never on-device. No BYOK. |
-| Free tier | 2 AI analyses / month per user, enforced server-side |
-| Paywall | RevenueCat (`purchases_flutter`), same as Kindred — monthly + annual plans, 14-day free trial on annual only. Subscription raises the monthly analysis limit. |
+| Free tier | 1 AI analysis/day, capped at **10 lifetime** (not monthly — once used, gone), enforced server-side |
+| Paywall | RevenueCat (`purchases_flutter`), same as Kindred. Two paid tiers, copying Vinting's structure: **Pro** (£4.99/mo, 50 analyses/month) and **Max** (£9.99/mo, 250 analyses/month). Each tier sold monthly + annual, **14-day free trial on annual only** (no trial on monthly, either tier). |
 | Existing data | None migrated — App 2 starts with an empty item list (web app has no accounts, no user-identity link to carry over) |
 | Auth | Sign in with Apple only (v1) |
 | Bundle ID | `com.kindredhome.vintedlister` (single, no staging variant) |
@@ -75,15 +75,20 @@ colours[], materials[], createdAt, statusChangedAt, updatedAt   // optimistic-lo
   toggle, photo mode preference — these sync across devices since they're not
   secrets. No client-held Anthropic key at all now — the key lives only in
   Firebase Secret Manager, read by the Cloud Function.
-- **Usage**: `users/{uid}/usage` doc — `{count, periodStart}`. Checked and
+- **Usage**: `users/{uid}/usage` doc — shape depends on tier, checked and
   incremented inside the same Cloud Function call that proxies the Anthropic
-  request (atomic — no separate client-side increment to race or spoof).
-  Resets when `periodStart` rolls past a month; no scheduled job needed if
-  the check-on-read compares against "now" rather than relying on a cron reset.
-- **Entitlement**: `users/{uid}/entitlement` doc — mirrors the Kindred
-  pattern (`tier/Premium is a Firestore doc, not a token claim`). Updated by
-  the RevenueCat webhook Cloud Function, read (never trusted from the client)
-  by the AI-proxy function to decide the user's monthly limit.
+  request (atomic — no separate client-side increment to race or spoof):
+  - Free: `{lifetimeCount, lastUseDate}` — no monthly reset. Blocked once
+    `lifetimeCount` hits 10, permanently, regardless of `lastUseDate`.
+    `lastUseDate` enforces the 1/day pacing (max one successful call per
+    calendar day) independently of the lifetime cap.
+  - Pro/Max: `{monthlyCount, periodStart}` — resets when `periodStart` rolls
+    past a month; limit is 50 (Pro) or 250 (Max), read from `entitlement.tier`.
+- **Entitlement**: `users/{uid}/entitlement` doc — `{tier: 'free'|'pro'|'max', ...}`,
+  mirroring the Kindred pattern (`tier/Premium is a Firestore doc, not a
+  token claim`). Updated by the RevenueCat webhook Cloud Function, read
+  (never trusted from the client) by the AI-proxy function to pick the
+  usage-doc shape and limit above.
 - **Concurrent-safe fields**: any array field a background sync could touch
   concurrently (e.g. `colours`, `materials` if ever multi-write) uses
   `arrayUnion`/`arrayRemove`, not read-modify-write.
@@ -103,9 +108,14 @@ colours[], materials[], createdAt, statusChangedAt, updatedAt   // optimistic-lo
   function (photos + persona/rules in, parsed JSON out); it never talks to
   Anthropic directly.
 - The callable function, in order: verify Firebase Auth token → read
-  `entitlement` doc → read/check/increment `usage` doc (free limit vs.
-  subscriber limit) → reject with a "limit reached" error if over quota →
-  call Anthropic with the Secret-Manager-held key → return parsed result.
+  `entitlement` doc → read/check/increment `usage` doc (10-lifetime free cap
+  + 1/day pacing, or 50/month Pro, or 250/month Max) → reject with a "limit
+  reached" error if over quota → call Anthropic with the Secret-Manager-held
+  key → return parsed result.
+- **Model: recommend Sonnet 5** instead of Opus 4.5 (the web app's current
+  model) — ~40% cheaper per call at comparable quality for this task, per
+  the cost analysis below. Flagging as a recommendation, not yet a locked
+  decision — confirm before building the Cloud Function around it.
 - Cloud Function reading the Anthropic key must declare it in `secrets:[...]`
   in the function's options (Kindred convention — a real key silently not
   injected is a production outage, not a build error).
@@ -114,15 +124,31 @@ colours[], materials[], createdAt, statusChangedAt, updatedAt   // optimistic-lo
 
 ## Paywall & monetization
 
-- `purchases_flutter` (RevenueCat), same as Kindred. Two products: monthly,
-  annual. **14-day free trial on the annual product only** (App Store Connect
-  introductory offer) — monthly has no trial.
-- Free tier: 2 AI analyses/month, no subscription required. Any active
-  subscription raises the monthly limit (exact subscriber cap: TBD — see
-  open questions).
+Structure copied from Vinting (closest direct competitor — Vinted-specific AI
+listing generator), with the free tier changed to a daily-paced lifetime
+trial rather than Vinting's flat lifetime grant:
+
+| Tier | Price | Analyses | Trial |
+|---|---|---|---|
+| Free | — | 1/day, capped at 10 lifetime total (never resets) | — |
+| Pro | £4.99/mo or annual equivalent | 50/month | 14 days, annual only |
+| Max | £9.99/mo or annual equivalent | 250/month | 14 days, annual only |
+
+- `purchases_flutter` (RevenueCat), same as Kindred. **4 products**: Pro
+  monthly, Pro annual, Max monthly, Max annual. 14-day free trial on the two
+  annual products only — neither monthly product has a trial.
+- Annual price TBD (propose ~30% off monthly-equivalent, matching market
+  norms) — this is an App Store Connect pricing field, not app code, so it's
+  changeable without a release.
 - Entitlement source of truth is the Firestore `entitlement` doc (webhook-
   updated), not the RevenueCat SDK's local cache and not a Firebase Auth
   custom claim — matches Kindred's pattern exactly.
+- **Cost check (Sonnet 5, recommended model):** Pro's 50/month cap costs
+  ~£1.20/subscriber/month in Anthropic spend, Max's 250/month cap costs
+  ~£6/subscriber/month — both leave healthy margin under either the 15% or
+  30% Apple cut. A true *unlimited* tier was rejected: at Sonnet 5 rates a
+  single power user running 200+ analyses/month would cost more than either
+  subscription price.
 - Known integration tax from Kindred, budget time for all three:
   - ASC API keys are per-purpose and not interchangeable (the key for
     RevenueCat's App Store Server Notifications is not the same as the
@@ -185,9 +211,13 @@ colours[], materials[], createdAt, statusChangedAt, updatedAt   // optimistic-lo
    has) and adding it in a fast-follow. Recommend: ship v1 with centre-crop
    only, add ML Kit smart-crop as a fast-follow — avoids blocking the whole
    port on an unproven dependency.
-2. **Subscriber monthly limit**: free tier is 2/month — what should the
-   subscriber cap be (a specific number, or unlimited)? Needed for the
-   usage-check logic in the Cloud Function.
+~~2. Subscriber monthly limit~~ — resolved: Pro 50/month, Max 250/month
+(copied from Vinting's structure).
+
+3. **Model confirmation**: Sonnet 5 recommended over Opus 4.5 for cost —
+   confirm before the AI-proxy Cloud Function is built around it.
+4. **Annual price points**: proposing ~30% off monthly-equivalent for both
+   Pro and Max annual products — confirm or adjust.
 
 ~~3. Firebase project name/region~~ — resolved: single project
 `vinted-lister-prod`. Region: proposing `europe-west2` (same as Kindred) for
@@ -203,7 +233,8 @@ consistency — flag if you want a different region.
 3. Set up the `vinted-lister-prod` Firebase project — dashboard-side,
    owner-driven (per Kindred's own rule: no pasting long-lived secrets into
    chat). Add Anthropic key to Secret Manager.
-4. Set up RevenueCat products (monthly, annual w/ 14-day trial) — dashboard-side.
+4. Set up RevenueCat products — Pro monthly/annual, Max monthly/annual (4
+   products, 14-day trial on the two annual ones) — dashboard-side.
 5. Port data model + build the AI-proxy, usage, and billing-webhook Cloud
    Functions.
 6. Build UI screens in order: home → add-photos → detail → copy-flow → settings.
