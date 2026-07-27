@@ -6,9 +6,10 @@ Status: DRAFT — awaiting confirmation before repo creation / any code.
 
 Native iOS (Flutter/Dart) port of this web app, full v1 feature parity. New,
 independent repo (`vinted-lister-app`). Applies Kindred (App 1) retrospective
-lessons directly rather than repeating them. Backend added this time, scoped
-to cross-device sync/backup only — AI stays client-side (BYOK), matching the
-web app's model.
+lessons directly rather than repeating them. Backend added this time:
+cross-device sync/backup, PLUS (revised — see below) a server-proxied AI
+call with a free monthly allowance and a paywall to raise it. This is a
+deliberate departure from the web app's BYOK model.
 
 ## Decisions locked in
 
@@ -19,12 +20,15 @@ web app's model.
 | Scope v1 | Full parity with web app (photos → AI analysis → edit → copy-to-Vinted, statuses) |
 | State management | Riverpod (Kindred used setState; explicitly would choose Riverpod if starting over) |
 | DI | `AppDeps` bundle from day one — abstract repo interfaces, no direct `FirebaseX.instance` calls from widgets |
-| Backend | Firebase — new project(s), separate from Kindred's (`kindred-staging-f65cb`/`kindred-prod-762dc`) |
-| Backend purpose | Cross-device sync/backup only — no AI proxying |
-| AI calls | Stay client-side, BYOK Anthropic key, same model/prompt logic as web app |
+| Backend | Firebase — single project `vinted-lister-prod`, separate from Kindred's. No staging project — everything on prod. |
+| Backend purpose | Cross-device sync/backup + server-proxied AI calls + usage/entitlement enforcement |
+| AI calls | Server-proxied via Cloud Function (callable). Anthropic key lives in Firebase Secret Manager, never on-device. No BYOK. |
+| Free tier | 2 AI analyses / month per user, enforced server-side |
+| Paywall | RevenueCat (`purchases_flutter`), same as Kindred — monthly + annual plans, 14-day free trial on annual only. Subscription raises the monthly analysis limit. |
+| Existing data | None migrated — App 2 starts with an empty item list (web app has no accounts, no user-identity link to carry over) |
 | Auth | Sign in with Apple only (v1) |
-| Bundle ID | `com.kindredhome.vintedlister` (prod) / `com.kindredhome.vintedlister.staging` (iOS staging only, no Android staging bundle — matches Kindred's convention) |
-| CI/CD | GitHub Actions (lint/test gates) + Codemagic (dashboard-configured, no in-repo `codemagic.yaml`) → TestFlight/App Store via ASC API key, Automatic signing. No fastlane. |
+| Bundle ID | `com.kindredhome.vintedlister` (single, no staging variant) |
+| CI/CD | GitHub Actions (lint/test gates) + Codemagic (dashboard-configured, no in-repo `codemagic.yaml`), single workflow → TestFlight/App Store via ASC API key, Automatic signing. No fastlane. |
 
 ## Folder structure (mirrors Kindred, feature-first UI / layer-first data)
 
@@ -43,9 +47,12 @@ lib/
     settings/      # API key entry, persona/rules, smart-crop toggle, photo mode
     theme/
     widgets/
-  services/        # cross-cutting: ai_client (Anthropic), active_session, friendly_error
+  services/        # cross-cutting: active_session, friendly_error
   app_deps.dart    # single DI bundle, constructed once in main.dart
-functions/         # minimal — only if a Cloud Function ends up needed (see Open Questions)
+functions/src/
+  ai/              # ported analysis prompt/schema/parsing logic (TS) — callable AI-proxy function
+  billing/         # RevenueCat webhook handler — updates entitlement doc
+  usage/           # monthly usage-counter check + increment (shared by ai/ function)
 ```
 
 ## Data model (Firestore)
@@ -66,9 +73,17 @@ colours[], materials[], createdAt, statusChangedAt, updatedAt   // optimistic-lo
   in Kindred) rather than inline base64.
 - **Settings**: `users/{uid}/settings` doc for persona/rules text, smart-crop
   toggle, photo mode preference — these sync across devices since they're not
-  secrets. The Anthropic API key itself stays local-only in
-  `flutter_secure_storage`, never written to Firestore — it's BYOK and Kindred's
-  own model treats it as too sensitive to sync in plaintext.
+  secrets. No client-held Anthropic key at all now — the key lives only in
+  Firebase Secret Manager, read by the Cloud Function.
+- **Usage**: `users/{uid}/usage` doc — `{count, periodStart}`. Checked and
+  incremented inside the same Cloud Function call that proxies the Anthropic
+  request (atomic — no separate client-side increment to race or spoof).
+  Resets when `periodStart` rolls past a month; no scheduled job needed if
+  the check-on-read compares against "now" rather than relying on a cron reset.
+- **Entitlement**: `users/{uid}/entitlement` doc — mirrors the Kindred
+  pattern (`tier/Premium is a Firestore doc, not a token claim`). Updated by
+  the RevenueCat webhook Cloud Function, read (never trusted from the client)
+  by the AI-proxy function to decide the user's monthly limit.
 - **Concurrent-safe fields**: any array field a background sync could touch
   concurrently (e.g. `colours`, `materials` if ever multi-write) uses
   `arrayUnion`/`arrayRemove`, not read-modify-write.
@@ -79,13 +94,43 @@ colours[], materials[], createdAt, statusChangedAt, updatedAt   // optimistic-lo
   sync" state for it — transactions aren't offline-queued in Firestore,
   unlike plain `.set()`/`.update()`. Kindred shipped this exact bug once.
 
-## AI analysis (ported, not redesigned)
+## AI analysis (server-proxied, not client-side)
 
 - Same prompt-building logic as `analysis.js` (`buildAnalysisPrompt()`,
-  persona + rules from settings), same JSON schema, same model call — ported
-  to Dart 1:1, not reinvented.
+  persona + rules from settings) and same JSON schema — ported to
+  **TypeScript** in `functions/src/ai/`, not Dart, since the call now
+  originates server-side. The Flutter client calls a Firebase callable
+  function (photos + persona/rules in, parsed JSON out); it never talks to
+  Anthropic directly.
+- The callable function, in order: verify Firebase Auth token → read
+  `entitlement` doc → read/check/increment `usage` doc (free limit vs.
+  subscriber limit) → reject with a "limit reached" error if over quota →
+  call Anthropic with the Secret-Manager-held key → return parsed result.
+- Cloud Function reading the Anthropic key must declare it in `secrets:[...]`
+  in the function's options (Kindred convention — a real key silently not
+  injected is a production outage, not a build error).
 - Smart-crop: web app uses TF.js + COCO-SSD in-browser. No direct Dart/Flutter
   equivalent — **open question**, see below.
+
+## Paywall & monetization
+
+- `purchases_flutter` (RevenueCat), same as Kindred. Two products: monthly,
+  annual. **14-day free trial on the annual product only** (App Store Connect
+  introductory offer) — monthly has no trial.
+- Free tier: 2 AI analyses/month, no subscription required. Any active
+  subscription raises the monthly limit (exact subscriber cap: TBD — see
+  open questions).
+- Entitlement source of truth is the Firestore `entitlement` doc (webhook-
+  updated), not the RevenueCat SDK's local cache and not a Firebase Auth
+  custom claim — matches Kindred's pattern exactly.
+- Known integration tax from Kindred, budget time for all three:
+  - ASC API keys are per-purpose and not interchangeable (the key for
+    RevenueCat's App Store Server Notifications is not the same as the
+    ASC key Codemagic uses).
+  - RevenueCat webhook auth is a literal-string match on a header value —
+    NOT an `Authorization: Bearer <secret>` scheme. Easy to misconfigure.
+  - RevenueCat sandbox/test events use a fake `app_user_id` that 500s on
+    the webhook handler unless it's explicitly seeded in Firestore first.
 
 ## Auth & security rules
 
@@ -103,8 +148,8 @@ colours[], materials[], createdAt, statusChangedAt, updatedAt   // optimistic-lo
   `integration_test/` layer stood up from the start rather than retrofitted.
   `paths-ignore` for doc-only diffs from day one (Kindred added this after
   burning CI budget).
-- Codemagic: two workflows (staging bundle / prod bundle), dashboard-configured,
-  ASC API key with Admin access, Automatic signing.
+- Codemagic: single workflow (prod bundle only, no staging split),
+  dashboard-configured, ASC API key with Admin access, Automatic signing.
 - Pre-empt known process pitfalls from day one rather than rediscovering them:
   - git-proxy 403s on tag pushes / slug pushes → use workflow-dispatch
     server-side tag creation, PR+REST-merge instead of direct fast-forward push.
@@ -140,24 +185,28 @@ colours[], materials[], createdAt, statusChangedAt, updatedAt   // optimistic-lo
    has) and adding it in a fast-follow. Recommend: ship v1 with centre-crop
    only, add ML Kit smart-crop as a fast-follow — avoids blocking the whole
    port on an unproven dependency.
-2. **Existing web app users' data**: is there any need to import/migrate
-   existing items from the web app's IndexedDB into the new Firebase-backed
-   app, or does App 2 start with an empty item list? (Web app has no
-   accounts today, so there's no automatic user-identity link between the
-   two.)
-3. **Firebase project names/region**: propose `vinted-lister-staging` /
-   `vinted-lister-prod`, same region as Kindred (`europe-west2`) for
-   consistency — confirm or change.
-4. Confirm your Kindred org identifier is literally `kindredhome` (inferred
-   from `com.kindredhome.app`) before I use it in the bundle ID.
+2. **Subscriber monthly limit**: free tier is 2/month — what should the
+   subscriber cap be (a specific number, or unlimited)? Needed for the
+   usage-check logic in the Cloud Function.
+
+~~3. Firebase project name/region~~ — resolved: single project
+`vinted-lister-prod`. Region: proposing `europe-west2` (same as Kindred) for
+consistency — flag if you want a different region.
+
+~~4. Kindred org identifier~~ — resolved: `kindredhome` (confirmed via
+`kindredhome.app`). Bundle ID: `com.kindredhome.vintedlister`.
 
 ## Next steps (once this plan is confirmed)
 
 1. Create `vinted-lister-app` GitHub repo.
 2. Scaffold Flutter project, `AppDeps`, Riverpod, empty repositories.
-3. Set up Firebase projects (staging/prod) — dashboard-side, owner-driven
-   (per Kindred's own rule: no pasting long-lived secrets into chat).
-4. Port data model + AI client.
-5. Build UI screens in order: home → add-photos → detail → copy-flow → settings.
-6. Wire CI (GitHub Actions) + Codemagic.
-7. TestFlight internal build.
+3. Set up the `vinted-lister-prod` Firebase project — dashboard-side,
+   owner-driven (per Kindred's own rule: no pasting long-lived secrets into
+   chat). Add Anthropic key to Secret Manager.
+4. Set up RevenueCat products (monthly, annual w/ 14-day trial) — dashboard-side.
+5. Port data model + build the AI-proxy, usage, and billing-webhook Cloud
+   Functions.
+6. Build UI screens in order: home → add-photos → detail → copy-flow → settings.
+7. Wire paywall UI + entitlement/usage gating in the app.
+8. Wire CI (GitHub Actions) + Codemagic (single prod workflow).
+9. TestFlight internal build.
