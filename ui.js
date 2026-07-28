@@ -328,7 +328,7 @@ export async function renderDetail() {
       <div class="fields-grid-2col">
         <div class="field"><label>Condition</label>
           <select id="f-condition" onchange="window.markDirty()">
-            <option>New with tags</option><option>Like new</option><option>Good</option><option>Fair</option><option>Poor</option>
+            <option>New with tags</option><option>New without tags</option><option>Very good</option><option>Good</option><option>Satisfactory</option>
           </select>
         </div>
         <div class="field"><label>Colour</label><input id="f-colours" type="text" oninput="window.markDirty()" /></div>

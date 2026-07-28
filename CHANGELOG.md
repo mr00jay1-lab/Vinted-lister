@@ -25,6 +25,7 @@ All notable changes to Vinted Lister are documented here.
 | 44 | **Feature:** Sequential photo slot reveal — prevent adding a new image slot until the previous slot has an image; only one empty (+) slot is shown at the end of the current photos at any time; once image N is filled, slot N+1 becomes visible | New |
 | 45 | **Bug:** Local storage not cleaned when an image is removed — deleting a photo leaves stale blob data in local storage; local storage must be checked and cleaned on every image removal | Done |
 | 46 | **Arch:** Remove `archived` item state — `deleted` is sufficient; all references to `archived` status must be removed from state, storage, and UI | Done |
+| 53 | **Bug:** Condition dropdown (`New with tags`/`Like new`/`Good`/`Fair`/`Poor`) didn't match Vinted's real 5 options (`New with tags`/`New without tags`/`Very good`/`Good`/`Satisfactory`), and the AI's category guesses had no grounding in Vinted's actual taxonomy — both defeated the point of copying a listing straight into Vinted's own form | Done |
 
 ---
 

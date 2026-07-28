@@ -13,10 +13,10 @@ Return ONLY valid JSON. No markdown, no explanation, no backticks.
 {
   "title": "listing title",
   "description": "buyer description",
-  "category": "Vinted category path",
+  "category": "real Vinted category breadcrumb — see Category rule below",
   "brand": "brand name",
   "size": "size label",
-  "condition": "New with tags|Like new|Good|Fair|Poor",
+  "condition": "New with tags|New without tags|Very good|Good|Satisfactory",
   "colours": ["list", "of", "colours"],
   "materials": ["list", "of", "materials"]
 }`;

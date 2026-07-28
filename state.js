@@ -77,6 +77,7 @@ const DEFAULT_RULES = `- Title: Concise, max 50 chars. Format: Brand Item Colour
 - Description:
   1. Write max 250 chars. For CLOTHES: focus on fit, style, and softness. For TOYS: focus on features, play value, and if all parts are included.
   2. ALWAYS append on a new line: "Open to offers and bundles. From a smoke and pet-free home."
+- Category: Use Vinted's real category breadcrumb, age/gender group first, e.g. "Kids > Girls clothing > Dresses", "Kids > Boys clothing > Tops & T-shirts", "Kids > Toys". Never invent a category that doesn't exist on Vinted.
 - Inspection:
   - CLOTHES: Look closely at seams/edges for pilling or fading.
   - TOYS: Look for scratches, missing stickers, or battery compartment wear.
